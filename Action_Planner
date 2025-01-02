@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Project Manager</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background: #f4f4f4;
+        }
+        header {
+            background: #2c3e50;
+            color: white;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        header h1 {
+            margin: 0;
+        }
+        nav button {
+            background: #2980b9;
+            border: none;
+            color: white;
+            padding: 0.5rem 1rem;
+            margin-left: 0.5rem;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        nav input[type="file"] {
+            display: none;
+        }
+        nav .upload-btn {
+            background: #27ae60;
+            display: inline-block;
+        }
+        #flowchart {
+            width: 100%;
+            height: 80vh;
+            border: 1px solid #ccc;
+            background: white;
+            overflow: hidden;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            padding-top: 50px;
+        }
+        .modal-content {
+            background: white;
+            margin: auto;
+            padding: 20px;
+            width: 90%;
+            max-width: 500px;
+            border-radius: 8px;
+            position: relative;
+        }
+        .close-button {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        input, select, button {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .template-btn {
+            background: #8e44ad;
+            color: white;
+            border: none;
+            padding: 10px;
+            margin: 5px 0;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .upload-btn {
+            background: #27ae60;
+        }
+        .node circle {
+            stroke: white;
+            stroke-width: 2px;
+        }
+        .node text {
+            fill: white;
+            font-size: 12px;
+        }
+        .link {
+            stroke: #999;
+            stroke-opacity: 0.6;
+            stroke-width: 2px;
+            fill: none;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .add-node-btn {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            flex: 1;
+        }
+        .reorder-btn {
+            background: #f39c12;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            flex: 1;
+        }
+        .save-btn {
+            background: #2980b9;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            flex: 1;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+</head>
+<body>
+    <header>
+        <h1>Project Manager</h1>
+        <nav>
+            <button id="templateBtn">Templates</button>
+            <button id="exportBtn">Export</button>
+            <input type="file" id="fileInput" accept=".json">
+            <button id="uploadBtn" class="upload-btn">Upload</button>
+        </nav>
+    </header>
+    <div id="flowchart"></div>
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="closeModal">×</span>
+            <h2>Task Details</h2>
+            <form id="taskForm">
+                <label>Task Name:
+                    <input type="text" id="taskName" required>
+                </label>
+                <label>Responsible:
+                    <input type="text" id="responsible" required>
+                </label>
+                <label>Status:
+                    <select id="status">
+                        <option value="Not Started">Not Started</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Completed">Completed</option>
+                    </select>
+                </label>
+                <label>Deadline:
+                    <input type="date" id="deadline">
+                </label>
+                <label>Priority:
+                    <select id="priority">
+                        <option value="Low">Low</option>
+                        <option value="Normal">Normal</option>
+                        <option value="High">High</option>
+                    </select>
+                </label>
+                <div class="action-buttons">
+                    <button type="submit" class="save-btn">Save</button>
+                    <button type="button" class="add-node-btn" id="addNodeBtn">Add Child Node</button>
+                    <button type="button" class="reorder-btn" id="moveUpBtn">Move Up</button>
+                    <button type="button" class="reorder-btn" id="moveDownBtn">Move Down</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div id="templateModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="closeTemplateModal">×</span>
+            <h2>Select Template</h2>
+            <button class="template-btn" data-template="prototype">Prototype Development</button>
+            <button class="template-btn" data-template="vendor">Vendor Outreach</button>
+            <button class="template-btn" data-template="marketing">Marketing Campaign</button>
+        </div>
+    </div>
+    <script>
+        let selectedNode = null;
+        let data = { nodes: [], links: [] };
+        let svg;
+        let linkGroup;
+        let nodeGroup;
+
+        function initD3() {
+            const flowchart = document.getElementById('flowchart');
+            const width = flowchart.clientWidth;
+            const height = flowchart.clientHeight;
+            flowchart.innerHTML = '';
+            svg = d3.select('#flowchart')
+                .append('svg')
+                .attr('width', width)
+                .attr('height', height);
+
+            linkGroup = svg.append('g');
+            nodeGroup = svg.append('g');
+        }
+
+        function createNode(parentNode) {
+            const newNodeId = `node-${Date.now()}`;
+            const newNode = {
+                id: newNodeId,
+                name: 'New Task',
+                status: 'Not Started',
+                responsible: '',
+                deadline: '',
+                priority: 'Normal',
+                x: Math.random() * 400 + 50,
+                y: Math.random() * 400 + 50
+            };
+            data.nodes.push(newNode);
+            if (parentNode) {
+                data.links.push({
+                    source: parentNode.id,
+                    target: newNodeId
+                });
+            }
+            update();
+            return newNode;
+        }
+
+        function update() {
+            const links = linkGroup.selectAll('.link')
+                .data(data.links);
+            links.exit().remove();
+
+            links.enter()
+                .append('line')
+                .attr('class', 'link')
+                .merge(links)
+                .attr('x1', d => data.nodes.find(node => node.id === d.source).x)
+                .attr('y1', d => data.nodes.find(node => node.id === d.source).y)
+                .attr('x2', d => data.nodes.find(node => node.id === d.target).x)
+                .attr('y2', d => data.nodes.find(node => node.id === d.target).y);
+
+            const nodes = nodeGroup.selectAll('.node')
+                .data(data.nodes);
+            nodes.exit().remove();
+
+            const nodesEnter = nodes.enter()
+                .append('g')
+                .attr('class', 'node')
+                .attr('transform', d => `translate(${d.x},${d.y})`)
+                .call(d3.drag()
+                    .on('start', dragStart)
+                    .on('drag', dragging)
+                    .on('end', dragEnd))
+                .on('click', nodeClick);
+
+            nodesEnter.append('circle')
+                .attr('r', 30)
+                .attr('fill', d => getStatusColor(d.status));
+
+            nodesEnter.append('text')
+                .attr('text-anchor', 'middle')
+                .attr('dy', '0.3em')
+                .text(d => d.name);
+
+            const allNodes = nodesEnter.merge(nodes);
+            
+            // Update node positions
+            allNodes.attr('transform', d => `translate(${d.x},${d.y})`);
+            
+            // Update circle colors based on status
+            allNodes.select('circle')
+                .attr('fill', d => getStatusColor(d.status));
+            
+            // Update text content with new names
+            allNodes.select('text')
+                .text(d => d.name);
+        }
+
+        function getStatusColor(status) {
+            switch (status) {
+                case 'Not Started':
+                    return '#e74c3c';
+                case 'In Progress':
+                    return '#f1c40f';
+                case 'Completed':
+                    return '#2ecc71';
+                default:
+                    return '#3498db';
+            }
+        }
+
+        function dragStart(event) {
+            if (!event.active) d3.select(this).raise().classed('active', true);
+            event.subject.fx = event.subject.x;
+            event.subject.fy = event.subject.y;
+        }
+
+        function dragging(event) {
+            event.subject.x = event.x;
+            event.subject.y = event.y;
+            d3.select(this).attr('transform', `translate(${event.subject.x},${event.subject.y})`);
+            updateLinks();
+        }
+
+        function dragEnd(event) {
+            if (!event.active) d3.select(this).classed('active', false);
+            event.subject.fx = null;
+            event.subject.fy = null;
+        }
+
+        function updateLinks() {
+            linkGroup.selectAll('.link')
+                .attr('x1', d => data.nodes.find(node => node.id === d.source).x)
+                .attr('y1', d => data.nodes.find(node => node.id === d.source).y)
+                .attr('x2', d => data.nodes.find(node => node.id === d.target).x)
+                .attr('y2', d => data.nodes.find(node => node.id === d.target).y);
+        }
+
+        function nodeClick(event, d) {
+            event.stopPropagation();
+            selectedNode = d;
+            const modal = document.getElementById('modal');
+            document.getElementById('taskName').value = d.name || '';
+            document.getElementById('responsible').value = d.responsible || '';
+            document.getElementById('status').value = d.status || 'Not Started';
+            document.getElementById('deadline').value = d.deadline || '';
+            document.getElementById('priority').value = d.priority || 'Normal';
+            modal.style.display = 'block';
+        }
+
+        function saveToFile() {
+            const dataStr = JSON.stringify(data, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'project-data.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function loadFromFile(file) {
+            if (!file) {
+                alert('No file selected.');
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const fileData = JSON.parse(e.target.result);
+                    if (fileData.nodes && fileData.links) {
+                        data = fileData;
+                        update();
+                    } else {
+                        alert('Invalid file format');
+                    }
+                } catch (error) {
+                    alert('Error reading file');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function loadTemplate(template) {
+            switch (template) {
+                case 'prototype':
+                    data = {
+                        nodes: [
+                            { id: '1', name: 'Design', status: 'Completed', x: 100, y: 100 },
+                            { id: '2', name: 'Development', status: 'In Progress', x: 200, y: 200 },
+                            { id: '3', name: 'Testing', status: 'Not Started', x: 300, y: 300 }
+                        ],
+                        links: [
+                            { source: '1', target: '2' },
+                            { source: '2', target: '3' }
+                        ]
+                    };
+                    break;
+                case 'vendor':
+                    data = {
+                        nodes: [
+                            { id: '1', name: 'Identify', status: 'Completed', x: 100, y: 100 },
+                            { id: '2', name: 'Outreach', status: 'In Progress', x: 200, y: 200 },
+                            { id: '3', name: 'Negotiate', status: 'Not Started', x: 300, y: 300 }
+                        ],
+                        links: [
+                            { source: '1', target: '2' },
+                            { source: '2', target: '3' }
+                        ]
+                    };
+                    break;
+                case 'marketing':
+                    data = {
+                        nodes: [
+                            { id: '1', name: 'Research', status: 'Completed', x: 100, y: 100 },
+                            { id: '2', name: 'Planning', status: 'In Progress', x: 200, y: 200 },
+                            { id: '3', name: 'Execute', status: 'Not Started', x: 300, y: 300 }
+                        ],
+                        links: [
+                            { source: '1', target: '2' },
+                            { source: '2', target: '3' }
+                        ]
+                    };
+                    break;
+            }
+            update();
+        }
+
+        function reorderNodes(direction) {
+            if (!selectedNode) return;
+            const links = data.links;
+            const index = links.findIndex(link => link.target === selectedNode.id);
+            if (index === -1) {
+                alert("This node cannot be reordered as it's a root node");
+                return;
+            }
+            const currentLink = links[index];
+            const previousIndex = links.findIndex(link => link.target === currentLink.source);
+            if (direction === 'up') {
+                if (previousIndex === -1) {
+                    alert("This is the first node, it cannot be moved up");
+                    return;
+                }
+                const previousLink = links[previousIndex];
+                links[index] = { source: previousLink.source, target: currentLink.target };
+                links[previousIndex] = { source: currentLink.source, target: previousLink.target };
+            } else if (direction === 'down') {
+                const nextIndex = links.findIndex(link => link.source === currentLink.target);
+                if (nextIndex === -1) {
+                    alert("This is the last node, it cannot be moved down");
+                    return;
+                }
+                const nextLink = links[nextIndex];
+                links[index] = { source: currentLink.target, target: nextLink.target };
+                links[nextIndex] = { source: currentLink.source, target: nextLink.source };
+            }
+            update();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initD3();
+            document.getElementById('addNodeBtn').onclick = (e) => {
+                e.preventDefault();
+                if (selectedNode) {
+                    const newNode = createNode(selectedNode);
+                    selectedNode = newNode;
+                    nodeClick(e, newNode);
+                }
+            };
+            document.getElementById('moveUpBtn').onclick = () => reorderNodes('up');
+            document.getElementById('moveDownBtn').onclick = () => reorderNodes('down');
+            document.getElementById('templateBtn').onclick = () => {
+                document.getElementById('templateModal').style.display = 'block';
+            };
+            document.querySelectorAll('.template-btn').forEach(btn => {
+                btn.onclick = (e) => {
+                    loadTemplate(e.target.dataset.template);
+                    document.getElementById('templateModal').style.display = 'none';
+                };
+            });
+            document.getElementById('taskForm').onsubmit = (e) => {
+                e.preventDefault();
+                if (selectedNode) {
+                    selectedNode.name = document.getElementById('taskName').value;
+                    selectedNode.responsible = document.getElementById('responsible').value;
+                    selectedNode.status = document.getElementById('status').value;
+                    selectedNode.deadline = document.getElementById('deadline').value;
+                    selectedNode.priority = document.getElementById('priority').value;
+                    update();
+                }
+                document.getElementById('modal').style.display = 'none';
+            };
+            document.getElementById('exportBtn').onclick = saveToFile;
+            const uploadButton = document.getElementById('uploadBtn');
+            const fileInput = document.getElementById('fileInput');
+            uploadButton.onclick = () => fileInput.click();
+            fileInput.onchange = (e) => {
+                if (e.target.files.length > 0) {
+                    loadFromFile(e.target.files[0]);
+                }
+            };
+            document.querySelectorAll('.close-button').forEach(btn => {
+                btn.onclick = (e) => {
+                    e.stopPropagation();
+                    btn.closest('.modal').style.display = 'none';
+                };
+            });
+            window.onclick = (e) => {
+                if (e.target.classList.contains('modal')) {
+                    e.target.style.display = 'none';
+                }
+            };
+            loadTemplate('prototype');
+        });
+    </script>
+</body>
+</html>
