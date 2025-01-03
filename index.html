@@ -201,7 +201,8 @@
             <button class="template-btn" data-template="marketing">Marketing Campaign</button>
         </div>
     </div>
-    <script>
+  
+      <script>
         let selectedNode = null;
         let data = { nodes: [], links: [] };
         let svg;
@@ -283,15 +284,9 @@
                 .text(d => d.name);
 
             const allNodes = nodesEnter.merge(nodes);
-            
-            // Update node positions
             allNodes.attr('transform', d => `translate(${d.x},${d.y})`);
-            
-            // Update circle colors based on status
             allNodes.select('circle')
                 .attr('fill', d => getStatusColor(d.status));
-            
-            // Update text content with new names
             allNodes.select('text')
                 .text(d => d.name);
         }
@@ -388,9 +383,9 @@
                 case 'prototype':
                     data = {
                         nodes: [
-                            { id: '1', name: 'Design', status: 'Completed', x: 100, y: 100 },
-                            { id: '2', name: 'Development', status: 'In Progress', x: 200, y: 200 },
-                            { id: '3', name: 'Testing', status: 'Not Started', x: 300, y: 300 }
+                            { id: '1', name: 'Design', status: 'Completed', x: 100, y: 200 },
+                            { id: '2', name: 'Development', status: 'In Progress', x: 300, y: 200 },
+                            { id: '3', name: 'Testing', status: 'Not Started', x: 500, y: 200 }
                         ],
                         links: [
                             { source: '1', target: '2' },
@@ -401,9 +396,9 @@
                 case 'vendor':
                     data = {
                         nodes: [
-                            { id: '1', name: 'Identify', status: 'Completed', x: 100, y: 100 },
-                            { id: '2', name: 'Outreach', status: 'In Progress', x: 200, y: 200 },
-                            { id: '3', name: 'Negotiate', status: 'Not Started', x: 300, y: 300 }
+                            { id: '1', name: 'Identify', status: 'Completed', x: 100, y: 200 },
+                            { id: '2', name: 'Outreach', status: 'In Progress', x: 300, y: 200 },
+                            { id: '3', name: 'Negotiate', status: 'Not Started', x: 500, y: 200 }
                         ],
                         links: [
                             { source: '1', target: '2' },
@@ -414,9 +409,9 @@
                 case 'marketing':
                     data = {
                         nodes: [
-                            { id: '1', name: 'Research', status: 'Completed', x: 100, y: 100 },
-                            { id: '2', name: 'Planning', status: 'In Progress', x: 200, y: 200 },
-                            { id: '3', name: 'Execute', status: 'Not Started', x: 300, y: 300 }
+                            { id: '1', name: 'Research', status: 'Completed', x: 100, y: 200 },
+                            { id: '2', name: 'Planning', status: 'In Progress', x: 300, y: 200 },
+                            { id: '3', name: 'Execute', status: 'Not Started', x: 500, y: 200 }
                         ],
                         links: [
                             { source: '1', target: '2' },
@@ -430,32 +425,73 @@
 
         function reorderNodes(direction) {
             if (!selectedNode) return;
-            const links = data.links;
-            const index = links.findIndex(link => link.target === selectedNode.id);
-            if (index === -1) {
-                alert("This node cannot be reordered as it's a root node");
+
+            // Find the current node's index in the nodes array
+            const currentIndex = data.nodes.findIndex(node => node.id === selectedNode.id);
+
+            if (direction === 'up' && currentIndex > 0) {
+                // Swap nodes in the array
+                const temp = data.nodes[currentIndex];
+                data.nodes[currentIndex] = data.nodes[currentIndex - 1];
+                data.nodes[currentIndex - 1] = temp;
+
+                // Swap their positions
+                const tempX = data.nodes[currentIndex].x;
+                const tempY = data.nodes[currentIndex].y;
+                data.nodes[currentIndex].x = data.nodes[currentIndex - 1].x;
+                data.nodes[currentIndex].y = data.nodes[currentIndex - 1].y;
+                data.nodes[currentIndex - 1].x = tempX;
+                data.nodes[currentIndex - 1].y = tempY;
+
+                // Update links
+                data.links.forEach(link => {
+                    if (link.source === data.nodes[currentIndex].id) {
+                        link.source = data.nodes[currentIndex - 1].id;
+                    } else if (link.source === data.nodes[currentIndex - 1].id) {
+                        link.source = data.nodes[currentIndex].id;
+                    }
+                    if (link.target === data.nodes[currentIndex].id) {
+                        link.target = data.nodes[currentIndex - 1].id;
+                    } else if (link.target === data.nodes[currentIndex - 1].id) {
+                        link.target = data.nodes[currentIndex].id;
+                    }
+                });
+
+            } else if (direction === 'down' && currentIndex < data.nodes.length - 1) {
+                // Swap nodes in the array
+                const temp = data.nodes[currentIndex];
+                data.nodes[currentIndex] = data.nodes[currentIndex + 1];
+                data.nodes[currentIndex + 1] = temp;
+
+                // Swap their positions
+                const tempX = data.nodes[currentIndex].x;
+                const tempY = data.nodes[currentIndex].y;
+                data.nodes[currentIndex].x = data.nodes[currentIndex + 1].x;
+                data.nodes[currentIndex].y = data.nodes[currentIndex + 1].y;
+                data.nodes[currentIndex + 1].x = tempX;
+                data.nodes[currentIndex + 1].y = tempY;
+
+                // Update links
+                data.links.forEach(link => {
+                    if (link.source === data.nodes[currentIndex].id) {
+                        link.source = data.nodes[currentIndex + 1].id;
+                    } else if (link.source === data.nodes[currentIndex + 1].id) {
+                        link.source = data.nodes[currentIndex].id;
+                    }
+                    if (link.target === data.nodes[currentIndex].id) {
+                        link.target = data.nodes[currentIndex + 1].id;
+                    } else if (link.target === data.nodes[currentIndex + 1].id) {
+                        link.target = data.nodes[currentIndex].id;
+                    }
+                });
+
+            } else {
+                alert(direction === 'up' ? 
+                    "This is the first node in the sequence" : 
+                    "This is the last node in the sequence");
                 return;
             }
-            const currentLink = links[index];
-            const previousIndex = links.findIndex(link => link.target === currentLink.source);
-            if (direction === 'up') {
-                if (previousIndex === -1) {
-                    alert("This is the first node, it cannot be moved up");
-                    return;
-                }
-                const previousLink = links[previousIndex];
-                links[index] = { source: previousLink.source, target: currentLink.target };
-                links[previousIndex] = { source: currentLink.source, target: previousLink.target };
-            } else if (direction === 'down') {
-                const nextIndex = links.findIndex(link => link.source === currentLink.target);
-                if (nextIndex === -1) {
-                    alert("This is the last node, it cannot be moved down");
-                    return;
-                }
-                const nextLink = links[nextIndex];
-                links[index] = { source: currentLink.target, target: nextLink.target };
-                links[nextIndex] = { source: currentLink.source, target: nextLink.source };
-            }
+
             update();
         }
 
