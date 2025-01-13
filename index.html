@@ -234,6 +234,47 @@
     </div>
 
     <script>
+      <script>
+  // Here's the wrapText function
+  function wrapText(text, width) {
+    text.each(function() {
+      let textEl = d3.select(this),
+          words = textEl.text().split(/\s+/).reverse(),
+          line = [],
+          lineNumber = 0,
+          lineHeight = 1.2, // spacing for multi-line
+          x = textEl.attr("x") || 0,
+          y = textEl.attr("y") || 0,
+          dy = parseFloat(textEl.attr("dy")) || 0;
+
+      let tspan = textEl.text(null)
+        .append("tspan")
+        .attr("x", x)
+        .attr("y", y)
+        .attr("dy", dy + "em");
+
+      let word;
+      while ((word = words.pop())) {
+        line.push(word);
+        tspan.text(line.join(" "));
+        if (tspan.node().getComputedTextLength() > width) {
+          line.pop();
+          tspan.text(line.join(" "));
+          line = [word];
+          tspan = textEl.append("tspan")
+            .attr("x", x)
+            .attr("y", y)
+            .attr("dy", ++lineNumber * lineHeight + dy + "em")
+            .text(word);
+        }
+      }
+    });
+  }
+
+  // The rest of your script code goes below...
+  // function initD3() { ... }
+  // function update() { ... }
+</script>
         let selectedNode = null;
         let data = { nodes: [], links: [] };
         let simulation;
@@ -366,10 +407,13 @@
                 .attr('r', 60)
                 .attr('fill', d => getStatusColor(d.status));
 
-            allNodes.append('text')
-                .attr('text-anchor', 'middle')
-                .attr('dy', '0.3em')
-                .text(d => d.name);
+         // We assume circle radius is ~60, so diameter ~120.
+// Pass a slightly smaller width (e.g. 90 or 100) for wrapping.
+allNodes.append('text')
+  .attr('text-anchor', 'middle')
+  .attr('dy', 0) // We'll let wrapText manage line spacing
+  .text(d => d.name)
+  .call(wrapText, 100);  // 100px is the max text width for wrapping
 
             simulation.nodes(data.nodes)
                 .on('tick', () => {
