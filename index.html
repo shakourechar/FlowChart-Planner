@@ -1,5 +1,14 @@
 <!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">
+  <title>F3D Action Planner</title>
+</head>
+<body>
+<!-- partial:index.partial.html -->
+<!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>Project Manager</title>
@@ -7,11 +16,13 @@
         * {
             box-sizing: border-box;
         }
+
         body {
             margin: 0;
             font-family: 'Segoe UI', sans-serif;
             background: #f4f4f4;
         }
+
         header {
             background: #2c3e50;
             color: white;
@@ -20,9 +31,11 @@
             justify-content: space-between;
             align-items: center;
         }
+
         header h1 {
             margin: 0;
         }
+
         nav button {
             background: #2980b9;
             border: none;
@@ -78,11 +91,16 @@
             flex-direction: column;
             gap: 10px;
         }
-        input, select, button {
+
+        input,
+        select,
+        button,
+        textarea {
             padding: 8px;
             border: 1px solid #ccc;
             border-radius: 4px;
         }
+
         .template-btn {
             background: #8e44ad;
             color: white;
@@ -92,28 +110,32 @@
             cursor: pointer;
             border-radius: 4px;
         }
-        .upload-btn {
-            background: #27ae60;
-        }
+       .upload-btn{
+          background: #27ae60;
+       }
         .node circle {
             stroke: white;
             stroke-width: 2px;
         }
+
         .node text {
             fill: white;
             font-size: 12px;
         }
-        .link {
+
+       .link {
             stroke: #999;
             stroke-opacity: 0.6;
             stroke-width: 2px;
             fill: none;
-        }
+       }
+
         .action-buttons {
             display: flex;
             gap: 10px;
             margin-top: 10px;
         }
+
         .add-node-btn {
             background: #27ae60;
             color: white;
@@ -124,14 +146,15 @@
             flex: 1;
         }
         .reorder-btn {
-            background: #f39c12;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            flex: 1;
+           background: #f39c12;
+           color: white;
+           border: none;
+           padding: 8px 16px;
+           border-radius: 4px;
+           cursor: pointer;
+           flex: 1;
         }
+
         .save-btn {
             background: #2980b9;
             color: white;
@@ -144,6 +167,7 @@
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
 </head>
+
 <body>
     <header>
         <h1>Project Manager</h1>
@@ -154,7 +178,9 @@
             <button id="uploadBtn" class="upload-btn">Upload</button>
         </nav>
     </header>
+
     <div id="flowchart"></div>
+
     <div id="modal" class="modal">
         <div class="modal-content">
             <span class="close-button" id="closeModal">×</span>
@@ -183,6 +209,10 @@
                         <option value="High">High</option>
                     </select>
                 </label>
+                <!-- Added field for Action Description -->
+                <label>Action Description:
+                    <textarea id="actionDescription" maxlength="300"></textarea>
+                </label>
                 <div class="action-buttons">
                     <button type="submit" class="save-btn">Save</button>
                     <button type="button" class="add-node-btn" id="addNodeBtn">Add Child Node</button>
@@ -192,6 +222,7 @@
             </form>
         </div>
     </div>
+
     <div id="templateModal" class="modal">
         <div class="modal-content">
             <span class="close-button" id="closeTemplateModal">×</span>
@@ -201,26 +232,55 @@
             <button class="template-btn" data-template="marketing">Marketing Campaign</button>
         </div>
     </div>
-  
-      <script>
+
+    <script>
         let selectedNode = null;
         let data = { nodes: [], links: [] };
+        let simulation;
         let svg;
         let linkGroup;
         let nodeGroup;
+        const curveRadius = 200;
 
+        // --- initD3() remains the same except for removing forces that cause pushing/pulling ---
         function initD3() {
             const flowchart = document.getElementById('flowchart');
             const width = flowchart.clientWidth;
             const height = flowchart.clientHeight;
             flowchart.innerHTML = '';
+
             svg = d3.select('#flowchart')
                 .append('svg')
                 .attr('width', width)
                 .attr('height', height);
 
+            // Simulation with no node repulsion or center force
+            simulation = d3.forceSimulation()
+                .force('link', d3.forceLink().id(d => d.id).distance(150).strength(0))
+                .force('charge', d3.forceManyBody().strength(0));
+
             linkGroup = svg.append('g');
             nodeGroup = svg.append('g');
+        }
+
+        // --- New helper function to position nodes in a centered horizontal line ---
+        function centerNodes() {
+            // Grab current svg dimensions
+            const width = +svg.attr('width');
+            const height = +svg.attr('height');
+
+            // Space between consecutive nodes
+            const spacing = 200;
+            const totalNodes = data.nodes.length;
+
+            // Calculate starting X so the entire row is centered
+            const startX = width / 2 - ((totalNodes - 1) * spacing) / 2;
+            const centerY = height / 2;
+
+            data.nodes.forEach((node, i) => {
+                node.x = startX + i * spacing;
+                node.y = centerY;
+            });
         }
 
         function createNode(parentNode) {
@@ -232,16 +292,18 @@
                 responsible: '',
                 deadline: '',
                 priority: 'Normal',
-                x: Math.random() * 400 + 50,
-                y: Math.random() * 400 + 50
+                actionDescription: ''
             };
+
             data.nodes.push(newNode);
+
             if (parentNode) {
                 data.links.push({
                     source: parentNode.id,
                     target: newNodeId
                 });
             }
+
             update();
             return newNode;
         }
@@ -249,46 +311,84 @@
         function update() {
             const links = linkGroup.selectAll('.link')
                 .data(data.links);
+
             links.exit().remove();
 
+            const linkGen = d3.linkRadial()
+                .angle(d => {
+                    const sourceNode = data.nodes.find(node => node.id === d.source);
+                    const targetNode = data.nodes.find(node => node.id === d.target);
+                    if (sourceNode && targetNode) {
+                        return Math.atan2(targetNode.y - sourceNode.y, targetNode.x - sourceNode.x);
+                    }
+                    return 0;
+                })
+                .radius(curveRadius);
+
             links.enter()
-                .append('line')
+                .append('path')
                 .attr('class', 'link')
                 .merge(links)
-                .attr('x1', d => data.nodes.find(node => node.id === d.source).x)
-                .attr('y1', d => data.nodes.find(node => node.id === d.source).y)
-                .attr('x2', d => data.nodes.find(node => node.id === d.target).x)
-                .attr('y2', d => data.nodes.find(node => node.id === d.target).y);
+                .attr("d", d => {
+                    const sourceNode = data.nodes.find(node => node.id === d.source);
+                    const targetNode = data.nodes.find(node => node.id === d.target);
+                    if (sourceNode && targetNode) {
+                        return linkGen({
+                            source: { x: sourceNode.x, y: sourceNode.y },
+                            target: { x: targetNode.x, y: targetNode.y }
+                        });
+                    } else {
+                        return "";
+                    }
+                });
 
             const nodes = nodeGroup.selectAll('.node')
                 .data(data.nodes);
+
             nodes.exit().remove();
 
             const nodesEnter = nodes.enter()
                 .append('g')
                 .attr('class', 'node')
-                .attr('transform', d => `translate(${d.x},${d.y})`)
                 .call(d3.drag()
                     .on('start', dragStart)
                     .on('drag', dragging)
                     .on('end', dragEnd))
                 .on('click', nodeClick);
 
-            nodesEnter.append('circle')
+            const allNodes = nodesEnter.merge(nodes);
+
+            allNodes.selectAll('circle').remove();
+            allNodes.selectAll('text').remove();
+
+            allNodes.append('circle')
                 .attr('r', 30)
                 .attr('fill', d => getStatusColor(d.status));
 
-            nodesEnter.append('text')
+            allNodes.append('text')
                 .attr('text-anchor', 'middle')
                 .attr('dy', '0.3em')
                 .text(d => d.name);
 
-            const allNodes = nodesEnter.merge(nodes);
-            allNodes.attr('transform', d => `translate(${d.x},${d.y})`);
-            allNodes.select('circle')
-                .attr('fill', d => getStatusColor(d.status));
-            allNodes.select('text')
-                .text(d => d.name);
+            simulation.nodes(data.nodes)
+                .on('tick', () => {
+                    allNodes.attr('transform', d => `translate(${d.x},${d.y})`);
+                    links.attr("d", d => {
+                        const sourceNode = data.nodes.find(node => node.id === d.source);
+                        const targetNode = data.nodes.find(node => node.id === d.target);
+                        if (sourceNode && targetNode) {
+                            return linkGen({
+                                source: { x: sourceNode.x, y: sourceNode.y },
+                                target: { x: targetNode.x, y: targetNode.y }
+                            });
+                        } else {
+                            return "";
+                        }
+                    });
+                });
+
+            simulation.force('link').links(data.links);
+            simulation.alpha(1).restart();
         }
 
         function getStatusColor(status) {
@@ -305,30 +405,20 @@
         }
 
         function dragStart(event) {
-            if (!event.active) d3.select(this).raise().classed('active', true);
+            if (!event.active) simulation.alphaTarget(0.3).restart();
             event.subject.fx = event.subject.x;
             event.subject.fy = event.subject.y;
         }
 
         function dragging(event) {
-            event.subject.x = event.x;
-            event.subject.y = event.y;
-            d3.select(this).attr('transform', `translate(${event.subject.x},${event.subject.y})`);
-            updateLinks();
+            event.subject.fx = event.x;
+            event.subject.fy = event.y;
         }
 
         function dragEnd(event) {
-            if (!event.active) d3.select(this).classed('active', false);
+            if (!event.active) simulation.alphaTarget(0);
             event.subject.fx = null;
             event.subject.fy = null;
-        }
-
-        function updateLinks() {
-            linkGroup.selectAll('.link')
-                .attr('x1', d => data.nodes.find(node => node.id === d.source).x)
-                .attr('y1', d => data.nodes.find(node => node.id === d.source).y)
-                .attr('x2', d => data.nodes.find(node => node.id === d.target).x)
-                .attr('y2', d => data.nodes.find(node => node.id === d.target).y);
         }
 
         function nodeClick(event, d) {
@@ -340,6 +430,7 @@
             document.getElementById('status').value = d.status || 'Not Started';
             document.getElementById('deadline').value = d.deadline || '';
             document.getElementById('priority').value = d.priority || 'Normal';
+            document.getElementById('actionDescription').value = d.actionDescription || '';
             modal.style.display = 'block';
         }
 
@@ -367,6 +458,8 @@
                     const fileData = JSON.parse(e.target.result);
                     if (fileData.nodes && fileData.links) {
                         data = fileData;
+                        // Center them if you wish:
+                        centerNodes();
                         update();
                     } else {
                         alert('Invalid file format');
@@ -383,9 +476,9 @@
                 case 'prototype':
                     data = {
                         nodes: [
-                            { id: '1', name: 'Design', status: 'Completed', x: 100, y: 200 },
-                            { id: '2', name: 'Development', status: 'In Progress', x: 300, y: 200 },
-                            { id: '3', name: 'Testing', status: 'Not Started', x: 500, y: 200 }
+                            { id: '1', name: 'Design', status: 'Completed' },
+                            { id: '2', name: 'Development', status: 'In Progress' },
+                            { id: '3', name: 'Testing', status: 'Not Started' }
                         ],
                         links: [
                             { source: '1', target: '2' },
@@ -396,9 +489,9 @@
                 case 'vendor':
                     data = {
                         nodes: [
-                            { id: '1', name: 'Identify', status: 'Completed', x: 100, y: 200 },
-                            { id: '2', name: 'Outreach', status: 'In Progress', x: 300, y: 200 },
-                            { id: '3', name: 'Negotiate', status: 'Not Started', x: 500, y: 200 }
+                            { id: '1', name: 'Identify', status: 'Completed' },
+                            { id: '2', name: 'Outreach', status: 'In Progress' },
+                            { id: '3', name: 'Negotiate', status: 'Not Started' }
                         ],
                         links: [
                             { source: '1', target: '2' },
@@ -409,9 +502,9 @@
                 case 'marketing':
                     data = {
                         nodes: [
-                            { id: '1', name: 'Research', status: 'Completed', x: 100, y: 200 },
-                            { id: '2', name: 'Planning', status: 'In Progress', x: 300, y: 200 },
-                            { id: '3', name: 'Execute', status: 'Not Started', x: 500, y: 200 }
+                            { id: '1', name: 'Research', status: 'Completed' },
+                            { id: '2', name: 'Planning', status: 'In Progress' },
+                            { id: '3', name: 'Execute', status: 'Not Started' }
                         ],
                         links: [
                             { source: '1', target: '2' },
@@ -420,83 +513,49 @@
                     };
                     break;
             }
+            // Center nodes each time a template is loaded
+            centerNodes();
             update();
         }
 
-        function reorderNodes(direction) {
-            if (!selectedNode) return;
+        function reorderNodes(direction){
+            if(!selectedNode) return;
 
-            // Find the current node's index in the nodes array
-            const currentIndex = data.nodes.findIndex(node => node.id === selectedNode.id);
+            const links = data.links;
+            const index = links.findIndex(link => link.target === selectedNode.id);
 
-            if (direction === 'up' && currentIndex > 0) {
-                // Swap nodes in the array
-                const temp = data.nodes[currentIndex];
-                data.nodes[currentIndex] = data.nodes[currentIndex - 1];
-                data.nodes[currentIndex - 1] = temp;
-
-                // Swap their positions
-                const tempX = data.nodes[currentIndex].x;
-                const tempY = data.nodes[currentIndex].y;
-                data.nodes[currentIndex].x = data.nodes[currentIndex - 1].x;
-                data.nodes[currentIndex].y = data.nodes[currentIndex - 1].y;
-                data.nodes[currentIndex - 1].x = tempX;
-                data.nodes[currentIndex - 1].y = tempY;
-
-                // Update links
-                data.links.forEach(link => {
-                    if (link.source === data.nodes[currentIndex].id) {
-                        link.source = data.nodes[currentIndex - 1].id;
-                    } else if (link.source === data.nodes[currentIndex - 1].id) {
-                        link.source = data.nodes[currentIndex].id;
-                    }
-                    if (link.target === data.nodes[currentIndex].id) {
-                        link.target = data.nodes[currentIndex - 1].id;
-                    } else if (link.target === data.nodes[currentIndex - 1].id) {
-                        link.target = data.nodes[currentIndex].id;
-                    }
-                });
-
-            } else if (direction === 'down' && currentIndex < data.nodes.length - 1) {
-                // Swap nodes in the array
-                const temp = data.nodes[currentIndex];
-                data.nodes[currentIndex] = data.nodes[currentIndex + 1];
-                data.nodes[currentIndex + 1] = temp;
-
-                // Swap their positions
-                const tempX = data.nodes[currentIndex].x;
-                const tempY = data.nodes[currentIndex].y;
-                data.nodes[currentIndex].x = data.nodes[currentIndex + 1].x;
-                data.nodes[currentIndex].y = data.nodes[currentIndex + 1].y;
-                data.nodes[currentIndex + 1].x = tempX;
-                data.nodes[currentIndex + 1].y = tempY;
-
-                // Update links
-                data.links.forEach(link => {
-                    if (link.source === data.nodes[currentIndex].id) {
-                        link.source = data.nodes[currentIndex + 1].id;
-                    } else if (link.source === data.nodes[currentIndex + 1].id) {
-                        link.source = data.nodes[currentIndex].id;
-                    }
-                    if (link.target === data.nodes[currentIndex].id) {
-                        link.target = data.nodes[currentIndex + 1].id;
-                    } else if (link.target === data.nodes[currentIndex + 1].id) {
-                        link.target = data.nodes[currentIndex].id;
-                    }
-                });
-
-            } else {
-                alert(direction === 'up' ? 
-                    "This is the first node in the sequence" : 
-                    "This is the last node in the sequence");
+            if(index === -1) {
+                alert("This node cannot be reordered as it's a root node");
                 return;
             }
+            const currentLink = links[index];
+            const previousIndex = links.findIndex(link => link.target === currentLink.source);
 
+            if (direction === 'up') {
+                if(previousIndex === -1) {
+                    alert("This is the first node, it cannot be moved up");
+                    return;
+                }
+                const previousLink = links[previousIndex];
+                links[index] = { source: previousLink.source, target: currentLink.target };
+                links[previousIndex] = { source: currentLink.source, target: previousLink.target };
+
+            } else if (direction === 'down') {
+                const nextIndex = links.findIndex(link => link.source === currentLink.target);
+                if(nextIndex === -1) {
+                    alert("This is the last node, it cannot be moved down");
+                    return;
+                }
+                const nextLink = links[nextIndex];
+                links[index] = { source: currentLink.target, target: nextLink.target };
+                links[nextIndex] = { source: currentLink.source, target: nextLink.source };
+            }
             update();
         }
 
         document.addEventListener('DOMContentLoaded', () => {
             initD3();
+
             document.getElementById('addNodeBtn').onclick = (e) => {
                 e.preventDefault();
                 if (selectedNode) {
@@ -505,30 +564,39 @@
                     nodeClick(e, newNode);
                 }
             };
+
             document.getElementById('moveUpBtn').onclick = () => reorderNodes('up');
             document.getElementById('moveDownBtn').onclick = () => reorderNodes('down');
+
             document.getElementById('templateBtn').onclick = () => {
                 document.getElementById('templateModal').style.display = 'block';
             };
+
             document.querySelectorAll('.template-btn').forEach(btn => {
                 btn.onclick = (e) => {
                     loadTemplate(e.target.dataset.template);
                     document.getElementById('templateModal').style.display = 'none';
                 };
             });
+
             document.getElementById('taskForm').onsubmit = (e) => {
                 e.preventDefault();
                 if (selectedNode) {
-                    selectedNode.name = document.getElementById('taskName').value;
-                    selectedNode.responsible = document.getElementById('responsible').value;
-                    selectedNode.status = document.getElementById('status').value;
-                    selectedNode.deadline = document.getElementById('deadline').value;
-                    selectedNode.priority = document.getElementById('priority').value;
+                    Object.assign(selectedNode, {
+                        name: document.getElementById('taskName').value,
+                        responsible: document.getElementById('responsible').value,
+                        status: document.getElementById('status').value,
+                        deadline: document.getElementById('deadline').value,
+                        priority: document.getElementById('priority').value,
+                        actionDescription: document.getElementById('actionDescription').value
+                    });
                     update();
                 }
                 document.getElementById('modal').style.display = 'none';
             };
+
             document.getElementById('exportBtn').onclick = saveToFile;
+
             const uploadButton = document.getElementById('uploadBtn');
             const fileInput = document.getElementById('fileInput');
             uploadButton.onclick = () => fileInput.click();
@@ -537,19 +605,28 @@
                     loadFromFile(e.target.files[0]);
                 }
             };
+
             document.querySelectorAll('.close-button').forEach(btn => {
                 btn.onclick = (e) => {
                     e.stopPropagation();
                     btn.closest('.modal').style.display = 'none';
                 };
             });
+
             window.onclick = (e) => {
                 if (e.target.classList.contains('modal')) {
                     e.target.style.display = 'none';
                 }
             };
+
+            // Load the default template and center nodes immediately
             loadTemplate('prototype');
         });
     </script>
+</body>
+
+</html>
+<!-- partial -->
+  
 </body>
 </html>
