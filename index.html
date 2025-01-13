@@ -1,677 +1,669 @@
 <!DOCTYPE html>
-<html lang="en" >
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <title>F3D Action Planner</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f4f4;
+    }
+
+    header {
+      background: #2c3e50;
+      color: white;
+      padding: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 {
+      margin: 0;
+    }
+
+    nav button {
+      background: #2980b9;
+      border: none;
+      color: white;
+      padding: 0.5rem 1rem;
+      margin-left: 0.5rem;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+
+    nav input[type="file"] {
+      display: none;
+    }
+
+    nav .upload-btn {
+      background: #27ae60;
+      display: inline-block;
+    }
+
+    #flowchart {
+      width: 100%;
+      height: 80vh;
+      border: 1px solid #ccc;
+      background: white;
+      overflow: hidden;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      padding-top: 50px;
+    }
+
+    .modal-content {
+      background: white;
+      margin: auto;
+      padding: 20px;
+      width: 90%;
+      max-width: 500px;
+      border-radius: 8px;
+      position: relative;
+    }
+
+    .close-button {
+      position: absolute;
+      right: 10px;
+      top: 10px;
+      font-size: 24px;
+      cursor: pointer;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    input,
+    select,
+    button,
+    textarea {
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    .template-btn {
+      background: #8e44ad;
+      color: white;
+      border: none;
+      padding: 10px;
+      margin: 5px 0;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+
+    .upload-btn {
+      background: #27ae60;
+    }
+
+    .node circle {
+      stroke: white;
+      stroke-width: 2px;
+    }
+
+    /* Updated font-size for the node text */
+    .node text {
+      fill: white;
+      font-size: 14px;
+    }
+
+    .link {
+      stroke: #999;
+      stroke-opacity: 0.6;
+      stroke-width: 2px;
+      fill: none;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .add-node-btn {
+      background: #27ae60;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      flex: 1;
+    }
+
+    .reorder-btn {
+      background: #f39c12;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      flex: 1;
+    }
+
+    .save-btn {
+      background: #2980b9;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      flex: 1;
+    }
+  </style>
+
+  <!-- Load D3 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
 </head>
-<body>
-<!-- partial:index.partial.html -->
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <title>Project Manager</title>
-    <style>
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            margin: 0;
-            font-family: 'Segoe UI', sans-serif;
-            background: #f4f4f4;
-        }
-
-        header {
-            background: #2c3e50;
-            color: white;
-            padding: 1rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        header h1 {
-            margin: 0;
-        }
-
-        nav button {
-            background: #2980b9;
-            border: none;
-            color: white;
-            padding: 0.5rem 1rem;
-            margin-left: 0.5rem;
-            cursor: pointer;
-            border-radius: 4px;
-        }
-        nav input[type="file"] {
-            display: none;
-        }
-        nav .upload-btn {
-            background: #27ae60;
-            display: inline-block;
-        }
-        #flowchart {
-            width: 100%;
-            height: 80vh;
-            border: 1px solid #ccc;
-            background: white;
-            overflow: hidden;
-        }
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            padding-top: 50px;
-        }
-        .modal-content {
-            background: white;
-            margin: auto;
-            padding: 20px;
-            width: 90%;
-            max-width: 500px;
-            border-radius: 8px;
-            position: relative;
-        }
-        .close-button {
-            position: absolute;
-            right: 10px;
-            top: 10px;
-            font-size: 24px;
-            cursor: pointer;
-        }
-        form {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        input,
-        select,
-        button,
-        textarea {
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-
-        .template-btn {
-            background: #8e44ad;
-            color: white;
-            border: none;
-            padding: 10px;
-            margin: 5px 0;
-            cursor: pointer;
-            border-radius: 4px;
-        }
-       .upload-btn{
-          background: #27ae60;
-       }
-        .node circle {
-            stroke: white;
-            stroke-width: 2px;
-        }
-
-        .node text {
-            fill: white;
-            font-size: 12px;
-        }
-
-       .link {
-            stroke: #999;
-            stroke-opacity: 0.6;
-            stroke-width: 2px;
-            fill: none;
-       }
-
-        .action-buttons {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-        }
-
-        .add-node-btn {
-            background: #27ae60;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            flex: 1;
-        }
-        .reorder-btn {
-           background: #f39c12;
-           color: white;
-           border: none;
-           padding: 8px 16px;
-           border-radius: 4px;
-           cursor: pointer;
-           flex: 1;
-        }
-
-        .save-btn {
-            background: #2980b9;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            flex: 1;
-        }
-    </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
-</head>
 
 <body>
-    <header>
-        <h1>Project Manager</h1>
-        <nav>
-            <button id="templateBtn">Templates</button>
-            <button id="exportBtn">Export</button>
-            <input type="file" id="fileInput" accept=".json">
-            <button id="uploadBtn" class="upload-btn">Upload</button>
-        </nav>
-    </header>
+  <header>
+    <h1>Project Manager</h1>
+    <nav>
+      <button id="templateBtn">Templates</button>
+      <button id="exportBtn">Export</button>
+      <input type="file" id="fileInput" accept=".json">
+      <button id="uploadBtn" class="upload-btn">Upload</button>
+    </nav>
+  </header>
 
-    <div id="flowchart"></div>
+  <div id="flowchart"></div>
 
-    <div id="modal" class="modal">
-        <div class="modal-content">
-            <span class="close-button" id="closeModal">×</span>
-            <h2>Task Details</h2>
-            <form id="taskForm">
-                <label>Task Name:
-                    <input type="text" id="taskName" required>
-                </label>
-                <label>Responsible:
-                    <input type="text" id="responsible" required>
-                </label>
-                <label>Status:
-                    <select id="status">
-                        <option value="Not Started">Not Started</option>
-                        <option value="In Progress">In Progress</option>
-                        <option value="Completed">Completed</option>
-                    </select>
-                </label>
-                <label>Deadline:
-                    <input type="date" id="deadline">
-                </label>
-                <label>Priority:
-                    <select id="priority">
-                        <option value="Low">Low</option>
-                        <option value="Normal">Normal</option>
-                        <option value="High">High</option>
-                    </select>
-                </label>
-                <!-- Added field for Action Description -->
-                <label>Action Description:
-                    <textarea id="actionDescription" maxlength="300"></textarea>
-                </label>
-                <div class="action-buttons">
-                    <button type="submit" class="save-btn">Save</button>
-                    <button type="button" class="add-node-btn" id="addNodeBtn">Add Child Node</button>
-                    <button type="button" class="reorder-btn" id="moveUpBtn">Move Up</button>
-                    <button type="button" class="reorder-btn" id="moveDownBtn">Move Down</button>
-                </div>
-            </form>
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <span class="close-button" id="closeModal">×</span>
+      <h2>Task Details</h2>
+      <form id="taskForm">
+        <label>Task Name:
+          <input type="text" id="taskName" required>
+        </label>
+        <label>Responsible:
+          <input type="text" id="responsible" required>
+        </label>
+        <label>Status:
+          <select id="status">
+            <option value="Not Started">Not Started</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Completed">Completed</option>
+          </select>
+        </label>
+        <label>Deadline:
+          <input type="date" id="deadline">
+        </label>
+        <label>Priority:
+          <select id="priority">
+            <option value="Low">Low</option>
+            <option value="Normal">Normal</option>
+            <option value="High">High</option>
+          </select>
+        </label>
+        <!-- Added field for Action Description -->
+        <label>Action Description:
+          <textarea id="actionDescription" maxlength="300"></textarea>
+        </label>
+        <div class="action-buttons">
+          <button type="submit" class="save-btn">Save</button>
+          <button type="button" class="add-node-btn" id="addNodeBtn">Add Child Node</button>
+          <button type="button" class="reorder-btn" id="moveUpBtn">Move Up</button>
+          <button type="button" class="reorder-btn" id="moveDownBtn">Move Down</button>
         </div>
+      </form>
     </div>
+  </div>
 
-    <div id="templateModal" class="modal">
-        <div class="modal-content">
-            <span class="close-button" id="closeTemplateModal">×</span>
-            <h2>Select Template</h2>
-            <button class="template-btn" data-template="prototype">Prototype Development</button>
-            <button class="template-btn" data-template="vendor">Vendor Outreach</button>
-            <button class="template-btn" data-template="marketing">Marketing Campaign</button>
-        </div>
+  <div id="templateModal" class="modal">
+    <div class="modal-content">
+      <span class="close-button" id="closeTemplateModal">×</span>
+      <h2>Select Template</h2>
+      <button class="template-btn" data-template="prototype">Prototype Development</button>
+      <button class="template-btn" data-template="vendor">Vendor Outreach</button>
+      <button class="template-btn" data-template="marketing">Marketing Campaign</button>
     </div>
+  </div>
 
-    <script>
-      <script>
-  // Here's the wrapText function
-  function wrapText(text, width) {
-    text.each(function() {
-      let textEl = d3.select(this),
-          words = textEl.text().split(/\s+/).reverse(),
-          line = [],
-          lineNumber = 0,
-          lineHeight = 1.2, // spacing for multi-line
-          x = textEl.attr("x") || 0,
-          y = textEl.attr("y") || 0,
-          dy = parseFloat(textEl.attr("dy")) || 0;
+  <!-- All of our JavaScript in one script block -->
+  <script>
+    // 1) Wrap-text function for multi-line text in nodes
+    function wrapText(text, width) {
+      text.each(function() {
+        let textEl = d3.select(this),
+            words = textEl.text().split(/\s+/).reverse(),
+            line = [],
+            lineNumber = 0,
+            lineHeight = 1.2, // spacing for multi-line
+            x = textEl.attr("x") || 0,
+            y = textEl.attr("y") || 0,
+            dy = parseFloat(textEl.attr("dy")) || 0;
 
-      let tspan = textEl.text(null)
-        .append("tspan")
-        .attr("x", x)
-        .attr("y", y)
-        .attr("dy", dy + "em");
+        let tspan = textEl.text(null)
+          .append("tspan")
+          .attr("x", x)
+          .attr("y", y)
+          .attr("dy", dy + "em");
 
-      let word;
-      while ((word = words.pop())) {
-        line.push(word);
-        tspan.text(line.join(" "));
-        if (tspan.node().getComputedTextLength() > width) {
-          line.pop();
+        let word;
+        while ((word = words.pop())) {
+          line.push(word);
           tspan.text(line.join(" "));
-          line = [word];
-          tspan = textEl.append("tspan")
-            .attr("x", x)
-            .attr("y", y)
-            .attr("dy", ++lineNumber * lineHeight + dy + "em")
-            .text(word);
+          if (tspan.node().getComputedTextLength() > width) {
+            line.pop();
+            tspan.text(line.join(" "));
+            line = [word];
+            tspan = textEl.append("tspan")
+              .attr("x", x)
+              .attr("y", y)
+              .attr("dy", ++lineNumber * lineHeight + dy + "em")
+              .text(word);
+          }
         }
+      });
+    }
+
+    let selectedNode = null;
+    let data = { nodes: [], links: [] };
+    let simulation;
+    let svg;
+    let linkGroup;
+    let nodeGroup;
+    const curveRadius = 200;
+
+    // 2) Initialize D3 with minimal forces, so nodes can move independently
+    function initD3() {
+      const flowchart = document.getElementById('flowchart');
+      const width = flowchart.clientWidth;
+      const height = flowchart.clientHeight;
+      flowchart.innerHTML = '';
+
+      svg = d3.select('#flowchart')
+        .append('svg')
+        .attr('width', width)
+        .attr('height', height);
+
+      // No repulsion; only collision so nodes don't fully overlap
+      simulation = d3.forceSimulation()
+        .force('link', d3.forceLink().id(d => d.id).distance(150).strength(0))
+        .force('charge', d3.forceManyBody().strength(0))
+        .force('collide', d3.forceCollide().radius(60)); // matches node radius
+
+      linkGroup = svg.append('g');
+      nodeGroup = svg.append('g');
+    }
+
+    // 3) Helper to place nodes in a horizontal line, centered
+    function centerNodes() {
+      const width = +svg.attr('width');
+      const height = +svg.attr('height');
+      const spacing = 200;
+      const totalNodes = data.nodes.length;
+      const startX = width / 2 - ((totalNodes - 1) * spacing) / 2;
+      const centerY = height / 2;
+
+      data.nodes.forEach((node, i) => {
+        node.x = startX + i * spacing;
+        node.y = centerY;
+      });
+    }
+
+    function createNode(parentNode) {
+      const newNodeId = `node-${Date.now()}`;
+      const newNode = {
+        id: newNodeId,
+        name: 'New Task',
+        status: 'Not Started',
+        responsible: '',
+        deadline: '',
+        priority: 'Normal',
+        actionDescription: ''
+      };
+
+      data.nodes.push(newNode);
+
+      if (parentNode) {
+        data.links.push({
+          source: parentNode.id,
+          target: newNodeId
+        });
       }
-    });
-  }
 
-  // The rest of your script code goes below...
-  // function initD3() { ... }
-  // function update() { ... }
-</script>
-        let selectedNode = null;
-        let data = { nodes: [], links: [] };
-        let simulation;
-        let svg;
-        let linkGroup;
-        let nodeGroup;
-        const curveRadius = 200;
+      update();
+      return newNode;
+    }
 
-        // --- initD3() remains the same except for removing forces that cause pushing/pulling ---
-        function initD3() {
-            const flowchart = document.getElementById('flowchart');
-            const width = flowchart.clientWidth;
-            const height = flowchart.clientHeight;
-            flowchart.innerHTML = '';
+    function update() {
+      // Links
+      const links = linkGroup.selectAll('.link')
+        .data(data.links);
 
-            svg = d3.select('#flowchart')
-                .append('svg')
-                .attr('width', width)
-                .attr('height', height);
+      links.exit().remove();
 
-            // Simulation with no node repulsion or center force
-           simulation = d3.forceSimulation()
-    .force('link', d3.forceLink().id(d => d.id).distance(150).strength(0))
-    .force('charge', d3.forceManyBody().strength(0))
-    .force('collide', d3.forceCollide().radius(60)); // Update this radius to match the new size
+      const linkGen = d3.linkRadial()
+        .angle(d => {
+          const sourceNode = data.nodes.find(node => node.id === d.source);
+          const targetNode = data.nodes.find(node => node.id === d.target);
+          if (sourceNode && targetNode) {
+            return Math.atan2(targetNode.y - sourceNode.y, targetNode.x - sourceNode.x);
+          }
+          return 0;
+        })
+        .radius(curveRadius);
 
-            linkGroup = svg.append('g');
-            nodeGroup = svg.append('g');
-        }
-
-        // --- New helper function to position nodes in a centered horizontal line ---
-        function centerNodes() {
-            // Grab current svg dimensions
-            const width = +svg.attr('width');
-            const height = +svg.attr('height');
-
-            // Space between consecutive nodes
-            const spacing = 200;
-            const totalNodes = data.nodes.length;
-
-            // Calculate starting X so the entire row is centered
-            const startX = width / 2 - ((totalNodes - 1) * spacing) / 2;
-            const centerY = height / 2;
-
-            data.nodes.forEach((node, i) => {
-                node.x = startX + i * spacing;
-                node.y = centerY;
+      links.enter()
+        .append('path')
+        .attr('class', 'link')
+        .merge(links)
+        .attr("d", d => {
+          const sourceNode = data.nodes.find(node => node.id === d.source);
+          const targetNode = data.nodes.find(node => node.id === d.target);
+          if (sourceNode && targetNode) {
+            return linkGen({
+              source: { x: sourceNode.x, y: sourceNode.y },
+              target: { x: targetNode.x, y: targetNode.y }
             });
-        }
+          } else {
+            return "";
+          }
+        });
 
-        function createNode(parentNode) {
-            const newNodeId = `node-${Date.now()}`;
-            const newNode = {
-                id: newNodeId,
-                name: 'New Task',
-                status: 'Not Started',
-                responsible: '',
-                deadline: '',
-                priority: 'Normal',
-                actionDescription: ''
-            };
+      // Nodes
+      const nodes = nodeGroup.selectAll('.node')
+        .data(data.nodes);
 
-            data.nodes.push(newNode);
+      nodes.exit().remove();
 
-            if (parentNode) {
-                data.links.push({
-                    source: parentNode.id,
-                    target: newNodeId
-                });
+      const nodesEnter = nodes.enter()
+        .append('g')
+        .attr('class', 'node')
+        .call(d3.drag()
+          .on('start', dragStart)
+          .on('drag', dragging)
+          .on('end', dragEnd))
+        .on('click', nodeClick);
+
+      const allNodes = nodesEnter.merge(nodes);
+
+      allNodes.selectAll('circle').remove();
+      allNodes.selectAll('text').remove();
+
+      // Circle radius = 60
+      allNodes.append('circle')
+        .attr('r', 60)
+        .attr('fill', d => getStatusColor(d.status));
+
+      // Wrapping text inside the node
+      allNodes.append('text')
+        .attr('text-anchor', 'middle')
+        .attr('dy', 0)
+        .text(d => d.name)
+        .call(wrapText, 100); // 100px for wrapping
+
+      simulation.nodes(data.nodes)
+        .on('tick', () => {
+          allNodes.attr('transform', d => `translate(${d.x},${d.y})`);
+          links.attr("d", d => {
+            const sourceNode = data.nodes.find(node => node.id === d.source);
+            const targetNode = data.nodes.find(node => node.id === d.target);
+            if (sourceNode && targetNode) {
+              return linkGen({
+                source: { x: sourceNode.x, y: sourceNode.y },
+                target: { x: targetNode.x, y: targetNode.y }
+              });
+            } else {
+              return "";
             }
+          });
+        });
 
-            update();
-            return newNode;
-        }
+      simulation.force('link').links(data.links);
+      simulation.alpha(1).restart();
+    }
 
-        function update() {
-            const links = linkGroup.selectAll('.link')
-                .data(data.links);
+    function getStatusColor(status) {
+      switch (status) {
+        case 'Not Started':
+          return '#e74c3c';
+        case 'In Progress':
+          return '#f1c40f';
+        case 'Completed':
+          return '#2ecc71';
+        default:
+          return '#3498db';
+      }
+    }
 
-            links.exit().remove();
+    function dragStart(event) {
+      if (!event.active) simulation.alphaTarget(0.3).restart();
+      event.subject.fx = event.subject.x;
+      event.subject.fy = event.subject.y;
+    }
 
-            const linkGen = d3.linkRadial()
-                .angle(d => {
-                    const sourceNode = data.nodes.find(node => node.id === d.source);
-                    const targetNode = data.nodes.find(node => node.id === d.target);
-                    if (sourceNode && targetNode) {
-                        return Math.atan2(targetNode.y - sourceNode.y, targetNode.x - sourceNode.x);
-                    }
-                    return 0;
-                })
-                .radius(curveRadius);
+    function dragging(event) {
+      event.subject.fx = event.x;
+      event.subject.fy = event.y;
+    }
 
-            links.enter()
-                .append('path')
-                .attr('class', 'link')
-                .merge(links)
-                .attr("d", d => {
-                    const sourceNode = data.nodes.find(node => node.id === d.source);
-                    const targetNode = data.nodes.find(node => node.id === d.target);
-                    if (sourceNode && targetNode) {
-                        return linkGen({
-                            source: { x: sourceNode.x, y: sourceNode.y },
-                            target: { x: targetNode.x, y: targetNode.y }
-                        });
-                    } else {
-                        return "";
-                    }
-                });
+    function dragEnd(event) {
+      if (!event.active) simulation.alphaTarget(0);
+      event.subject.fx = null;
+      event.subject.fy = null;
+    }
 
-            const nodes = nodeGroup.selectAll('.node')
-                .data(data.nodes);
+    function nodeClick(event, d) {
+      event.stopPropagation();
+      selectedNode = d;
+      const modal = document.getElementById('modal');
+      document.getElementById('taskName').value = d.name || '';
+      document.getElementById('responsible').value = d.responsible || '';
+      document.getElementById('status').value = d.status || 'Not Started';
+      document.getElementById('deadline').value = d.deadline || '';
+      document.getElementById('priority').value = d.priority || 'Normal';
+      document.getElementById('actionDescription').value = d.actionDescription || '';
+      modal.style.display = 'block';
+    }
 
-            nodes.exit().remove();
+    function saveToFile() {
+      const dataStr = JSON.stringify(data, null, 2);
+      const blob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'project-data.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
 
-            const nodesEnter = nodes.enter()
-                .append('g')
-                .attr('class', 'node')
-                .call(d3.drag()
-                    .on('start', dragStart)
-                    .on('drag', dragging)
-                    .on('end', dragEnd))
-                .on('click', nodeClick);
-
-            const allNodes = nodesEnter.merge(nodes);
-
-            allNodes.selectAll('circle').remove();
-            allNodes.selectAll('text').remove();
-
-            allNodes.append('circle')
-                .attr('r', 60)
-                .attr('fill', d => getStatusColor(d.status));
-
-         // We assume circle radius is ~60, so diameter ~120.
-// Pass a slightly smaller width (e.g. 90 or 100) for wrapping.
-allNodes.append('text')
-  .attr('text-anchor', 'middle')
-  .attr('dy', 0) // We'll let wrapText manage line spacing
-  .text(d => d.name)
-  .call(wrapText, 100);  // 100px is the max text width for wrapping
-
-            simulation.nodes(data.nodes)
-                .on('tick', () => {
-                    allNodes.attr('transform', d => `translate(${d.x},${d.y})`);
-                    links.attr("d", d => {
-                        const sourceNode = data.nodes.find(node => node.id === d.source);
-                        const targetNode = data.nodes.find(node => node.id === d.target);
-                        if (sourceNode && targetNode) {
-                            return linkGen({
-                                source: { x: sourceNode.x, y: sourceNode.y },
-                                target: { x: targetNode.x, y: targetNode.y }
-                            });
-                        } else {
-                            return "";
-                        }
-                    });
-                });
-
-            simulation.force('link').links(data.links);
-            simulation.alpha(1).restart();
-        }
-
-        function getStatusColor(status) {
-            switch (status) {
-                case 'Not Started':
-                    return '#e74c3c';
-                case 'In Progress':
-                    return '#f1c40f';
-                case 'Completed':
-                    return '#2ecc71';
-                default:
-                    return '#3498db';
-            }
-        }
-
-        function dragStart(event) {
-            if (!event.active) simulation.alphaTarget(0.3).restart();
-            event.subject.fx = event.subject.x;
-            event.subject.fy = event.subject.y;
-        }
-
-        function dragging(event) {
-            event.subject.fx = event.x;
-            event.subject.fy = event.y;
-        }
-
-        function dragEnd(event) {
-            if (!event.active) simulation.alphaTarget(0);
-            event.subject.fx = null;
-            event.subject.fy = null;
-        }
-
-        function nodeClick(event, d) {
-            event.stopPropagation();
-            selectedNode = d;
-            const modal = document.getElementById('modal');
-            document.getElementById('taskName').value = d.name || '';
-            document.getElementById('responsible').value = d.responsible || '';
-            document.getElementById('status').value = d.status || 'Not Started';
-            document.getElementById('deadline').value = d.deadline || '';
-            document.getElementById('priority').value = d.priority || 'Normal';
-            document.getElementById('actionDescription').value = d.actionDescription || '';
-            modal.style.display = 'block';
-        }
-
-        function saveToFile() {
-            const dataStr = JSON.stringify(data, null, 2);
-            const blob = new Blob([dataStr], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'project-data.json';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        }
-
-        function loadFromFile(file) {
-            if (!file) {
-                alert('No file selected.');
-                return;
-            }
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                try {
-                    const fileData = JSON.parse(e.target.result);
-                    if (fileData.nodes && fileData.links) {
-                        data = fileData;
-                        // Center them if you wish:
-                        centerNodes();
-                        update();
-                    } else {
-                        alert('Invalid file format');
-                    }
-                } catch (error) {
-                    alert('Error reading file');
-                }
-            };
-            reader.readAsText(file);
-        }
-
-        function loadTemplate(template) {
-            switch (template) {
-                case 'prototype':
-                    data = {
-                        nodes: [
-                            { id: '1', name: 'Design', status: 'Completed' },
-                            { id: '2', name: 'Development', status: 'In Progress' },
-                            { id: '3', name: 'Testing', status: 'Not Started' }
-                        ],
-                        links: [
-                            { source: '1', target: '2' },
-                            { source: '2', target: '3' }
-                        ]
-                    };
-                    break;
-                case 'vendor':
-                    data = {
-                        nodes: [
-                            { id: '1', name: 'Identify', status: 'Completed' },
-                            { id: '2', name: 'Outreach', status: 'In Progress' },
-                            { id: '3', name: 'Negotiate', status: 'Not Started' }
-                        ],
-                        links: [
-                            { source: '1', target: '2' },
-                            { source: '2', target: '3' }
-                        ]
-                    };
-                    break;
-                case 'marketing':
-                    data = {
-                        nodes: [
-                            { id: '1', name: 'Research', status: 'Completed' },
-                            { id: '2', name: 'Planning', status: 'In Progress' },
-                            { id: '3', name: 'Execute', status: 'Not Started' }
-                        ],
-                        links: [
-                            { source: '1', target: '2' },
-                            { source: '2', target: '3' }
-                        ]
-                    };
-                    break;
-            }
-            // Center nodes each time a template is loaded
+    function loadFromFile(file) {
+      if (!file) {
+        alert('No file selected.');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const fileData = JSON.parse(e.target.result);
+          if (fileData.nodes && fileData.links) {
+            data = fileData;
+            // Center them if you want:
             centerNodes();
             update();
+          } else {
+            alert('Invalid file format');
+          }
+        } catch (error) {
+          alert('Error reading file');
         }
+      };
+      reader.readAsText(file);
+    }
 
-        function reorderNodes(direction){
-            if(!selectedNode) return;
+    function loadTemplate(template) {
+      switch (template) {
+        case 'prototype':
+          data = {
+            nodes: [
+              { id: '1', name: 'Design', status: 'Completed' },
+              { id: '2', name: 'Development', status: 'In Progress' },
+              { id: '3', name: 'Testing', status: 'Not Started' }
+            ],
+            links: [
+              { source: '1', target: '2' },
+              { source: '2', target: '3' }
+            ]
+          };
+          break;
+        case 'vendor':
+          data = {
+            nodes: [
+              { id: '1', name: 'Identify', status: 'Completed' },
+              { id: '2', name: 'Outreach', status: 'In Progress' },
+              { id: '3', name: 'Negotiate', status: 'Not Started' }
+            ],
+            links: [
+              { source: '1', target: '2' },
+              { source: '2', target: '3' }
+            ]
+          };
+          break;
+        case 'marketing':
+          data = {
+            nodes: [
+              { id: '1', name: 'Research', status: 'Completed' },
+              { id: '2', name: 'Planning', status: 'In Progress' },
+              { id: '3', name: 'Execute', status: 'Not Started' }
+            ],
+            links: [
+              { source: '1', target: '2' },
+              { source: '2', target: '3' }
+            ]
+          };
+          break;
+      }
+      // Center nodes each time a template is loaded
+      centerNodes();
+      update();
+    }
 
-            const links = data.links;
-            const index = links.findIndex(link => link.target === selectedNode.id);
+    function reorderNodes(direction) {
+      if (!selectedNode) return;
 
-            if(index === -1) {
-                alert("This node cannot be reordered as it's a root node");
-                return;
-            }
-            const currentLink = links[index];
-            const previousIndex = links.findIndex(link => link.target === currentLink.source);
+      const links = data.links;
+      const index = links.findIndex(link => link.target === selectedNode.id);
 
-            if (direction === 'up') {
-                if(previousIndex === -1) {
-                    alert("This is the first node, it cannot be moved up");
-                    return;
-                }
-                const previousLink = links[previousIndex];
-                links[index] = { source: previousLink.source, target: currentLink.target };
-                links[previousIndex] = { source: currentLink.source, target: previousLink.target };
+      if (index === -1) {
+        alert("This node cannot be reordered as it's a root node");
+        return;
+      }
+      const currentLink = links[index];
+      const previousIndex = links.findIndex(link => link.target === currentLink.source);
 
-            } else if (direction === 'down') {
-                const nextIndex = links.findIndex(link => link.source === currentLink.target);
-                if(nextIndex === -1) {
-                    alert("This is the last node, it cannot be moved down");
-                    return;
-                }
-                const nextLink = links[nextIndex];
-                links[index] = { source: currentLink.target, target: nextLink.target };
-                links[nextIndex] = { source: currentLink.source, target: nextLink.source };
-            }
-            update();
+      if (direction === 'up') {
+        if (previousIndex === -1) {
+          alert("This is the first node, it cannot be moved up");
+          return;
         }
+        const previousLink = links[previousIndex];
+        links[index] = { source: previousLink.source, target: currentLink.target };
+        links[previousIndex] = { source: currentLink.source, target: previousLink.target };
 
-        document.addEventListener('DOMContentLoaded', () => {
-            initD3();
+      } else if (direction === 'down') {
+        const nextIndex = links.findIndex(link => link.source === currentLink.target);
+        if (nextIndex === -1) {
+          alert("This is the last node, it cannot be moved down");
+          return;
+        }
+        const nextLink = links[nextIndex];
+        links[index] = { source: currentLink.target, target: nextLink.target };
+        links[nextIndex] = { source: currentLink.source, target: nextLink.source };
+      }
+      update();
+    }
 
-            document.getElementById('addNodeBtn').onclick = (e) => {
-                e.preventDefault();
-                if (selectedNode) {
-                    const newNode = createNode(selectedNode);
-                    selectedNode = newNode;
-                    nodeClick(e, newNode);
-                }
-            };
+    document.addEventListener('DOMContentLoaded', () => {
+      initD3();
 
-            document.getElementById('moveUpBtn').onclick = () => reorderNodes('up');
-            document.getElementById('moveDownBtn').onclick = () => reorderNodes('down');
+      document.getElementById('addNodeBtn').onclick = (e) => {
+        e.preventDefault();
+        if (selectedNode) {
+          const newNode = createNode(selectedNode);
+          selectedNode = newNode;
+          nodeClick(e, newNode);
+        }
+      };
 
-            document.getElementById('templateBtn').onclick = () => {
-                document.getElementById('templateModal').style.display = 'block';
-            };
+      document.getElementById('moveUpBtn').onclick = () => reorderNodes('up');
+      document.getElementById('moveDownBtn').onclick = () => reorderNodes('down');
 
-            document.querySelectorAll('.template-btn').forEach(btn => {
-                btn.onclick = (e) => {
-                    loadTemplate(e.target.dataset.template);
-                    document.getElementById('templateModal').style.display = 'none';
-                };
-            });
+      document.getElementById('templateBtn').onclick = () => {
+        document.getElementById('templateModal').style.display = 'block';
+      };
 
-            document.getElementById('taskForm').onsubmit = (e) => {
-                e.preventDefault();
-                if (selectedNode) {
-                    Object.assign(selectedNode, {
-                        name: document.getElementById('taskName').value,
-                        responsible: document.getElementById('responsible').value,
-                        status: document.getElementById('status').value,
-                        deadline: document.getElementById('deadline').value,
-                        priority: document.getElementById('priority').value,
-                        actionDescription: document.getElementById('actionDescription').value
-                    });
-                    update();
-                }
-                document.getElementById('modal').style.display = 'none';
-            };
+      document.querySelectorAll('.template-btn').forEach(btn => {
+        btn.onclick = (e) => {
+          loadTemplate(e.target.dataset.template);
+          document.getElementById('templateModal').style.display = 'none';
+        };
+      });
 
-            document.getElementById('exportBtn').onclick = saveToFile;
+      document.getElementById('taskForm').onsubmit = (e) => {
+        e.preventDefault();
+        if (selectedNode) {
+          Object.assign(selectedNode, {
+            name: document.getElementById('taskName').value,
+            responsible: document.getElementById('responsible').value,
+            status: document.getElementById('status').value,
+            deadline: document.getElementById('deadline').value,
+            priority: document.getElementById('priority').value,
+            actionDescription: document.getElementById('actionDescription').value
+          });
+          update();
+        }
+        document.getElementById('modal').style.display = 'none';
+      };
 
-            const uploadButton = document.getElementById('uploadBtn');
-            const fileInput = document.getElementById('fileInput');
-            uploadButton.onclick = () => fileInput.click();
-            fileInput.onchange = (e) => {
-                if (e.target.files.length > 0) {
-                    loadFromFile(e.target.files[0]);
-                }
-            };
+      document.getElementById('exportBtn').onclick = saveToFile;
 
-            document.querySelectorAll('.close-button').forEach(btn => {
-                btn.onclick = (e) => {
-                    e.stopPropagation();
-                    btn.closest('.modal').style.display = 'none';
-                };
-            });
+      const uploadButton = document.getElementById('uploadBtn');
+      const fileInput = document.getElementById('fileInput');
+      uploadButton.onclick = () => fileInput.click();
+      fileInput.onchange = (e) => {
+        if (e.target.files.length > 0) {
+          loadFromFile(e.target.files[0]);
+        }
+      };
 
-            window.onclick = (e) => {
-                if (e.target.classList.contains('modal')) {
-                    e.target.style.display = 'none';
-                }
-            };
+      document.querySelectorAll('.close-button').forEach(btn => {
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          btn.closest('.modal').style.display = 'none';
+        };
+      });
 
-            // Load the default template and center nodes immediately
-            loadTemplate('prototype');
-        });
-    </script>
-</body>
+      window.onclick = (e) => {
+        if (e.target.classList.contains('modal')) {
+          e.target.style.display = 'none';
+        }
+      };
 
-</html>
-<!-- partial -->
-  
+      // Finally load the default template and center nodes
+      loadTemplate('prototype');
+    });
+  </script>
 </body>
 </html>
