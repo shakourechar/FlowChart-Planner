@@ -171,10 +171,10 @@
 
     /* Add responsive breakpoints if needed */
     @media (max-width: 768px) {
-      /* Adjust header, nav, #flowchart, etc. for smaller screens */
+      /* For smaller screens, you can further adjust spacing or node sizes. */
     }
     @media (max-width: 480px) {
-      /* Adjust for even smaller devices */
+      /* For very small screens, you could reduce circle radius, text size, etc. */
     }
   </style>
 
@@ -302,8 +302,8 @@
       flowchart.innerHTML = '';
 
       // Create the <svg> dynamically
-      // NOTE: We intentionally make the SVG WIDER than its container
-      // so that horizontal scrolling is possible if nodes exceed container's width.
+      // We intentionally make the SVG wider than its container
+      // so horizontal scrolling is possible if nodes exceed container's width.
       svg = d3.select('#flowchart')
         .append('svg')
         .attr('width', width * 2)  // 2x container width to allow scroll
@@ -331,19 +331,22 @@
       nodeGroup = svg.append('g');
     }
 
-    // 3) Helper to place nodes in a horizontal line, centered
-    function centerNodes() {
-      // We are using the *svg* width, which is 2x the container width
+    // 3) Place nodes diagonally with less horizontal margin
+    function placeNodesDiagonally() {
       const width = +svg.attr('width');
       const height = +svg.attr('height');
-      const spacing = 200;
-      const totalNodes = data.nodes.length;
-      const startX = width / 2 - ((totalNodes - 1) * spacing) / 2;
-      const centerY = height / 2;
+
+      // Smaller left margin, to push the first node closer to the left edge
+      const leftMargin = 50;   
+      const topMargin = 50;
+
+      // Reduce spacing so nodes are closer together
+      const horizontalSpacing = 150; 
+      const verticalSpacing = 100;
 
       data.nodes.forEach((node, i) => {
-        node.x = startX + i * spacing;
-        node.y = centerY;
+        node.x = leftMargin + i * horizontalSpacing;
+        node.y = topMargin + i * verticalSpacing;
       });
     }
 
@@ -530,7 +533,8 @@
           const fileData = JSON.parse(e.target.result);
           if (fileData.nodes && fileData.links) {
             data = fileData;
-            centerNodes();
+            // Place them diagonally each time we load data
+            placeNodesDiagonally();
             update();
           } else {
             alert('Invalid file format');
@@ -584,7 +588,8 @@
           };
           break;
       }
-      centerNodes();
+      // Place them diagonally each time we load a template
+      placeNodesDiagonally();
       update();
     }
 
@@ -689,7 +694,7 @@
         }
       };
 
-      // Load a default template when page first loads
+      // Load a default template on page load
       loadTemplate('prototype');
     });
   </script>
