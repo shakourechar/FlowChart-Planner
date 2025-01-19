@@ -183,10 +183,15 @@
       border-radius: 4px;
       cursor: pointer;
     }
+    /* Highlight the currently selected color swatch */
+    .selected-swatch {
+      outline: 2px solid #333;
+      outline-offset: -2px;
+    }
 
     /* Add responsive breakpoints if needed */
     @media (max-width: 768px) {
-      /* For smaller screens, you can further adjust spacing or node sizes. */
+      /* For smaller screens, you can adjust spacing or node sizes further. */
     }
     @media (max-width: 480px) {
       /* For very small screens, you could reduce circle radius, text size, etc. */
@@ -323,7 +328,7 @@
     let nodeGroup;
     const curveRadius = 200;
 
-    // 2) Initialize D3 with minimal forces
+    // 2) Initialize D3
     function initD3() {
       const flowchart = document.getElementById('flowchart');
       const width = flowchart.clientWidth;
@@ -336,7 +341,7 @@
         .attr('width', width * 2)  // 2x container width
         .attr('height', height);
 
-      // Add a <defs> block for drop-shadow filter
+      // Add <defs> for drop-shadow filter
       svg.append('defs').html(`
         <filter id="nodeShadow" x="-20%" y="-20%" width="140%" height="140%">
           <feGaussianBlur in="SourceAlpha" stdDeviation="3" result="blur" />
@@ -357,16 +362,13 @@
       nodeGroup = svg.append('g');
     }
 
-    // 3) Diagonal placement with margins
+    // 3) Simple diagonal node placement
     function placeNodesDiagonally() {
       const width = +svg.attr('width');
       const height = +svg.attr('height');
 
-      // Margins to avoid cutting off the first node
       const leftMargin = 80;
       const topMargin = 80;
-
-      // Node spacing
       const horizontalSpacing = 150;
       const verticalSpacing = 100;
 
@@ -386,7 +388,7 @@
         deadline: '',
         priority: 'Normal',
         actionDescription: '',
-        color: null // store user color here (if chosen)
+        color: null
       };
 
       data.nodes.push(newNode);
@@ -454,24 +456,22 @@
 
       const allNodes = nodesEnter.merge(nodes);
 
-      // Remove old circles/text
+      // Clear old circles/text
       allNodes.selectAll('circle').remove();
       allNodes.selectAll('text').remove();
 
-      // Circle fill uses custom color if present, else status color
       allNodes.append('circle')
         .attr('r', 60)
+        // Use node.color or fallback to status color
         .attr('fill', d => d.color ? d.color : getStatusColor(d.status))
         .attr('filter', 'url(#nodeShadow)');
 
-      // Wrapping text
       allNodes.append('text')
         .attr('text-anchor', 'middle')
         .attr('dy', 0)
         .text(d => d.name)
         .call(wrapText, 100);
 
-      // Simulation tick
       simulation.nodes(data.nodes)
         .on('tick', () => {
           allNodes.attr('transform', d => `translate(${d.x},${d.y})`);
@@ -534,9 +534,21 @@
       document.getElementById('deadline').value = d.deadline || '';
       document.getElementById('priority').value = d.priority || 'Normal';
       document.getElementById('actionDescription').value = d.actionDescription || '';
+
+      // Set the hidden color input
       document.getElementById('nodeColor').value = d.color || '';
 
-      // Show modal
+      // Remove highlights from all swatches
+      document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected-swatch'));
+
+      // If the node already has a color, highlight that swatch
+      if (d.color) {
+        const swatchToSelect = document.querySelector(`.color-swatch[data-color='${d.color}']`);
+        if (swatchToSelect) {
+          swatchToSelect.classList.add('selected-swatch');
+        }
+      }
+
       document.getElementById('modal').style.display = 'block';
     }
 
@@ -686,7 +698,11 @@
       // Listen for color swatch clicks
       document.querySelectorAll('.color-swatch').forEach(swatch => {
         swatch.addEventListener('click', () => {
-          // Save chosen color to hidden input
+          // Remove highlight from all swatches
+          document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected-swatch'));
+          // Add highlight to the one clicked
+          swatch.classList.add('selected-swatch');
+          // Store chosen color in hidden input
           document.getElementById('nodeColor').value = swatch.dataset.color;
         });
       });
