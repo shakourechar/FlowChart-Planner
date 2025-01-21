@@ -187,6 +187,7 @@
       <button id="exportBtn">Export</button>
       <input type="file" id="fileInput" accept=".json">
       <button id="uploadBtn" class="upload-btn">Upload</button>
+      <div id="fileNameDisplay"></div>
     </nav>
   </header>
 
@@ -718,6 +719,8 @@
       fileInput.onchange = (e) => {
         if (e.target.files.length > 0) {
           loadFromFile(e.target.files[0]);
+          const fileName = e.target.files[0].name;
+          document.getElementById('fileNameDisplay').innerText = `Uploaded File: ${fileName}`;
         }
       };
 
