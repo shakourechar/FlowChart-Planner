@@ -221,8 +221,8 @@
         <label>Action Description:
           <textarea id="actionDescription" maxlength="300"></textarea>
         </label>
-        <!-- TTS button inserted immediately after the Action Description field -->
-        <button type="button" id="ttsBtn" style="background: #27ae60; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">🔊 Read Aloud</button>
+        <!-- TTS Button inserted below the Action Description field -->
+        <button type="button" id="ttsBtn" style="background: #27ae60; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">🎧</button>
         <!-- COLOR SELECTION PANEL -->
         <label>Node Color:</label>
         <!-- Hidden input to store the chosen color -->
@@ -681,8 +681,8 @@
           e.target.style.display = 'none';
         }
       };
-      // TTS button functionality: Read aloud the Action Description field
-      document.getElementById('ttsBtn').onclick = () => {
+      // TTS button functionality: Read the content of the Action Description field when the 🎧 button is clicked
+      document.getElementById('ttsBtn').addEventListener('click', () => {
         const text = document.getElementById('actionDescription').value;
         if (!text.trim()) {
           alert("No text to read!");
@@ -692,7 +692,7 @@
         utterance.rate = 1.0;
         utterance.pitch = 1.0;
         window.speechSynthesis.speak(utterance);
-      };
+      });
       // Default template on first load
       loadTemplate('prototype');
     });
