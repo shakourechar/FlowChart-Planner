@@ -60,6 +60,16 @@
       font-size: 24px;
       cursor: pointer;
     }
+    /* Optional: Style the "Read Aloud" button for clarity */
+    .tts-btn {
+      background: #27ae60;
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      margin-top: 10px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
   </style>
 </head>
 <body>
@@ -74,6 +84,7 @@
     </nav>
   </header>
   <div id="flowchart"></div>
+  <!-- Popup Modal -->
   <div id="modal" class="modal">
     <div class="modal-content">
       <span class="close-button" id="closeModal">×</span>
@@ -111,6 +122,7 @@
           <textarea id="actionDescription" maxlength="300"></textarea>
         </label>
         <br>
+        <!-- The Text-to-Speech button -->
         <button type="button" class="tts-btn" id="readActionDescription">🔊 Read Aloud</button>
         <div class="action-buttons">
           <button type="submit" class="save-btn">Save</button>
@@ -119,7 +131,7 @@
     </div>
   </div>
   <script>
-    // Speech synthesis: read the action description aloud
+    // Text-to-Speech: Read aloud the content of the action description textarea
     function readActionDescription() {
       const text = document.getElementById("actionDescription").value;
       if (!text) {
@@ -134,17 +146,17 @@
     }
     document.getElementById("readActionDescription").addEventListener("click", readActionDescription);
 
-    // Modal functionality: open modal when "Templates" button is clicked
+    // Modal functionality: Open the modal when the "Templates" button is clicked
     document.getElementById("templateBtn").addEventListener("click", function() {
       document.getElementById("modal").style.display = "block";
     });
 
-    // Close modal when the close button (×) is clicked
+    // Close the modal when the close button (×) is clicked
     document.getElementById("closeModal").addEventListener("click", function() {
       document.getElementById("modal").style.display = "none";
     });
 
-    // Optionally, close the modal when clicking outside the modal content
+    // Optionally close the modal if the user clicks outside the modal content
     window.addEventListener("click", function(event) {
       const modal = document.getElementById("modal");
       if (event.target === modal) {
