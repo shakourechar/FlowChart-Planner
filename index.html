@@ -165,18 +165,18 @@
       outline: 2px solid #333;
       outline-offset: -2px;
     }
+    /* Responsive tweaks */
     @media (max-width: 768px) {
-      /* For smaller screens, adjust spacing or node sizes */
+      /* Adjustments for smaller screens */
     }
     @media (max-width: 480px) {
-      /* For very small screens, you could reduce circle radius, text size, etc. */
+      /* Adjustments for very small screens */
     }
   </style>
-
+  
   <!-- Load D3 -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
 </head>
-
 <body>
   <header>
     <h1>FlowChart Manager</h1>
@@ -188,9 +188,9 @@
       <div id="fileNameDisplay"></div>
     </nav>
   </header>
-
+  
   <div id="flowchart"></div>
-
+  
   <!-- Modal for editing node tasks -->
   <div id="modal" class="modal">
     <div class="modal-content">
@@ -224,8 +224,9 @@
         <table id="taskTable" style="width:100%; margin-bottom:10px;">
           <thead>
             <tr>
-              <th style="width: 20px;"></th>
+              <th style="width: 20px;">✓</th>
               <th>Task</th>
+              <th style="width: 50px;">Move</th>
             </tr>
           </thead>
           <tbody>
@@ -233,7 +234,7 @@
           </tbody>
         </table>
         <button type="button" id="addTaskRowBtn">Add Task</button>
-
+        
         <!-- COLOR SELECTION PANEL -->
         <label>Node Color:</label>
         <input type="hidden" id="nodeColor" />
@@ -246,7 +247,7 @@
           <div class="color-swatch" style="background-color: #34495e;" data-color="#34495e"></div>
         </div>
         <!-- END COLOR SELECTION -->
-
+        
         <div class="action-buttons">
           <button type="submit" class="save-btn">Save</button>
           <button type="button" class="add-node-btn" id="addNodeBtn">Add Child Node</button>
@@ -256,7 +257,7 @@
       </form>
     </div>
   </div>
-
+  
   <!-- Modal for selecting templates -->
   <div id="templateModal" class="modal">
     <div class="modal-content">
@@ -267,7 +268,7 @@
       <button class="template-btn" data-template="marketing">Marketing Campaign</button>
     </div>
   </div>
-
+  
   <!-- Modal for displaying full task text with delete option -->
   <div id="taskTextPopup" class="modal">
     <div class="modal-content">
@@ -276,7 +277,7 @@
       <button id="deleteTaskBtn" style="margin-top: 10px; background-color: #e74c3c; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer;">Delete Task</button>
     </div>
   </div>
-
+  
   <script>
     // Utility: wrap text in multiple lines for SVG text elements
     function wrapText(text, width) {
@@ -289,13 +290,11 @@
             x = textEl.attr("x") || 0,
             y = textEl.attr("y") || 0,
             dy = parseFloat(textEl.attr("dy")) || 0;
-
         let tspan = textEl.text(null)
           .append("tspan")
           .attr("x", x)
           .attr("y", y)
           .attr("dy", dy + "em");
-
         let word;
         while ((word = words.pop())) {
           line.push(word);
@@ -313,7 +312,7 @@
         }
       });
     }
-
+    
     let selectedNode = null;
     let data = { nodes: [], links: [] };
     let simulation;
@@ -322,21 +321,18 @@
     let nodeGroup;
     const curveRadius = 200;
     const nodeWidthEstimate = 200; // Approximate width per node for scrolling
-    let currentTaskRow = null; // Tracks the currently selected task row for deletion
-
+    let currentTaskRow = null; // Tracks the current task row (for popup deletion)
+    
     // Setup D3 environment
     function initD3() {
       const flowchart = document.getElementById('flowchart');
       const containerWidth = flowchart.clientWidth;
       const containerHeight = flowchart.clientHeight;
-
       flowchart.innerHTML = '';
-
       svg = d3.select('#flowchart')
         .append('svg')
         .attr('width', containerWidth * 2)
         .attr('height', containerHeight);
-
       svg.append('defs').html(`
         <filter id="nodeShadow" x="-20%" y="-20%" width="140%" height="140%">
           <feGaussianBlur in="SourceAlpha" stdDeviation="3" result="blur" />
@@ -347,23 +343,20 @@
           </feMerge>
         </filter>
       `);
-
       simulation = d3.forceSimulation()
         .force('link', d3.forceLink().id(d => d.id).distance(150).strength(0))
         .force('charge', d3.forceManyBody().strength(0))
         .force('collide', d3.forceCollide().radius(60));
-
       linkGroup = svg.append('g');
       nodeGroup = svg.append('g');
     }
-
+    
     // If loading a fresh template, place nodes diagonally
     function placeNodesDiagonally() {
       const leftMargin = 80;
       const topMargin = 80;
       const horizontalSpacing = 150;
       const verticalSpacing = 100;
-
       data.nodes.forEach((node, i) => {
         if (node.x == null && node.y == null) {
           node.x = leftMargin + i * horizontalSpacing;
@@ -371,58 +364,46 @@
         }
       });
     }
-
-    // Add a new task row with drag-and-drop support for reordering
+    
+    // Functions to move task rows using arrow buttons
+    function moveTaskRowUp(row) {
+      const tbody = row.parentNode;
+      const prevRow = row.previousElementSibling;
+      if (prevRow) {
+        tbody.insertBefore(row, prevRow);
+      }
+    }
+    function moveTaskRowDown(row) {
+      const tbody = row.parentNode;
+      const nextRow = row.nextElementSibling;
+      if (nextRow) {
+        tbody.insertBefore(nextRow, row);
+      }
+    }
+    
+    // Add a new task row with up/down buttons for reordering
     function addTaskRow(task) {
       const tbody = document.querySelector('#taskTable tbody');
       const tr = document.createElement('tr');
-      tr.setAttribute('draggable', 'true');
       
-      // Drag-and-drop event listeners
-      tr.addEventListener('dragstart', function(e) {
-        currentTaskRow = this;
-        e.dataTransfer.effectAllowed = 'move';
-      });
-      tr.addEventListener('dragover', function(e) {
-        e.preventDefault();
-        e.dataTransfer.dropEffect = 'move';
-      });
-      tr.addEventListener('drop', function(e) {
-        e.preventDefault();
-        if (currentTaskRow && currentTaskRow !== this) {
-          const tbody = this.parentNode;
-          let rows = Array.from(tbody.querySelectorAll('tr'));
-          let currentIndex = rows.indexOf(currentTaskRow);
-          let targetIndex = rows.indexOf(this);
-          if (currentIndex < targetIndex) {
-            tbody.insertBefore(currentTaskRow, this.nextSibling);
-          } else {
-            tbody.insertBefore(currentTaskRow, this);
-          }
-          currentTaskRow = null;
-        }
-      });
-      
-      // Create checkbox cell
+      // Checkbox cell
       const tdCheckbox = document.createElement('td');
       const checkbox = document.createElement('input');
       checkbox.type = 'checkbox';
       checkbox.checked = task && task.completed ? true : false;
       tdCheckbox.appendChild(checkbox);
       
-      // Create task text cell with event listeners for popup
+      // Task text cell with event listeners for popup
       const tdTask = document.createElement('td');
       const taskInput = document.createElement('input');
       taskInput.type = 'text';
       taskInput.value = task && task.task ? task.task : '';
       taskInput.style.width = '100%';
       
-      // Double-click for popup (and set current row for potential deletion)
       taskInput.addEventListener('dblclick', function(e) {
         currentTaskRow = this.parentElement.parentElement;
         showTaskPopup(this.value);
       });
-      // Long-press for mobile
       let pressTimer;
       taskInput.addEventListener('touchstart', function(e) {
         pressTimer = window.setTimeout(() => {
@@ -438,11 +419,38 @@
       });
       
       tdTask.appendChild(taskInput);
+      
+      // Controls cell with up/down arrow buttons
+      const tdControls = document.createElement('td');
+      tdControls.style.width = "50px";
+      
+      const upBtn = document.createElement('button');
+      upBtn.textContent = "↑";
+      upBtn.style.fontSize = "12px";
+      upBtn.style.margin = "2px";
+      upBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        moveTaskRowUp(tr);
+      });
+      
+      const downBtn = document.createElement('button');
+      downBtn.textContent = "↓";
+      downBtn.style.fontSize = "12px";
+      downBtn.style.margin = "2px";
+      downBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        moveTaskRowDown(tr);
+      });
+      
+      tdControls.appendChild(upBtn);
+      tdControls.appendChild(downBtn);
+      
       tr.appendChild(tdCheckbox);
       tr.appendChild(tdTask);
+      tr.appendChild(tdControls);
       tbody.appendChild(tr);
     }
-
+    
     // Populate the task table from stored actionDescription
     function populateTaskTable(taskData) {
       const tbody = document.querySelector('#taskTable tbody');
@@ -460,18 +468,17 @@
         addTaskRow(task);
       });
     }
-
-    // Function to display the task popup modal with delete option
+    
+    // Display the task popup modal with delete option
     function showTaskPopup(text) {
       document.getElementById('taskFullText').textContent = text;
       document.getElementById('taskTextPopup').style.display = 'block';
     }
-
+    
     // Open node's modal on click and populate task table
     function nodeClick(event, d) {
       event.stopPropagation();
       selectedNode = d;
-
       document.getElementById('taskName').value = d.name || '';
       document.getElementById('responsible').value = d.responsible || '';
       document.getElementById('status').value = d.status || 'Not Started';
@@ -479,7 +486,6 @@
       document.getElementById('priority').value = d.priority || 'Normal';
       populateTaskTable(d.actionDescription || '');
       document.getElementById('nodeColor').value = d.color || '';
-
       document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected-swatch'));
       if (d.color) {
         const swatchToSelect = document.querySelector(`.color-swatch[data-color='${d.color}']`);
@@ -489,7 +495,7 @@
       }
       document.getElementById('modal').style.display = 'block';
     }
-
+    
     // Export data as JSON
     function saveToFile() {
       const dataStr = JSON.stringify(data, null, 2);
@@ -503,7 +509,7 @@
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
     }
-
+    
     // Load data from file
     function loadFromFile(file) {
       if (!file) {
@@ -526,7 +532,7 @@
       };
       reader.readAsText(file);
     }
-
+    
     // Load template data
     function loadTemplate(template) {
       switch (template) {
@@ -573,20 +579,18 @@
       placeNodesDiagonally();
       update();
     }
-
-    // Reorder nodes in a linear flow
+    
+    // Reorder nodes in a linear flow (for the entire chart)
     function reorderNodes(direction) {
       if (!selectedNode) return;
       const links = data.links;
       const index = links.findIndex(link => link.target === selectedNode.id);
-
       if (index === -1) {
         alert("This node is a root node; it can’t be reordered this way.");
         return;
       }
       const currentLink = links[index];
       const previousIndex = links.findIndex(link => link.target === currentLink.source);
-
       if (direction === 'up') {
         if (previousIndex === -1) {
           alert("This is the first node, it cannot be moved up.");
@@ -607,7 +611,7 @@
       }
       update();
     }
-
+    
     // Save node edits including tasks from the table
     document.getElementById('taskForm').onsubmit = (e) => {
       e.preventDefault();
@@ -637,12 +641,12 @@
       }
       document.getElementById('modal').style.display = 'none';
     };
-
+    
     // Event listener for Add Task button
     document.getElementById('addTaskRowBtn').addEventListener('click', () => {
       addTaskRow({});
     });
-
+    
     // Delete task from popup modal when delete button is clicked
     document.getElementById('deleteTaskBtn').addEventListener('click', function() {
       if (currentTaskRow) {
@@ -651,11 +655,11 @@
       }
       document.getElementById('taskTextPopup').style.display = 'none';
     });
-
+    
     // DOMContentLoaded events
     document.addEventListener('DOMContentLoaded', () => {
       initD3();
-
+      
       // Color swatch clicks
       document.querySelectorAll('.color-swatch').forEach(swatch => {
         swatch.addEventListener('click', () => {
@@ -664,11 +668,11 @@
           document.getElementById('nodeColor').value = swatch.dataset.color;
         });
       });
-
-      // Reorder button handlers
+      
+      // Reorder button handlers for nodes (chart-level)
       document.getElementById('moveUpBtn').onclick = () => reorderNodes('up');
       document.getElementById('moveDownBtn').onclick = () => reorderNodes('down');
-
+      
       // Template modal handlers
       document.getElementById('templateBtn').onclick = () => {
         document.getElementById('templateModal').style.display = 'block';
@@ -679,7 +683,7 @@
           document.getElementById('templateModal').style.display = 'none';
         };
       });
-
+      
       // Add Child Node button
       document.getElementById('addNodeBtn').onclick = (e) => {
         e.preventDefault();
@@ -689,10 +693,10 @@
           nodeClick(e, newNode);
         }
       };
-
+      
       // Export file button
       document.getElementById('exportBtn').onclick = saveToFile;
-
+      
       // Upload file button
       const uploadButton = document.getElementById('uploadBtn');
       const fileInput = document.getElementById('fileInput');
@@ -704,7 +708,7 @@
           document.getElementById('fileNameDisplay').innerText = `Uploaded File: ${fileName}`;
         }
       };
-
+      
       // Close modals on X or outside click
       document.querySelectorAll('.close-button').forEach(btn => {
         btn.onclick = (e) => {
@@ -717,7 +721,7 @@
           e.target.style.display = 'none';
         }
       };
-
+      
       // Default template on first load
       loadTemplate('prototype');
     });
@@ -735,9 +739,7 @@
         actionDescription: '',
         color: null
       };
-
       data.nodes.push(newNode);
-
       if (parentNode) {
         data.links.push({
           source: parentNode.id,
@@ -747,14 +749,12 @@
       update();
       return newNode;
     }
-
+    
     // Update nodes and links on the canvas
     function update() {
       const links = linkGroup.selectAll('.link')
         .data(data.links);
-
       links.exit().remove();
-
       const linkGen = d3.linkRadial()
         .angle(d => {
           const sourceNode = data.nodes.find(node => node.id === d.source);
@@ -765,7 +765,6 @@
           return 0;
         })
         .radius(curveRadius);
-
       links.enter()
         .append('path')
         .attr('class', 'link')
@@ -782,12 +781,9 @@
             return "";
           }
         });
-
       const nodes = nodeGroup.selectAll('.node')
         .data(data.nodes);
-
       nodes.exit().remove();
-
       const nodesEnter = nodes.enter()
         .append('g')
         .attr('class', 'node')
@@ -796,23 +792,18 @@
           .on('drag', dragging)
           .on('end', dragEnd))
         .on('click', nodeClick);
-
       const allNodes = nodesEnter.merge(nodes);
-
       allNodes.selectAll('circle').remove();
       allNodes.selectAll('text').remove();
-
       allNodes.append('circle')
         .attr('r', 60)
         .attr('fill', d => d.color ? d.color : getStatusColor(d.status))
         .attr('filter', 'url(#nodeShadow)');
-
       allNodes.append('text')
         .attr('text-anchor', 'middle')
         .attr('dy', 0)
         .text(d => d.name)
         .call(wrapText, 100);
-
       simulation.nodes(data.nodes)
         .on('tick', () => {
           allNodes.attr('transform', d => `translate(${d.x},${d.y})`);
@@ -828,17 +819,15 @@
             return "";
           });
         });
-
       simulation.force('link').links(data.links);
       simulation.alpha(1).restart();
-
       // Adjust the svg width to allow horizontal scrolling
       const flowchart = document.getElementById('flowchart');
       const containerWidth = flowchart.clientWidth;
       const requiredWidth = Math.max(containerWidth * 2, data.nodes.length * nodeWidthEstimate);
       svg.attr('width', requiredWidth);
     }
-
+    
     function getStatusColor(status) {
       switch (status) {
         case 'Not Started': return '#e74c3c';
@@ -847,7 +836,7 @@
         default:            return '#3498db';
       }
     }
-
+    
     // D3 drag handlers
     function dragStart(event) {
       if (!event.active) simulation.alphaTarget(0.3).restart();
