@@ -268,7 +268,7 @@
     </div>
   </div>
 
-  <!-- Modal for displaying full task text and delete option -->
+  <!-- Modal for displaying full task text with delete option -->
   <div id="taskTextPopup" class="modal">
     <div class="modal-content">
       <span class="close-button" id="closeTaskPopup">×</span>
@@ -278,7 +278,7 @@
   </div>
 
   <script>
-    // Utility: wrap text in multiple lines
+    // Utility: wrap text in multiple lines for SVG text elements
     function wrapText(text, width) {
       text.each(function() {
         let textEl = d3.select(this),
@@ -321,8 +321,8 @@
     let linkGroup;
     let nodeGroup;
     const curveRadius = 200;
-    const nodeWidthEstimate = 200; // Approx width per node for scrolling
-    let currentTaskRow = null; // To track the currently selected task row
+    const nodeWidthEstimate = 200; // Approximate width per node for scrolling
+    let currentTaskRow = null; // Tracks the currently selected task row for deletion
 
     // Setup D3 environment
     function initD3() {
@@ -372,30 +372,57 @@
       });
     }
 
-    // Add a new task row with event listeners for popup
+    // Add a new task row with drag-and-drop support for reordering
     function addTaskRow(task) {
       const tbody = document.querySelector('#taskTable tbody');
       const tr = document.createElement('tr');
-      const tdCheckbox = document.createElement('td');
-      const tdTask = document.createElement('td');
+      tr.setAttribute('draggable', 'true');
       
+      // Drag-and-drop event listeners
+      tr.addEventListener('dragstart', function(e) {
+        currentTaskRow = this;
+        e.dataTransfer.effectAllowed = 'move';
+      });
+      tr.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+      });
+      tr.addEventListener('drop', function(e) {
+        e.preventDefault();
+        if (currentTaskRow && currentTaskRow !== this) {
+          const tbody = this.parentNode;
+          let rows = Array.from(tbody.querySelectorAll('tr'));
+          let currentIndex = rows.indexOf(currentTaskRow);
+          let targetIndex = rows.indexOf(this);
+          if (currentIndex < targetIndex) {
+            tbody.insertBefore(currentTaskRow, this.nextSibling);
+          } else {
+            tbody.insertBefore(currentTaskRow, this);
+          }
+          currentTaskRow = null;
+        }
+      });
+      
+      // Create checkbox cell
+      const tdCheckbox = document.createElement('td');
       const checkbox = document.createElement('input');
       checkbox.type = 'checkbox';
       checkbox.checked = task && task.completed ? true : false;
       tdCheckbox.appendChild(checkbox);
       
+      // Create task text cell with event listeners for popup
+      const tdTask = document.createElement('td');
       const taskInput = document.createElement('input');
       taskInput.type = 'text';
       taskInput.value = task && task.task ? task.task : '';
       taskInput.style.width = '100%';
-
-      // Double-click event for desktop
+      
+      // Double-click for popup (and set current row for potential deletion)
       taskInput.addEventListener('dblclick', function(e) {
         currentTaskRow = this.parentElement.parentElement;
         showTaskPopup(this.value);
       });
-
-      // Long-press events for mobile
+      // Long-press for mobile
       let pressTimer;
       taskInput.addEventListener('touchstart', function(e) {
         pressTimer = window.setTimeout(() => {
@@ -616,7 +643,7 @@
       addTaskRow({});
     });
 
-    // Delete task from popup modal
+    // Delete task from popup modal when delete button is clicked
     document.getElementById('deleteTaskBtn').addEventListener('click', function() {
       if (currentTaskRow) {
         currentTaskRow.remove();
