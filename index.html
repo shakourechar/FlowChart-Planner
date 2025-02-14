@@ -68,12 +68,13 @@
       padding: 20px;
       width: 90%;
       max-width: 500px;
-      max-height: 90vh;
-      overflow-y: auto;
-      scrollbar-width: none;
+      max-height: 90vh; /* Limit height to viewport */
+      overflow-y: auto; /* Enable vertical scrolling */
+      scrollbar-width: none; /* Hide scrollbar in Firefox */
       border-radius: 8px;
       position: relative;
     }
+    /* Hide scrollbar in WebKit browsers */
     .modal-content::-webkit-scrollbar {
       display: none;
     }
@@ -755,11 +756,12 @@
       return newNode;
     }
     
-    // Update nodes and links on the canvas, including the task count bubble
+    // Update nodes and links on the canvas, using a rounded rectangle for the task count
     function update() {
       const links = linkGroup.selectAll('.link')
         .data(data.links);
       links.exit().remove();
+      
       const linkGen = d3.linkRadial()
         .angle(d => {
           const sourceNode = data.nodes.find(node => node.id === d.source);
@@ -770,6 +772,7 @@
           return 0;
         })
         .radius(curveRadius);
+      
       links.enter()
         .append('path')
         .attr('class', 'link')
@@ -786,9 +789,11 @@
             return "";
           }
         });
+      
       const nodes = nodeGroup.selectAll('.node')
         .data(data.nodes);
       nodes.exit().remove();
+      
       const nodesEnter = nodes.enter()
         .append('g')
         .attr('class', 'node')
@@ -797,25 +802,28 @@
           .on('drag', dragging)
           .on('end', dragEnd))
         .on('click', nodeClick);
+      
       const allNodes = nodesEnter.merge(nodes);
       
-      // Remove old elements if present
+      // Clear old elements
       allNodes.selectAll('circle').remove();
       allNodes.selectAll('text').remove();
       allNodes.selectAll('.taskCountGroup').remove();
       
-      // Draw node circle and name text
+      // Draw main circle
       allNodes.append('circle')
         .attr('r', 60)
         .attr('fill', d => d.color ? d.color : getStatusColor(d.status))
         .attr('filter', 'url(#nodeShadow)');
+      
+      // Node name text
       allNodes.append('text')
         .attr('text-anchor', 'middle')
         .attr('dy', 0)
         .text(d => d.name)
         .call(wrapText, 100);
       
-      // Append the task count bubble above each node
+      // Add group for the "task count" bubble, above the node
       allNodes.append('g')
         .attr('class', 'taskCountGroup')
         .attr('transform', 'translate(0,-70)')
@@ -828,17 +836,34 @@
               tasks = [];
             }
           }
-          let completedCount = tasks.filter(task => task.completed).length;
+          let completedCount = tasks.filter(t => t.completed).length;
           let totalCount = tasks.length;
-          d3.select(this).append('circle')
-            .attr('r', 15)
-            .attr('fill', '#3498db');
-          d3.select(this).append('text')
+          let textString = `✅ ${completedCount} of ${totalCount}`;
+          
+          // First, create the text
+          const textEl = d3.select(this).append('text')
             .attr('text-anchor', 'middle')
             .attr('dy', '0.35em')
             .attr('fill', 'white')
             .style('font-size', '10px')
-            .text(`✅ ${completedCount} of ${totalCount}`);
+            .text(textString);
+          
+          // Measure text width to size the rounded rect
+          const textNode = textEl.node();
+          const textWidth = textNode.getComputedTextLength();
+          // Add some padding
+          const rectWidth = textWidth + 12;
+          const rectHeight = 18;
+          
+          // Insert a rect behind the text
+          d3.select(this).insert('rect', 'text')
+            .attr('width', rectWidth)
+            .attr('height', rectHeight)
+            .attr('x', -rectWidth / 2)
+            .attr('y', -rectHeight / 2)
+            .attr('rx', 9)
+            .attr('ry', 9)
+            .attr('fill', '#3498db');
         });
       
       simulation.nodes(data.nodes)
