@@ -322,21 +322,22 @@
     let svg;
     let linkGroup;
     let nodeGroup;
-
     const curveRadius = 200;
+    const nodeWidthEstimate = 200; // Approx width per node for scrolling
 
     // Setup D3 environment
     function initD3() {
       const flowchart = document.getElementById('flowchart');
-      const width = flowchart.clientWidth;
-      const height = flowchart.clientHeight;
+      const containerWidth = flowchart.clientWidth;
+      const containerHeight = flowchart.clientHeight;
 
       flowchart.innerHTML = '';
 
       svg = d3.select('#flowchart')
         .append('svg')
-        .attr('width', width * 2)
-        .attr('height', height);
+        // Initially set to twice the container width
+        .attr('width', containerWidth * 2)
+        .attr('height', containerHeight);
 
       svg.append('defs').html(`
         <filter id="nodeShadow" x="-20%" y="-20%" width="140%" height="140%">
@@ -373,7 +374,7 @@
       });
     }
 
-    // Add a new task row to the task table with event listeners for popup
+    // Add a new task row with event listeners for popup
     function addTaskRow(task) {
       const tbody = document.querySelector('#taskTable tbody');
       const tr = document.createElement('tr');
@@ -547,7 +548,7 @@
       update();
     }
 
-    // Reorder nodes
+    // Reorder nodes in a linear flow
     function reorderNodes(direction) {
       if (!selectedNode) return;
       const links = data.links;
@@ -800,6 +801,13 @@
 
       simulation.force('link').links(data.links);
       simulation.alpha(1).restart();
+
+      // Adjust the svg width to allow horizontal scrolling
+      const flowchart = document.getElementById('flowchart');
+      const containerWidth = flowchart.clientWidth;
+      // Ensure a minimum width based on number of nodes
+      const requiredWidth = Math.max(containerWidth * 2, data.nodes.length * nodeWidthEstimate);
+      svg.attr('width', requiredWidth);
     }
 
     function getStatusColor(status) {
