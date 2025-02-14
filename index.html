@@ -68,14 +68,14 @@
       padding: 20px;
       width: 90%;
       max-width: 500px;
-      max-height: 90vh; /* Limit height to viewport */
-      overflow-y: auto; /* Enable vertical scrolling when needed */
-      scrollbar-width: none; /* Firefox */
+      max-height: 90vh;
+      overflow-y: auto;
+      scrollbar-width: none;
       border-radius: 8px;
       position: relative;
     }
     .modal-content::-webkit-scrollbar {
-      display: none; /* Chrome, Safari and Opera */
+      display: none;
     }
     .close-button {
       position: absolute;
@@ -176,7 +176,7 @@
       border: 2px solid #3498db;
     }
     @media (max-width: 768px) {
-      /* For smaller screens, adjust spacing or node sizes if needed */
+      /* For smaller screens, adjust spacing if needed */
     }
     @media (max-width: 480px) {
       /* For very small screens, adjust as necessary */
@@ -755,7 +755,7 @@
       return newNode;
     }
     
-    // Update nodes and links on the canvas
+    // Update nodes and links on the canvas, including the task count bubble
     function update() {
       const links = linkGroup.selectAll('.link')
         .data(data.links);
@@ -798,8 +798,13 @@
           .on('end', dragEnd))
         .on('click', nodeClick);
       const allNodes = nodesEnter.merge(nodes);
+      
+      // Remove old elements if present
       allNodes.selectAll('circle').remove();
       allNodes.selectAll('text').remove();
+      allNodes.selectAll('.taskCountGroup').remove();
+      
+      // Draw node circle and name text
       allNodes.append('circle')
         .attr('r', 60)
         .attr('fill', d => d.color ? d.color : getStatusColor(d.status))
@@ -809,6 +814,33 @@
         .attr('dy', 0)
         .text(d => d.name)
         .call(wrapText, 100);
+      
+      // Append the task count bubble above each node
+      allNodes.append('g')
+        .attr('class', 'taskCountGroup')
+        .attr('transform', 'translate(0,-70)')
+        .each(function(d) {
+          let tasks = [];
+          if (d.actionDescription) {
+            try {
+              tasks = JSON.parse(d.actionDescription);
+            } catch (e) {
+              tasks = [];
+            }
+          }
+          let completedCount = tasks.filter(task => task.completed).length;
+          let totalCount = tasks.length;
+          d3.select(this).append('circle')
+            .attr('r', 15)
+            .attr('fill', '#3498db');
+          d3.select(this).append('text')
+            .attr('text-anchor', 'middle')
+            .attr('dy', '0.35em')
+            .attr('fill', 'white')
+            .style('font-size', '10px')
+            .text(`✅ ${completedCount} of ${totalCount}`);
+        });
+      
       simulation.nodes(data.nodes)
         .on('tick', () => {
           allNodes.attr('transform', d => `translate(${d.x},${d.y})`);
@@ -824,8 +856,10 @@
             return "";
           });
         });
+      
       simulation.force('link').links(data.links);
       simulation.alpha(1).restart();
+      
       // Adjust the svg width to allow horizontal scrolling
       const flowchart = document.getElementById('flowchart');
       const containerWidth = flowchart.clientWidth;
