@@ -165,12 +165,15 @@
       outline: 2px solid #333;
       outline-offset: -2px;
     }
-    /* Responsive tweaks */
+    /* Highlight selected task row */
+    .selectedTaskRow {
+      border: 2px solid #3498db;
+    }
     @media (max-width: 768px) {
-      /* Adjustments for smaller screens */
+      /* For smaller screens, adjust spacing or node sizes if needed */
     }
     @media (max-width: 480px) {
-      /* Adjustments for very small screens */
+      /* For very small screens, adjust as necessary */
     }
   </style>
   
@@ -220,13 +223,17 @@
             <option value="High">High</option>
           </select>
         </label>
+        <!-- Added move controls above the task table -->
         <label>Action Description:</label>
+        <div id="taskMoveControls" style="margin-bottom:5px;">
+          <button id="moveTaskUpBtn" type="button" style="font-size:12px; margin-right:5px;">Move Up</button>
+          <button id="moveTaskDownBtn" type="button" style="font-size:12px;">Move Down</button>
+        </div>
         <table id="taskTable" style="width:100%; margin-bottom:10px;">
           <thead>
             <tr>
               <th style="width: 20px;">✓</th>
               <th>Task</th>
-              <th style="width: 50px;">Move</th>
             </tr>
           </thead>
           <tbody>
@@ -321,7 +328,6 @@
     let nodeGroup;
     const curveRadius = 200;
     const nodeWidthEstimate = 200; // Approximate width per node for scrolling
-    let currentTaskRow = null; // Tracks the current task row (for popup deletion)
     
     // Setup D3 environment
     function initD3() {
@@ -365,26 +371,18 @@
       });
     }
     
-    // Functions to move task rows using arrow buttons
-    function moveTaskRowUp(row) {
-      const tbody = row.parentNode;
-      const prevRow = row.previousElementSibling;
-      if (prevRow) {
-        tbody.insertBefore(row, prevRow);
-      }
-    }
-    function moveTaskRowDown(row) {
-      const tbody = row.parentNode;
-      const nextRow = row.nextElementSibling;
-      if (nextRow) {
-        tbody.insertBefore(nextRow, row);
-      }
-    }
-    
-    // Add a new task row with up/down buttons for reordering
+    // Add a new task row
     function addTaskRow(task) {
       const tbody = document.querySelector('#taskTable tbody');
       const tr = document.createElement('tr');
+      
+      // When the row is clicked, mark it as selected
+      tr.addEventListener('click', function(e) {
+        document.querySelectorAll('#taskTable tbody tr').forEach(row => {
+          row.classList.remove('selectedTaskRow');
+        });
+        this.classList.add('selectedTaskRow');
+      });
       
       // Checkbox cell
       const tdCheckbox = document.createElement('td');
@@ -400,14 +398,16 @@
       taskInput.value = task && task.task ? task.task : '';
       taskInput.style.width = '100%';
       
+      // Double-click event to show popup (and select row)
       taskInput.addEventListener('dblclick', function(e) {
-        currentTaskRow = this.parentElement.parentElement;
+        tr.classList.add('selectedTaskRow');
         showTaskPopup(this.value);
       });
+      // Long-press for mobile
       let pressTimer;
       taskInput.addEventListener('touchstart', function(e) {
         pressTimer = window.setTimeout(() => {
-          currentTaskRow = this.parentElement.parentElement;
+          tr.classList.add('selectedTaskRow');
           showTaskPopup(this.value);
         }, 800);
       });
@@ -419,35 +419,8 @@
       });
       
       tdTask.appendChild(taskInput);
-      
-      // Controls cell with up/down arrow buttons
-      const tdControls = document.createElement('td');
-      tdControls.style.width = "50px";
-      
-      const upBtn = document.createElement('button');
-      upBtn.textContent = "↑";
-      upBtn.style.fontSize = "12px";
-      upBtn.style.margin = "2px";
-      upBtn.addEventListener('click', function(e) {
-        e.stopPropagation();
-        moveTaskRowUp(tr);
-      });
-      
-      const downBtn = document.createElement('button');
-      downBtn.textContent = "↓";
-      downBtn.style.fontSize = "12px";
-      downBtn.style.margin = "2px";
-      downBtn.addEventListener('click', function(e) {
-        e.stopPropagation();
-        moveTaskRowDown(tr);
-      });
-      
-      tdControls.appendChild(upBtn);
-      tdControls.appendChild(downBtn);
-      
       tr.appendChild(tdCheckbox);
       tr.appendChild(tdTask);
-      tr.appendChild(tdControls);
       tbody.appendChild(tr);
     }
     
@@ -580,7 +553,7 @@
       update();
     }
     
-    // Reorder nodes in a linear flow (for the entire chart)
+    // Reorder nodes in a linear flow (chart-level)
     function reorderNodes(direction) {
       if (!selectedNode) return;
       const links = data.links;
@@ -649,11 +622,25 @@
     
     // Delete task from popup modal when delete button is clicked
     document.getElementById('deleteTaskBtn').addEventListener('click', function() {
-      if (currentTaskRow) {
-        currentTaskRow.remove();
-        currentTaskRow = null;
+      let selectedRow = document.querySelector('#taskTable tbody tr.selectedTaskRow');
+      if (selectedRow) {
+        selectedRow.remove();
       }
       document.getElementById('taskTextPopup').style.display = 'none';
+    });
+    
+    // Event listeners for global task move controls
+    document.getElementById('moveTaskUpBtn').addEventListener('click', function() {
+      let selectedRow = document.querySelector('#taskTable tbody tr.selectedTaskRow');
+      if (selectedRow && selectedRow.previousElementSibling) {
+        selectedRow.parentNode.insertBefore(selectedRow, selectedRow.previousElementSibling);
+      }
+    });
+    document.getElementById('moveTaskDownBtn').addEventListener('click', function() {
+      let selectedRow = document.querySelector('#taskTable tbody tr.selectedTaskRow');
+      if (selectedRow && selectedRow.nextElementSibling) {
+        selectedRow.parentNode.insertBefore(selectedRow.nextElementSibling, selectedRow);
+      }
     });
     
     // DOMContentLoaded events
