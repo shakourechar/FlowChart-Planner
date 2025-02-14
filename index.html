@@ -195,37 +195,55 @@
       <span class="close-button" id="closeModal">×</span>
       <h2>Task Details</h2>
       <form id="taskForm">
-        <label>Task Name:
-          <input type="text" id="taskName" required>
-        </label>
-        <label>Responsible:
-          <input type="text" id="responsible" required>
-        </label>
-        <label>Status:
-          <select id="status">
-            <option value="Not Started">Not Started</option>
-            <option value="In Progress">In Progress</option>
-            <option value="Completed">Completed</option>
-          </select>
-        </label>
-        <label>Deadline:
-          <input type="date" id="deadline">
-        </label>
-        <label>Priority:
-          <select id="priority">
-            <option value="Low">Low</option>
-            <option value="Normal">Normal</option>
-            <option value="High">High</option>
-          </select>
-        </label>
-        <label>Action Description:
-          <textarea id="actionDescription" maxlength="300"></textarea>
-        </label>
-        <!-- TTS Button inserted below the Action Description field -->
-        <button type="button" id="ttsBtn" style="background: #27ae60; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">🎧</button>
-        <!-- COLOR SELECTION PANEL -->
-        <label>Node Color:</label>
-        <!-- Hidden input to store the chosen color -->
+        <label for="taskName">Task Name:</label>
+        <input type="text" id="taskName" required />
+
+        <label for="responsible">Responsible:</label>
+        <input type="text" id="responsible" required />
+
+        <label for="status">Status:</label>
+        <select id="status">
+          <option value="Not Started">Not Started</option>
+          <option value="In Progress">In Progress</option>
+          <option value="Completed">Completed</option>
+        </select>
+
+        <label for="deadline">Deadline:</label>
+        <input type="date" id="deadline" required />
+
+        <label for="priority">Priority:</label>
+        <select id="priority">
+          <option value="High">High</option>
+          <option value="Medium">Medium</option>
+          <option value="Low">Low</option>
+        </select>
+
+        <label>Action Description:</label>
+        <table id="actionDescription">
+          <thead>
+            <tr>
+              <th>Task</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><input type="checkbox" /></td>
+              <td><input type="text" placeholder="Enter task..." /></td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" /></td>
+              <td><input type="text" placeholder="Enter task..." /></td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" /></td>
+              <td><input type="text" placeholder="Enter task..." /></td>
+            </tr>
+            <!-- Additional rows can be added dynamically as needed -->
+          </tbody>
+        </table>
+
+        <label for="nodeColor">Node Color:</label>
         <input type="hidden" id="nodeColor" />
         <div class="color-panel">
           <div class="color-swatch" style="background-color: #e74c3c;" data-color="#e74c3c"></div>
@@ -475,8 +493,6 @@
       document.getElementById('status').value = d.status || 'Not Started';
       document.getElementById('deadline').value = d.deadline || '';
       document.getElementById('priority').value = d.priority || 'Normal';
-      document.getElementById('actionDescription').value = d.actionDescription || '';
-      document.getElementById('nodeColor').value = d.color || '';
       // Show/hide color-swatch highlight
       document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected-swatch'));
       if (d.color) {
@@ -627,7 +643,6 @@
             status: document.getElementById('status').value,
             deadline: document.getElementById('deadline').value,
             priority: document.getElementById('priority').value,
-            actionDescription: document.getElementById('actionDescription').value,
             color: document.getElementById('nodeColor').value || null
           });
           update();
