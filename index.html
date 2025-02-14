@@ -223,7 +223,7 @@
             <option value="High">High</option>
           </select>
         </label>
-        <!-- Added move controls above the task table -->
+        <!-- Task List Controls -->
         <label>Action Description:</label>
         <div id="taskMoveControls" style="margin-bottom:5px;">
           <button id="moveTaskUpBtn" type="button" style="font-size:12px; margin-right:5px;">Move Up</button>
@@ -260,6 +260,12 @@
           <button type="button" class="add-node-btn" id="addNodeBtn">Add Child Node</button>
           <button type="button" class="reorder-btn" id="moveUpBtn">Move Up</button>
           <button type="button" class="reorder-btn" id="moveDownBtn">Move Down</button>
+        </div>
+        <!-- Delete Node Button (placed separately so it’s less likely to be clicked accidentally) -->
+        <div style="text-align: center; margin-top: 10px;">
+          <button type="button" id="deleteNodeBtn" style="background-color: #e74c3c; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer;">
+            Delete Node
+          </button>
         </div>
       </form>
     </div>
@@ -375,35 +381,29 @@
     function addTaskRow(task) {
       const tbody = document.querySelector('#taskTable tbody');
       const tr = document.createElement('tr');
-      
-      // When the row is clicked, mark it as selected
+      // When the row is clicked, mark it as selected.
       tr.addEventListener('click', function(e) {
         document.querySelectorAll('#taskTable tbody tr').forEach(row => {
           row.classList.remove('selectedTaskRow');
         });
         this.classList.add('selectedTaskRow');
       });
-      
       // Checkbox cell
       const tdCheckbox = document.createElement('td');
       const checkbox = document.createElement('input');
       checkbox.type = 'checkbox';
       checkbox.checked = task && task.completed ? true : false;
       tdCheckbox.appendChild(checkbox);
-      
       // Task text cell with event listeners for popup
       const tdTask = document.createElement('td');
       const taskInput = document.createElement('input');
       taskInput.type = 'text';
       taskInput.value = task && task.task ? task.task : '';
       taskInput.style.width = '100%';
-      
-      // Double-click event to show popup (and select row)
       taskInput.addEventListener('dblclick', function(e) {
         tr.classList.add('selectedTaskRow');
         showTaskPopup(this.value);
       });
-      // Long-press for mobile
       let pressTimer;
       taskInput.addEventListener('touchstart', function(e) {
         pressTimer = window.setTimeout(() => {
@@ -417,7 +417,6 @@
       taskInput.addEventListener('touchmove', function(e) {
         clearTimeout(pressTimer);
       });
-      
       tdTask.appendChild(taskInput);
       tr.appendChild(tdCheckbox);
       tr.appendChild(tdTask);
@@ -629,7 +628,7 @@
       document.getElementById('taskTextPopup').style.display = 'none';
     });
     
-    // Event listeners for global task move controls
+    // Global task move controls (for reordering tasks within the modal)
     document.getElementById('moveTaskUpBtn').addEventListener('click', function() {
       let selectedRow = document.querySelector('#taskTable tbody tr.selectedTaskRow');
       if (selectedRow && selectedRow.previousElementSibling) {
@@ -640,6 +639,21 @@
       let selectedRow = document.querySelector('#taskTable tbody tr.selectedTaskRow');
       if (selectedRow && selectedRow.nextElementSibling) {
         selectedRow.parentNode.insertBefore(selectedRow.nextElementSibling, selectedRow);
+      }
+    });
+    
+    // Delete Node functionality
+    document.getElementById('deleteNodeBtn').addEventListener('click', function() {
+      if (selectedNode) {
+        if (confirm("Are you sure you want to delete this node? This action cannot be undone.")) {
+          // Remove the selected node from data.nodes
+          data.nodes = data.nodes.filter(n => n.id !== selectedNode.id);
+          // Remove any links referencing the selected node
+          data.links = data.links.filter(link => link.source !== selectedNode.id && link.target !== selectedNode.id);
+          selectedNode = null;
+          update();
+          document.getElementById('modal').style.display = 'none';
+        }
       }
     });
     
