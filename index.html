@@ -195,18 +195,19 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
 </head>
 <body>
-  <header>
-    <h1>FlowChart Manager
-      <input type="text" id="chartName" placeholder="Flowchart Name" />
-    </h1>
-    <nav>
-      <button id="templateBtn">Templates</button>
-      <button id="exportBtn">Export</button>
-      <input type="file" id="fileInput" accept=".json">
-      <button id="uploadBtn" class="upload-btn">Upload</button>
-      <div id="fileNameDisplay"></div>
-    </nav>
-  </header>
+<header>
+<h1>FlowChart Manager</h1>
+<!-- Ensure this input has the correct ID -->
+<input type="text" id="flowchartNameInput" placeholder="Enter Flowchart Name...">
+<nav>
+  <button id="templateBtn">Templates</button>
+  <button id="exportBtn">Export</button>
+  <input type="file" id="fileInput" accept=".json">
+  <button id="uploadBtn" class="upload-btn">Upload</button>
+  <div id="fileNameDisplay">No file loaded</div>
+</nav>
+</header>
+
   
   <div id="flowchart"></div>
   
