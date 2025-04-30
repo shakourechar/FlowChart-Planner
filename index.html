@@ -304,34 +304,69 @@
   
   <script>
     // Utility: wrap text in multiple lines for SVG text elements
-function wrapText(textElement, width) {
-  textElement.each(function() {
-    let textNode = d3.select(this),
-        words = textNode.text().split(/\s+/).reverse(),
-        word,
-        line = [],
-        lineNumber = 0,
-        lineHeight = 1.1, // ems - Adjust line spacing if needed
-        x = textNode.attr("x") || 0,
-        // y = textNode.attr("y") || 0, // y is 0 due to dominant-baseline and transform
-        dy = 0, // Initial dy for the first line (dominant-baseline handles its position)
-        tspan = textNode.text(null).append("tspan").attr("x", x).attr("dy", dy + "em");
+       // Utility: wrap text in multiple lines for SVG text elements
+    function wrapText(textElement, width) {
+      textElement.each(function() {
+        let textNode = d3.select(this),
+            words = textNode.text().split(/\s+/).reverse(),
+            word,
+            line = [],
+            lineNumber = 0, // Counts lines *after* the first one
+            lineHeight = 1.1, // ems - Adjust line spacing if needed
+            x = textNode.attr("x") || 0,
+            // y = textNode.attr("y") || 0, // Keep y=0, rely on dominant-baseline
+            tspan; // Declare tspan variable
 
-    while (word = words.pop()) {
-      line.push(word);
-      tspan.text(line.join(" "));
-      // Check if text exceeds the width AND it's not the only word on the line
-      if (tspan.node().getComputedTextLength() > width && line.length > 1) {
-        line.pop(); // Remove the word that caused overflow
-        tspan.text(line.join(" ")); // Set tspan to text before overflow
-        line = [word]; // Start new line with the overflow word
-        // Add new tspan for the next line, using lineHeight for spacing relative to the previous line
-        tspan = textNode.append("tspan").attr("x", x).attr("dy", lineHeight + "em").text(word);
-        lineNumber++;
-      }
+        // Clear existing text/tspans before wrapping
+        textNode.text(null);
+
+        // Create the first tspan - its dy will be set later
+        tspan = textNode.append("tspan").attr("x", x);
+
+        // Wrapping loop
+        while (word = words.pop()) {
+          line.push(word);
+          tspan.text(line.join(" "));
+          // Check if text exceeds the width AND it's not the only word on the line
+          if (tspan.node().getComputedTextLength() > width && line.length > 1) {
+            line.pop(); // Remove the word that caused overflow
+            tspan.text(line.join(" ")); // Set tspan to text before overflow
+            line = [word]; // Start new line with the overflow word
+            // Add new tspan for the next line, using lineHeight for spacing relative to the previous line
+            tspan = textNode.append("tspan").attr("x", x).attr("dy", lineHeight + "em").text(word);
+            lineNumber++; // Increment count for lines *after* the first
+          }
+        }
+
+        // --- Vertical Centering Adjustment ---
+        // Calculate the required initial vertical offset for the *first* tspan in 'em' units.
+        // We need to shift it upwards by half the height of the lines *below* the first one.
+        const initialDy = - (lineNumber * lineHeight) / 2;
+
+        // Select the first tspan that was added and apply the calculated dy.
+        textNode.select("tspan") // Gets the first tspan child
+            .attr("dy", initialDy + "em");
+        // --- End of Adjustment ---
+
+      });
     }
-  });
-}
+
+        // --- Vertical Centering Adjustment ---
+        // Calculate the total number of lines
+        const totalLines = lineNumber + 1;
+
+        // Calculate the vertical shift needed in 'em' units.
+        // Shift upwards by half the total height of the lines below the first one.
+        const verticalShift = - (lineNumber * lineHeight) / 2;
+
+        // Apply the calculated shift to the main <text> element's 'y' attribute.
+        // This moves the entire text block up or down.
+        textNode.attr("y", verticalShift + "em");
+        // --- End of Adjustment ---
+
+      });
+    }
+
 
     let selectedNode = null;
     let data = { nodes: [], links: [] };
