@@ -5,7 +5,6 @@
   <!-- Ensures mobile devices scale page properly -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>FlowChart Manager</title>
-  <link rel="icon" type="image/png" href="https://static.wixstatic.com/media/c3283f_a3e1ec47496f42f7be617a2cd7a7bc9e~mv2.png">
   <style>
     * {
       box-sizing: border-box;
@@ -30,7 +29,7 @@
     }
     header h1 input#chartName {
       margin-left: 10px;
-      font-size: 14;
+      font-size: inherit;
       padding: 4px;
       border: none;
       border-radius: 4px;
@@ -71,7 +70,6 @@
       height: 100%;
       background: rgba(0,0,0,0.5);
       padding-top: 50px;
-      border-radius: 8px;
     }
     .modal-content {
       background: white;
@@ -306,39 +304,35 @@
   
   <script>
     // Utility: wrap text in multiple lines for SVG text elements
-    function wrapText(text, width) {
-      text.each(function() {
-        let textEl = d3.select(this),
-            words = textEl.text().split(/\s+/).reverse(),
-            line = [],
-            lineNumber = 0,
-            lineHeight = 1.2,
-            x = textEl.attr("x") || 0,
-            y = textEl.attr("y") || 0,
-            dy = parseFloat(textEl.attr("dy")) || 0;
-        let tspan = textEl.text(null)
-          .append("tspan")
-          .attr("x", x)
-          .attr("y", y)
-          .attr("dy", dy + "em");
-        let word;
-        while ((word = words.pop())) {
-          line.push(word);
-          tspan.text(line.join(" "));
-          if (tspan.node().getComputedTextLength() > width) {
-            line.pop();
-            tspan.text(line.join(" "));
-            line = [word];
-            tspan = textEl.append("tspan")
-              .attr("x", x)
-              .attr("y", y)
-              .attr("dy", ++lineNumber * lineHeight + dy + "em")
-              .text(word);
-          }
-        }
-      });
+function wrapText(textElement, width) {
+  textElement.each(function() {
+    let textNode = d3.select(this),
+        words = textNode.text().split(/\s+/).reverse(),
+        word,
+        line = [],
+        lineNumber = 0,
+        lineHeight = 1.1, // ems - Adjust line spacing if needed
+        x = textNode.attr("x") || 0,
+        // y = textNode.attr("y") || 0, // y is 0 due to dominant-baseline and transform
+        dy = 0, // Initial dy for the first line (dominant-baseline handles its position)
+        tspan = textNode.text(null).append("tspan").attr("x", x).attr("dy", dy + "em");
+
+    while (word = words.pop()) {
+      line.push(word);
+      tspan.text(line.join(" "));
+      // Check if text exceeds the width AND it's not the only word on the line
+      if (tspan.node().getComputedTextLength() > width && line.length > 1) {
+        line.pop(); // Remove the word that caused overflow
+        tspan.text(line.join(" ")); // Set tspan to text before overflow
+        line = [word]; // Start new line with the overflow word
+        // Add new tspan for the next line, using lineHeight for spacing relative to the previous line
+        tspan = textNode.append("tspan").attr("x", x).attr("dy", lineHeight + "em").text(word);
+        lineNumber++;
+      }
     }
-    
+  });
+}
+
     let selectedNode = null;
     let data = { nodes: [], links: [] };
     let simulation;
@@ -553,7 +547,6 @@
 
     
     // Load data from file
-       // Load data from file, including flowchart name
     function loadFromFile(file) {
       if (!file) {
         alert('No file selected.');
@@ -563,46 +556,18 @@
       reader.onload = (e) => {
         try {
           const fileData = JSON.parse(e.target.result);
-          // Basic validation: check for nodes and links arrays
-          if (fileData && typeof fileData === 'object' && Array.isArray(fileData.nodes) && Array.isArray(fileData.links)) {
-
-            // *** ADDED CODE START ***
-            // Load flowchart name if present, otherwise use default
-            data.flowchartName = fileData.flowchartName || "Untitled Flowchart";
-            document.getElementById('flowchartNameInput').value = data.flowchartName; // Update input field
-            // *** ADDED CODE END ***
-
-            // Load nodes and links
-            data.nodes = fileData.nodes;
-            data.links = fileData.links;
-
-            // Important: Ensure nodes have x, y properties for simulation and handle fixed positions
-            data.nodes.forEach(node => {
-                // If x, y are missing (older format?), assign null to let simulation place them initially
-                if (node.x === undefined) node.x = null;
-                if (node.y === undefined) node.y = null;
-                // Preserve fixed positions if they exist in the file, otherwise null
-                node.fx = node.fx !== undefined ? node.fx : null;
-                node.fy = node.fy !== undefined ? node.fy : null;
-            });
-
-            update(); // Redraw the flowchart with loaded data
-            document.getElementById('fileNameDisplay').innerText = `Loaded: ${file.name}`; // Update display
+          if (fileData.nodes && fileData.links) {
+            data = fileData;
+            update();
           } else {
-            alert('Invalid file format. Missing "nodes" or "links".');
+            alert('Invalid file format');
           }
         } catch (error) {
-          console.error("Error reading or parsing file:", error);
-          alert('Error reading or parsing the file. Check console for details.');
+          alert('Error reading file');
         }
-      };
-      reader.onerror = (e) => {
-          console.error("FileReader error:", e);
-          alert('Error reading file.');
       };
       reader.readAsText(file);
     }
-
     
     // Load template data
     function loadTemplate(template) {
