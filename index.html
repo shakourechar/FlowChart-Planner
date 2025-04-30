@@ -477,19 +477,77 @@
     }
     
     // Export data as JSON
-    function saveToFile() {
-      data.chartName = document.getElementById('chartName').value;
-      const dataStr = JSON.stringify(data, null, 2);
-      const blob = new Blob([dataStr], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      // Use the chart name as the downloaded file name if available.
-      a.download = data.chartName ? `${data.chartName}.json` : 'flowchart-data.json';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    }
+ function saveToFile() {
+  console.log("1. saveToFile function started."); // Log start
+
+  try {
+    // Update data object with current flowchart name from input
+    const flowchartNameValue = document.getElementById('flowchartNameInput').value;
+    data.flowchartName = flowchartNameValue || "Untitled Flowchart";
+    console.log("2. Flowchart name set:", data.flowchartName); // Log name
+
+    // Prepare data for export, ensuring positions are included
+    const exportData = {
+      flowchartName: data.flowchartName,
+      nodes: data.nodes.map(n => ({
+          id: n.id,
+          name: n.name,
+          status: n.status,
+          responsible: n.responsible,
+          deadline: n.deadline,
+          priority: n.priority,
+          actionDescription: n.actionDescription,
+          color: n.color,
+          x: n.x,
+          y: n.y,
+          fx: n.fx,
+          fy: n.fy
+      })),
+      links: data.links.map(l => ({ // Ensure links are saved correctly by ID
+          source: typeof l.source === 'object' ? l.source.id : l.source,
+          target: typeof l.target === 'object' ? l.target.id : l.target
+      }))
+    };
+    console.log("3. Data prepared for export:", exportData); // Log prepared data
+
+    const dataStr = JSON.stringify(exportData, null, 2); // Pretty print JSON
+    console.log("4. Data stringified."); // Log stringification success
+
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    console.log("5. Blob created:", blob); // Log blob creation
+
+    const url = URL.createObjectURL(blob);
+    console.log("6. Object URL created:", url); // Log URL creation
+
+    const a = document.createElement('a');
+    a.href = url;
+    const safeFileName = (exportData.flowchartName.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'flowchart') + '.json';
+    a.download = safeFileName;
+    console.log("7. Download link element created:", a); // Log link element
+
+    document.body.appendChild(a); // Append link to body
+    console.log("8. Link appended to body.");
+
+    a.click(); // Simulate click to trigger download
+    console.log("9. Click simulated on link.");
+
+    // Add a slight delay before removing, just in case
+    setTimeout(() => {
+        try {
+            document.body.removeChild(a); // Remove link from body
+            URL.revokeObjectURL(url); // Release object URL
+            console.log("10. Link removed and URL revoked.");
+        } catch (removeError) {
+            console.error("Error removing link or revoking URL:", removeError);
+        }
+    }, 100); // 100ms delay
+
+  } catch (error) {
+    console.error("Error during file export process:", error); // Log any error in the try block
+    alert("An error occurred while trying to export the file. Please check the console for details.");
+  }
+}
+
     
     // Load data from file
     function loadFromFile(file) {
