@@ -24,6 +24,15 @@
     }
     header h1 {
       margin: 0;
+      display: flex;
+      align-items: center;
+    }
+    header h1 input#chartName {
+      margin-left: 10px;
+      font-size: inherit;
+      padding: 4px;
+      border: none;
+      border-radius: 4px;
     }
     nav button {
       background: #2980b9;
@@ -98,6 +107,10 @@
       border: 1px solid #ccc;
       border-radius: 4px;
     }
+    /* Ensure Task Name field spans the width of the modal */
+    #taskName {
+      width: 100%;
+    }
     .template-btn {
       background: #8e44ad;
       color: white;
@@ -115,6 +128,9 @@
     .node text {
       fill: white;
       font-size: 14px;
+      text-anchor: middle;
+      /* Center vertically with dy */
+      dy: 0.35em;
     }
     .link {
       stroke: #999;
@@ -129,15 +145,6 @@
     }
     .add-node-btn {
       background: #27ae60;
-      color: white;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 4px;
-      cursor: pointer;
-      flex: 1;
-    }
-    .reorder-btn {
-      background: #f39c12;
       color: white;
       border: none;
       padding: 8px 16px;
@@ -189,7 +196,9 @@
 </head>
 <body>
   <header>
-    <h1>FlowChart Manager</h1>
+    <h1>FlowChart Manager
+      <input type="text" id="chartName" placeholder="Flowchart Name" />
+    </h1>
     <nav>
       <button id="templateBtn">Templates</button>
       <button id="exportBtn">Export</button>
@@ -230,12 +239,8 @@
             <option value="High">High</option>
           </select>
         </label>
-        <!-- Task List Controls -->
         <label>Action Description:</label>
-        <div id="taskMoveControls" style="margin-bottom:5px;">
-          <button id="moveTaskUpBtn" type="button" style="font-size:12px; margin-right:5px;">Move Up</button>
-          <button id="moveTaskDownBtn" type="button" style="font-size:12px;">Move Down</button>
-        </div>
+        <!-- Removed duplicate move controls -->
         <table id="taskTable" style="width:100%; margin-bottom:10px;">
           <thead>
             <tr>
@@ -265,8 +270,6 @@
         <div class="action-buttons">
           <button type="submit" class="save-btn">Save</button>
           <button type="button" class="add-node-btn" id="addNodeBtn">Add Child Node</button>
-          <button type="button" class="reorder-btn" id="moveUpBtn">Move Up</button>
-          <button type="button" class="reorder-btn" id="moveDownBtn">Move Down</button>
         </div>
         <!-- Delete Node Button -->
         <div style="text-align: center; margin-top: 10px;">
@@ -388,20 +391,17 @@
     function addTaskRow(task) {
       const tbody = document.querySelector('#taskTable tbody');
       const tr = document.createElement('tr');
-      // When the row is clicked, mark it as selected.
       tr.addEventListener('click', function(e) {
         document.querySelectorAll('#taskTable tbody tr').forEach(row => {
           row.classList.remove('selectedTaskRow');
         });
         this.classList.add('selectedTaskRow');
       });
-      // Checkbox cell
       const tdCheckbox = document.createElement('td');
       const checkbox = document.createElement('input');
       checkbox.type = 'checkbox';
       checkbox.checked = task && task.completed ? true : false;
       tdCheckbox.appendChild(checkbox);
-      // Task text cell with event listeners for popup
       const tdTask = document.createElement('td');
       const taskInput = document.createElement('input');
       taskInput.type = 'text';
@@ -477,6 +477,8 @@
     
     // Export data as JSON
     function saveToFile() {
+      // Register chart name in exported JSON
+      data.chartName = document.getElementById('chartName').value;
       const dataStr = JSON.stringify(data, null, 2);
       const blob = new Blob([dataStr], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
@@ -559,38 +561,6 @@
       update();
     }
     
-    // Reorder nodes in a linear flow (chart-level)
-    function reorderNodes(direction) {
-      if (!selectedNode) return;
-      const links = data.links;
-      const index = links.findIndex(link => link.target === selectedNode.id);
-      if (index === -1) {
-        alert("This node is a root node; it can’t be reordered this way.");
-        return;
-      }
-      const currentLink = links[index];
-      const previousIndex = links.findIndex(link => link.target === currentLink.source);
-      if (direction === 'up') {
-        if (previousIndex === -1) {
-          alert("This is the first node, it cannot be moved up.");
-          return;
-        }
-        const previousLink = links[previousIndex];
-        links[index] = { source: previousLink.source, target: currentLink.target };
-        links[previousIndex] = { source: currentLink.source, target: previousLink.target };
-      } else if (direction === 'down') {
-        const nextIndex = links.findIndex(link => link.source === currentLink.target);
-        if (nextIndex === -1) {
-          alert("This is the last node, it cannot be moved down.");
-          return;
-        }
-        const nextLink = links[nextIndex];
-        links[index] = { source: currentLink.target, target: nextLink.target };
-        links[nextIndex] = { source: currentLink.source, target: nextLink.source };
-      }
-      update();
-    }
-    
     // Save node edits including tasks from the table
     document.getElementById('taskForm').onsubmit = (e) => {
       e.preventDefault();
@@ -621,32 +591,16 @@
       document.getElementById('modal').style.display = 'none';
     };
     
-    // Event listener for Add Task button
     document.getElementById('addTaskRowBtn').addEventListener('click', () => {
       addTaskRow({});
     });
     
-    // Delete task from popup modal when delete button is clicked
     document.getElementById('deleteTaskBtn').addEventListener('click', function() {
       let selectedRow = document.querySelector('#taskTable tbody tr.selectedTaskRow');
       if (selectedRow) {
         selectedRow.remove();
       }
       document.getElementById('taskTextPopup').style.display = 'none';
-    });
-    
-    // Global task move controls (for reordering tasks within the modal)
-    document.getElementById('moveTaskUpBtn').addEventListener('click', function() {
-      let selectedRow = document.querySelector('#taskTable tbody tr.selectedTaskRow');
-      if (selectedRow && selectedRow.previousElementSibling) {
-        selectedRow.parentNode.insertBefore(selectedRow, selectedRow.previousElementSibling);
-      }
-    });
-    document.getElementById('moveTaskDownBtn').addEventListener('click', function() {
-      let selectedRow = document.querySelector('#taskTable tbody tr.selectedTaskRow');
-      if (selectedRow && selectedRow.nextElementSibling) {
-        selectedRow.parentNode.insertBefore(selectedRow.nextElementSibling, selectedRow);
-      }
     });
     
     // Delete Node functionality with confirmation
@@ -666,7 +620,6 @@
     document.addEventListener('DOMContentLoaded', () => {
       initD3();
       
-      // Color swatch clicks
       document.querySelectorAll('.color-swatch').forEach(swatch => {
         swatch.addEventListener('click', () => {
           document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected-swatch'));
@@ -675,11 +628,6 @@
         });
       });
       
-      // Reorder button handlers for nodes (chart-level)
-      document.getElementById('moveUpBtn').onclick = () => reorderNodes('up');
-      document.getElementById('moveDownBtn').onclick = () => reorderNodes('down');
-      
-      // Template modal handlers
       document.getElementById('templateBtn').onclick = () => {
         document.getElementById('templateModal').style.display = 'block';
       };
@@ -690,7 +638,6 @@
         };
       });
       
-      // Add Child Node button
       document.getElementById('addNodeBtn').onclick = (e) => {
         e.preventDefault();
         if (selectedNode) {
@@ -700,10 +647,8 @@
         }
       };
       
-      // Export file button
       document.getElementById('exportBtn').onclick = saveToFile;
       
-      // Upload file button
       const uploadButton = document.getElementById('uploadBtn');
       const fileInput = document.getElementById('fileInput');
       uploadButton.onclick = () => fileInput.click();
@@ -715,7 +660,6 @@
         }
       };
       
-      // Close modals on X or outside click
       document.querySelectorAll('.close-button').forEach(btn => {
         btn.onclick = (e) => {
           e.stopPropagation();
@@ -728,7 +672,6 @@
         }
       };
       
-      // Default template on first load
       loadTemplate('prototype');
     });
     
@@ -805,25 +748,20 @@
       
       const allNodes = nodesEnter.merge(nodes);
       
-      // Clear old elements
       allNodes.selectAll('circle').remove();
       allNodes.selectAll('text').remove();
       allNodes.selectAll('.taskCountGroup').remove();
       
-      // Draw main circle
       allNodes.append('circle')
         .attr('r', 60)
         .attr('fill', d => d.color ? d.color : getStatusColor(d.status))
         .attr('filter', 'url(#nodeShadow)');
       
-      // Node name text
       allNodes.append('text')
-        .attr('text-anchor', 'middle')
-        .attr('dy', 0)
+        .attr('dy', '0.35em')
         .text(d => d.name)
         .call(wrapText, 100);
       
-      // Add group for the "task count" bubble, above the node
       allNodes.append('g')
         .attr('class', 'taskCountGroup')
         .attr('transform', 'translate(0,-70)')
@@ -840,7 +778,6 @@
           let totalCount = tasks.length;
           let textString = `✅ ${completedCount} of ${totalCount}`;
           
-          // First, create the text
           const textEl = d3.select(this).append('text')
             .attr('text-anchor', 'middle')
             .attr('dy', '0.35em')
@@ -848,14 +785,11 @@
             .style('font-size', '10px')
             .text(textString);
           
-          // Measure text width to size the rounded rect
           const textNode = textEl.node();
           const textWidth = textNode.getComputedTextLength();
-          // Add some padding
           const rectWidth = textWidth + 12;
           const rectHeight = 18;
           
-          // Insert a rect behind the text
           d3.select(this).insert('rect', 'text')
             .attr('width', rectWidth)
             .attr('height', rectHeight)
@@ -863,7 +797,7 @@
             .attr('y', -rectHeight / 2)
             .attr('rx', 9)
             .attr('ry', 9)
-            .attr('fill', '#3498db');
+            .attr('fill', '#2c3e50');
         });
       
       simulation.nodes(data.nodes)
@@ -885,7 +819,6 @@
       simulation.force('link').links(data.links);
       simulation.alpha(1).restart();
       
-      // Adjust the svg width to allow horizontal scrolling
       const flowchart = document.getElementById('flowchart');
       const containerWidth = flowchart.clientWidth;
       const requiredWidth = Math.max(containerWidth * 2, data.nodes.length * nodeWidthEstimate);
