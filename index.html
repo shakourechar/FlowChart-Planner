@@ -217,7 +217,7 @@
       <h2>Task Details</h2>
       <form id="taskForm">
         <label>Task Name:
-          <input type="text" id="taskName" required>
+          <textarea id="taskName" required style="width:100%; resize:vertical;"></textarea>
         </label>
         <label>Responsible:
           <input type="text" id="responsible" required>
@@ -759,6 +759,7 @@
       
       allNodes.append('text')
         .attr('dy', '0.35em')
+        .attr('dominant-baseline', 'middle') // Added for vertical centering
         .text(d => d.name)
         .call(wrapText, 100);
       
@@ -851,6 +852,11 @@
       event.subject.fx = null;
       event.subject.fy = null;
     }
+    
+    // Immediately update data.chartName when user changes it
+    document.getElementById('chartName').addEventListener('change', function() {
+      data.chartName = this.value;
+    });
   </script>
 </body>
 </html>
