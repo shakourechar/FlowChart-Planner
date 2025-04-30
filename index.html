@@ -758,8 +758,8 @@
         .attr('filter', 'url(#nodeShadow)');
       
       allNodes.append('text')
-        .attr('dy', '0.35em')
-        .attr('dominant-baseline', 'middle') // Added for vertical centering
+        .attr('text-anchor', 'middle')
+        .attr('dominant-baseline', 'central') // Use "central" to center vertically
         .text(d => d.name)
         .call(wrapText, 100);
       
