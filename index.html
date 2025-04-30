@@ -551,6 +551,7 @@
 
     
     // Load data from file
+       // Load data from file, including flowchart name
     function loadFromFile(file) {
       if (!file) {
         alert('No file selected.');
@@ -560,18 +561,46 @@
       reader.onload = (e) => {
         try {
           const fileData = JSON.parse(e.target.result);
-          if (fileData.nodes && fileData.links) {
-            data = fileData;
-            update();
+          // Basic validation: check for nodes and links arrays
+          if (fileData && typeof fileData === 'object' && Array.isArray(fileData.nodes) && Array.isArray(fileData.links)) {
+
+            // *** ADDED CODE START ***
+            // Load flowchart name if present, otherwise use default
+            data.flowchartName = fileData.flowchartName || "Untitled Flowchart";
+            document.getElementById('flowchartNameInput').value = data.flowchartName; // Update input field
+            // *** ADDED CODE END ***
+
+            // Load nodes and links
+            data.nodes = fileData.nodes;
+            data.links = fileData.links;
+
+            // Important: Ensure nodes have x, y properties for simulation and handle fixed positions
+            data.nodes.forEach(node => {
+                // If x, y are missing (older format?), assign null to let simulation place them initially
+                if (node.x === undefined) node.x = null;
+                if (node.y === undefined) node.y = null;
+                // Preserve fixed positions if they exist in the file, otherwise null
+                node.fx = node.fx !== undefined ? node.fx : null;
+                node.fy = node.fy !== undefined ? node.fy : null;
+            });
+
+            update(); // Redraw the flowchart with loaded data
+            document.getElementById('fileNameDisplay').innerText = `Loaded: ${file.name}`; // Update display
           } else {
-            alert('Invalid file format');
+            alert('Invalid file format. Missing "nodes" or "links".');
           }
         } catch (error) {
-          alert('Error reading file');
+          console.error("Error reading or parsing file:", error);
+          alert('Error reading or parsing the file. Check console for details.');
         }
+      };
+      reader.onerror = (e) => {
+          console.error("FileReader error:", e);
+          alert('Error reading file.');
       };
       reader.readAsText(file);
     }
+
     
     // Load template data
     function loadTemplate(template) {
