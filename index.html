@@ -27,7 +27,7 @@
       display: flex;
       align-items: center;
     }
-    header h1 input#chartName {
+    header h1 input#flowchartNameInput {
       margin-left: 10px;
       font-size: inherit;
       padding: 4px;
@@ -77,13 +77,12 @@
       padding: 20px;
       width: 90%;
       max-width: 500px;
-      max-height: 90vh; /* Limit height to viewport */
-      overflow-y: auto; /* Enable vertical scrolling */
-      scrollbar-width: none; /* Hide scrollbar in Firefox */
+      max-height: 90vh;
+      overflow-y: auto;
+      scrollbar-width: none;
       border-radius: 8px;
       position: relative;
     }
-    /* Hide scrollbar in WebKit browsers */
     .modal-content::-webkit-scrollbar {
       display: none;
     }
@@ -107,7 +106,6 @@
       border: 1px solid #ccc;
       border-radius: 4px;
     }
-    /* Ensure Task Name field spans the width of the modal */
     #taskName {
       width: 100%;
     }
@@ -120,7 +118,6 @@
       cursor: pointer;
       border-radius: 4px;
     }
-    /* Node circles: rely on SVG filter for the drop shadow */
     .node circle {
       stroke: white;
       stroke-width: 2px;
@@ -161,7 +158,6 @@
       cursor: pointer;
       flex: 1;
     }
-    /* Color panel for selecting node color */
     .color-panel {
       display: flex;
       flex-wrap: wrap;
@@ -179,16 +175,11 @@
       outline: 2px solid #333;
       outline-offset: -2px;
     }
-    /* Highlight selected task row */
     .selectedTaskRow {
       border: 2px solid #3498db;
     }
-    @media (max-width: 768px) {
-      /* For smaller screens, adjust spacing if needed */
-    }
-    @media (max-width: 480px) {
-      /* For very small screens, adjust as necessary */
-    }
+    @media (max-width: 768px) { }
+    @media (max-width: 480px) { }
   </style>
   
   <!-- Load D3 -->
@@ -196,757 +187,593 @@
 </head>
 <body>
 <header>
-<h1>FlowChart Manager</h1>
-<!-- Ensure this input has the correct ID -->
-<input type="text" id="flowchartNameInput" placeholder="Enter Flowchart Name...">
-<nav>
-  <button id="templateBtn">Templates</button>
-  <button id="exportBtn">Export</button>
-  <input type="file" id="fileInput" accept=".json">
-  <button id="uploadBtn" class="upload-btn">Upload</button>
-  <div id="fileNameDisplay">No file loaded</div>
-</nav>
+  <h1>FlowChart Manager</h1>
+  <input type="text" id="flowchartNameInput" placeholder="Enter Flowchart Name...">
+  <nav>
+    <button id="templateBtn">Templates</button>
+    <button id="exportBtn">Export</button>
+    <input type="file" id="fileInput" accept=".json">
+    <button id="uploadBtn" class="upload-btn">Upload</button>
+    <div id="fileNameDisplay">No file loaded</div>
+  </nav>
 </header>
 
-  
-  <div id="flowchart"></div>
-  
-  <!-- Modal for editing node tasks -->
-  <div id="modal" class="modal">
-    <div class="modal-content">
-      <span class="close-button" id="closeModal">×</span>
-      <h2>Task Details</h2>
-      <form id="taskForm">
-        <label>Task Name:
-          <textarea id="taskName" required style="width:100%; resize:vertical;"></textarea>
-        </label>
-        <label>Responsible:
-          <input type="text" id="responsible" required>
-        </label>
-        <label>Status:
-          <select id="status">
-            <option value="Not Started">Not Started</option>
-            <option value="In Progress">In Progress</option>
-            <option value="Completed">Completed</option>
-          </select>
-        </label>
-        <label>Deadline:
-          <input type="date" id="deadline">
-        </label>
-        <label>Priority:
-          <select id="priority">
-            <option value="Low">Low</option>
-            <option value="Normal">Normal</option>
-            <option value="High">High</option>
-          </select>
-        </label>
-        <label>Action Description:</label>
-        <!-- Removed duplicate move controls -->
-        <table id="taskTable" style="width:100%; margin-bottom:10px;">
-          <thead>
-            <tr>
-              <th style="width: 20px;">✓</th>
-              <th>Task</th>
-            </tr>
-          </thead>
-          <tbody>
-            <!-- Task rows will be dynamically inserted here -->
-          </tbody>
-        </table>
-        <button type="button" id="addTaskRowBtn">Add Task</button>
-        
-        <!-- COLOR SELECTION PANEL -->
-        <label>Node Color:</label>
-        <input type="hidden" id="nodeColor" />
-        <div class="color-panel">
-          <div class="color-swatch" style="background-color: #e74c3c;" data-color="#e74c3c"></div>
-          <div class="color-swatch" style="background-color: #f1c40f;" data-color="#f1c40f"></div>
-          <div class="color-swatch" style="background-color: #2ecc71;" data-color="#2ecc71"></div>
-          <div class="color-swatch" style="background-color: #3498db;" data-color="#3498db"></div>
-          <div class="color-swatch" style="background-color: #9b59b6;" data-color="#9b59b6"></div>
-          <div class="color-swatch" style="background-color: #34495e;" data-color="#34495e"></div>
-        </div>
-        <!-- END COLOR SELECTION -->
-        
-        <div class="action-buttons">
-          <button type="submit" class="save-btn">Save</button>
-          <button type="button" class="add-node-btn" id="addNodeBtn">Add Child Node</button>
-        </div>
-        <!-- Delete Node Button -->
-        <div style="text-align: center; margin-top: 10px;">
-          <button type="button" id="deleteNodeBtn" style="background-color: #e74c3c; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer;">
-            Delete Node
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-  
-  <!-- Modal for selecting templates -->
-  <div id="templateModal" class="modal">
-    <div class="modal-content">
-      <span class="close-button" id="closeTemplateModal">×</span>
-      <h2>Select Template</h2>
-      <button class="template-btn" data-template="prototype">Prototype Development</button>
-      <button class="template-btn" data-template="vendor">Vendor Outreach</button>
-      <button class="template-btn" data-template="marketing">Marketing Campaign</button>
-    </div>
-  </div>
-  
-  <!-- Modal for displaying full task text with delete option -->
-  <div id="taskTextPopup" class="modal">
-    <div class="modal-content">
-      <span class="close-button" id="closeTaskPopup">×</span>
-      <p id="taskFullText" style="white-space: pre-wrap;"></p>
-      <button id="deleteTaskBtn" style="margin-top: 10px; background-color: #e74c3c; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer;">Delete Task</button>
-    </div>
-  </div>
-  
-  <script>
-    // Utility: wrap text in multiple lines for SVG text elements
-       // Utility: wrap text in multiple lines for SVG text elements
-    function wrapText(textElement, width) {
-      textElement.each(function() {
-        let textNode = d3.select(this),
-            words = textNode.text().split(/\s+/).reverse(),
-            word,
-            line = [],
-            lineNumber = 0, // Counts lines *after* the first one
-            lineHeight = 1.1, // ems - Adjust line spacing if needed
-            x = textNode.attr("x") || 0,
-            // y = textNode.attr("y") || 0, // Keep y=0, rely on dominant-baseline
-            tspan; // Declare tspan variable
+<div id="flowchart"></div>
 
-        // Clear existing text/tspans before wrapping
-        textNode.text(null);
+<!-- Modal for editing node tasks -->
+<div id="modal" class="modal">
+  <div class="modal-content">
+    <span class="close-button" id="closeModal">×</span>
+    <h2>Task Details</h2>
+    <form id="taskForm">
+      <label>Task Name:
+        <textarea id="taskName" required style="width:100%; resize:vertical;"></textarea>
+      </label>
+      <label>Responsible:
+        <input type="text" id="responsible" required>
+      </label>
+      <label>Status:
+        <select id="status">
+          <option value="Not Started">Not Started</option>
+          <option value="In Progress">In Progress</option>
+          <option value="Completed">Completed</option>
+        </select>
+      </label>
+      <label>Deadline:
+        <input type="date" id="deadline">
+      </label>
+      <label>Priority:
+        <select id="priority">
+          <option value="Low">Low</option>
+          <option value="Normal">Normal</option>
+          <option value="High">High</option>
+        </select>
+      </label>
+      <label>Action Description:</label>
+      <table id="taskTable" style="width:100%; margin-bottom:10px;">
+        <thead>
+          <tr>
+            <th style="width: 20px;">✓</th>
+            <th>Task</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <button type="button" id="addTaskRowBtn">Add Task</button>
+      <!-- COLOR SELECTION PANEL -->
+      <label>Node Color:</label>
+      <input type="hidden" id="nodeColor" />
+      <div class="color-panel">
+        <div class="color-swatch" style="background-color: #e74c3c;" data-color="#e74c3c"></div>
+        <div class="color-swatch" style="background-color: #f1c40f;" data-color="#f1c40f"></div>
+        <div class="color-swatch" style="background-color: #2ecc71;" data-color="#2ecc71"></div>
+        <div class="color-swatch" style="background-color: #3498db;" data-color="#3498db"></div>
+        <div class="color-swatch" style="background-color: #9b59b6;" data-color="#9b59b6"></div>
+        <div class="color-swatch" style="background-color: #34495e;" data-color="#34495e"></div>
+      </div>
+      <!-- END COLOR SELECTION -->
+      <div class="action-buttons">
+        <button type="submit" class="save-btn">Save</button>
+        <button type="button" class="add-node-btn" id="addNodeBtn">Add Child Node</button>
+      </div>
+      <!-- Delete Node Button -->
+      <div style="text-align: center; margin-top: 10px;">
+        <button type="button" id="deleteNodeBtn" style="background-color: #e74c3c; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer;">
+          Delete Node
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
 
-        // Create the first tspan - its dy will be set later
-        tspan = textNode.append("tspan").attr("x", x);
+<!-- Modal for selecting templates -->
+<div id="templateModal" class="modal">
+  <div class="modal-content">
+    <span class="close-button" id="closeTemplateModal">×</span>
+    <h2>Select Template</h2>
+    <button class="template-btn" data-template="prototype">Prototype Development</button>
+    <button class="template-btn" data-template="vendor">Vendor Outreach</button>
+    <button class="template-btn" data-template="marketing">Marketing Campaign</button>
+  </div>
+</div>
 
-        // Wrapping loop
-        while (word = words.pop()) {
-          line.push(word);
+<!-- Modal for displaying full task text with delete option -->
+<div id="taskTextPopup" class="modal">
+  <div class="modal-content">
+    <span class="close-button" id="closeTaskPopup">×</span>
+    <p id="taskFullText" style="white-space: pre-wrap;"></p>
+    <button id="deleteTaskBtn" style="margin-top: 10px; background-color: #e74c3c; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer;">Delete Task</button>
+  </div>
+</div>
+
+<script>
+  // Utility: wrap text in multiple lines for SVG text elements
+  function wrapText(textElement, width) {
+    textElement.each(function() {
+      let textNode = d3.select(this),
+          words = textNode.text().split(/\s+/).reverse(),
+          word,
+          line = [],
+          lineNumber = 0,
+          lineHeight = 1.1,
+          x = textNode.attr("x") || 0,
+          dy = 0,
+          tspan = textNode.text(null).append("tspan").attr("x", x).attr("dy", dy + "em");
+
+      while (word = words.pop()) {
+        line.push(word);
+        tspan.text(line.join(" "));
+        if (tspan.node().getComputedTextLength() > width && line.length > 1) {
+          line.pop();
           tspan.text(line.join(" "));
-          // Check if text exceeds the width AND it's not the only word on the line
-          if (tspan.node().getComputedTextLength() > width && line.length > 1) {
-            line.pop(); // Remove the word that caused overflow
-            tspan.text(line.join(" ")); // Set tspan to text before overflow
-            line = [word]; // Start new line with the overflow word
-            // Add new tspan for the next line, using lineHeight for spacing relative to the previous line
-            tspan = textNode.append("tspan").attr("x", x).attr("dy", lineHeight + "em").text(word);
-            lineNumber++; // Increment count for lines *after* the first
-          }
+          line = [word];
+          tspan = textNode.append("tspan").attr("x", x).attr("dy", lineHeight + "em").text(word);
+          lineNumber++;
         }
+      }
+    });
+  }
 
-        // --- Vertical Centering Adjustment ---
-        // Calculate the required initial vertical offset for the *first* tspan in 'em' units.
-        // We need to shift it upwards by half the height of the lines *below* the first one.
-        const initialDy = - (lineNumber * lineHeight) / 2;
+  let selectedNode = null;
+  let data = { nodes: [], links: [] };
+  let simulation, svg, linkGroup, nodeGroup;
+  const curveRadius = 200;
+  const nodeWidthEstimate = 200;
 
-        // Select the first tspan that was added and apply the calculated dy.
-        textNode.select("tspan") // Gets the first tspan child
-            .attr("dy", initialDy + "em");
-        // --- End of Adjustment ---
+  function initD3() {
+    const flowchart = document.getElementById('flowchart');
+    const containerWidth = flowchart.clientWidth;
+    const containerHeight = flowchart.clientHeight;
+    flowchart.innerHTML = '';
+    svg = d3.select('#flowchart')
+      .append('svg')
+      .attr('width', containerWidth * 2)
+      .attr('height', containerHeight);
+    svg.append('defs').html(`
+      <filter id="nodeShadow" x="-20%" y="-20%" width="140%" height="140%">
+        <feGaussianBlur in="SourceAlpha" stdDeviation="3" result="blur" />
+        <feOffset in="blur" dx="4" dy="4" result="offsetBlur" />
+        <feMerge>
+          <feMergeNode in="offsetBlur"/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+      </filter>
+    `);
+    simulation = d3.forceSimulation()
+      .force('link', d3.forceLink().id(d => d.id).distance(150).strength(0))
+      .force('charge', d3.forceManyBody().strength(0))
+      .force('collide', d3.forceCollide().radius(60));
+    linkGroup = svg.append('g');
+    nodeGroup = svg.append('g');
+  }
 
-      });
-    }
+  function placeNodesDiagonally() {
+    const leftMargin = 80, topMargin = 80, horizontalSpacing = 150, verticalSpacing = 100;
+    data.nodes.forEach((node, i) => {
+      if (node.x == null && node.y == null) {
+        node.x = leftMargin + i * horizontalSpacing;
+        node.y = topMargin + i * verticalSpacing;
+      }
+    });
+  }
 
-        // --- Vertical Centering Adjustment ---
-        // Calculate the total number of lines
-        const totalLines = lineNumber + 1;
-
-        // Calculate the vertical shift needed in 'em' units.
-        // Shift upwards by half the total height of the lines below the first one.
-        const verticalShift = - (lineNumber * lineHeight) / 2;
-
-        // Apply the calculated shift to the main <text> element's 'y' attribute.
-        // This moves the entire text block up or down.
-        textNode.attr("y", verticalShift + "em");
-        // --- End of Adjustment ---
-
-      });
-    }
-
-
-    let selectedNode = null;
-    let data = { nodes: [], links: [] };
-    let simulation;
-    let svg;
-    let linkGroup;
-    let nodeGroup;
-    const curveRadius = 200;
-    const nodeWidthEstimate = 200; // Approximate width per node for scrolling
-    
-    // Setup D3 environment
-    function initD3() {
-      const flowchart = document.getElementById('flowchart');
-      const containerWidth = flowchart.clientWidth;
-      const containerHeight = flowchart.clientHeight;
-      flowchart.innerHTML = '';
-      svg = d3.select('#flowchart')
-        .append('svg')
-        .attr('width', containerWidth * 2)
-        .attr('height', containerHeight);
-      svg.append('defs').html(`
-        <filter id="nodeShadow" x="-20%" y="-20%" width="140%" height="140%">
-          <feGaussianBlur in="SourceAlpha" stdDeviation="3" result="blur" />
-          <feOffset in="blur" dx="4" dy="4" result="offsetBlur" />
-          <feMerge>
-            <feMergeNode in="offsetBlur"/>
-            <feMergeNode in="SourceGraphic"/>
-          </feMerge>
-        </filter>
-      `);
-      simulation = d3.forceSimulation()
-        .force('link', d3.forceLink().id(d => d.id).distance(150).strength(0))
-        .force('charge', d3.forceManyBody().strength(0))
-        .force('collide', d3.forceCollide().radius(60));
-      linkGroup = svg.append('g');
-      nodeGroup = svg.append('g');
-    }
-    
-    // If loading a fresh template, place nodes diagonally
-    function placeNodesDiagonally() {
-      const leftMargin = 80;
-      const topMargin = 80;
-      const horizontalSpacing = 150;
-      const verticalSpacing = 100;
-      data.nodes.forEach((node, i) => {
-        if (node.x == null && node.y == null) {
-          node.x = leftMargin + i * horizontalSpacing;
-          node.y = topMargin + i * verticalSpacing;
-        }
-      });
-    }
-    
-    // Add a new task row
-    function addTaskRow(task) {
-      const tbody = document.querySelector('#taskTable tbody');
-      const tr = document.createElement('tr');
-      tr.addEventListener('click', function(e) {
-        document.querySelectorAll('#taskTable tbody tr').forEach(row => {
-          row.classList.remove('selectedTaskRow');
-        });
-        this.classList.add('selectedTaskRow');
-      });
-      const tdCheckbox = document.createElement('td');
-      const checkbox = document.createElement('input');
-      checkbox.type = 'checkbox';
-      checkbox.checked = task && task.completed ? true : false;
-      tdCheckbox.appendChild(checkbox);
-      const tdTask = document.createElement('td');
-      const taskInput = document.createElement('textarea');
-      taskInput.value = task && task.task ? task.task : '';
-      // Set style for the textarea so it expands vertically
-      taskInput.style.width = '100%';
-      taskInput.style.resize = 'vertical';
-      taskInput.addEventListener('dblclick', function(e) {
+  function addTaskRow(task) {
+    const tbody = document.querySelector('#taskTable tbody');
+    const tr = document.createElement('tr');
+    tr.addEventListener('click', function() {
+      document.querySelectorAll('#taskTable tbody tr').forEach(row => row.classList.remove('selectedTaskRow'));
+      this.classList.add('selectedTaskRow');
+    });
+    const tdCheckbox = document.createElement('td');
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.checked = task && task.completed ? true : false;
+    tdCheckbox.appendChild(checkbox);
+    const tdTask = document.createElement('td');
+    const taskInput = document.createElement('textarea');
+    taskInput.value = task && task.task ? task.task : '';
+    taskInput.style.width = '100%';
+    taskInput.style.resize = 'vertical';
+    taskInput.addEventListener('dblclick', function() {
+      tr.classList.add('selectedTaskRow');
+      showTaskPopup(this.value);
+    });
+    let pressTimer;
+    taskInput.addEventListener('touchstart', function() {
+      pressTimer = window.setTimeout(() => {
         tr.classList.add('selectedTaskRow');
         showTaskPopup(this.value);
-      });
-      let pressTimer;
-      taskInput.addEventListener('touchstart', function(e) {
-        pressTimer = window.setTimeout(() => {
-          tr.classList.add('selectedTaskRow');
-          showTaskPopup(this.value);
-        }, 800);
-      });
-      taskInput.addEventListener('touchend', function(e) {
-        clearTimeout(pressTimer);
-      });
-      taskInput.addEventListener('touchmove', function(e) {
-        clearTimeout(pressTimer);
-      });
-      tdTask.appendChild(taskInput);
-      tr.appendChild(tdCheckbox);
-      tr.appendChild(tdTask);
-      tbody.appendChild(tr);
-    }
-    
-    // Populate the task table from stored actionDescription
-    function populateTaskTable(taskData) {
-      const tbody = document.querySelector('#taskTable tbody');
-      tbody.innerHTML = '';
-      let tasks = [];
-      if (taskData) {
-        try {
-          tasks = JSON.parse(taskData);
-          if (!Array.isArray(tasks)) tasks = [];
-        } catch(e) {
-          tasks = [{ completed: false, task: taskData }];
-        }
-      }
-      tasks.forEach(task => {
-        addTaskRow(task);
-      });
-    }
-    
-    // Display the task popup modal with delete option
-    function showTaskPopup(text) {
-      document.getElementById('taskFullText').textContent = text;
-      document.getElementById('taskTextPopup').style.display = 'block';
-    }
-    
-    // Open node's modal on click and populate task table
-    function nodeClick(event, d) {
-      event.stopPropagation();
-      selectedNode = d;
-      document.getElementById('taskName').value = d.name || '';
-      document.getElementById('responsible').value = d.responsible || '';
-      document.getElementById('status').value = d.status || 'Not Started';
-      document.getElementById('deadline').value = d.deadline || '';
-      document.getElementById('priority').value = d.priority || 'Normal';
-      populateTaskTable(d.actionDescription || '');
-      document.getElementById('nodeColor').value = d.color || '';
-      document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected-swatch'));
-      if (d.color) {
-        const swatchToSelect = document.querySelector(`.color-swatch[data-color='${d.color}']`);
-        if (swatchToSelect) {
-          swatchToSelect.classList.add('selected-swatch');
-        }
-      }
-      document.getElementById('modal').style.display = 'block';
-    }
-    
-    // Export data as JSON
- function saveToFile() {
-  console.log("1. saveToFile function started."); // Log start
+      }, 800);
+    });
+    taskInput.addEventListener('touchend', function() { clearTimeout(pressTimer); });
+    taskInput.addEventListener('touchmove', function() { clearTimeout(pressTimer); });
+    tdTask.appendChild(taskInput);
+    tr.appendChild(tdCheckbox);
+    tr.appendChild(tdTask);
+    tbody.appendChild(tr);
+  }
 
-  try {
-    // Update data object with current flowchart name from input
-    const flowchartNameValue = document.getElementById('flowchartNameInput').value;
-    data.flowchartName = flowchartNameValue || "Untitled Flowchart";
-    console.log("2. Flowchart name set:", data.flowchartName); // Log name
+  function populateTaskTable(taskData) {
+    const tbody = document.querySelector('#taskTable tbody');
+    tbody.innerHTML = '';
+    let tasks = [];
+    if (taskData) {
+      try {
+        tasks = JSON.parse(taskData);
+        if (!Array.isArray(tasks)) tasks = [];
+      } catch(e) {
+        tasks = [{ completed: false, task: taskData }];
+      }
+    }
+    tasks.forEach(task => addTaskRow(task));
+  }
 
-    // Prepare data for export, ensuring positions are included
-    const exportData = {
-      flowchartName: data.flowchartName,
-      nodes: data.nodes.map(n => ({
-          id: n.id,
-          name: n.name,
-          status: n.status,
-          responsible: n.responsible,
-          deadline: n.deadline,
-          priority: n.priority,
-          actionDescription: n.actionDescription,
-          color: n.color,
-          x: n.x,
-          y: n.y,
-          fx: n.fx,
-          fy: n.fy
-      })),
-      links: data.links.map(l => ({ // Ensure links are saved correctly by ID
+  function showTaskPopup(text) {
+    document.getElementById('taskFullText').textContent = text;
+    document.getElementById('taskTextPopup').style.display = 'block';
+  }
+
+  function nodeClick(event, d) {
+    event.stopPropagation();
+    selectedNode = d;
+    document.getElementById('taskName').value = d.name || '';
+    document.getElementById('responsible').value = d.responsible || '';
+    document.getElementById('status').value = d.status || 'Not Started';
+    document.getElementById('deadline').value = d.deadline || '';
+    document.getElementById('priority').value = d.priority || 'Normal';
+    populateTaskTable(d.actionDescription || '');
+    document.getElementById('nodeColor').value = d.color || '';
+    document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected-swatch'));
+    if (d.color) {
+      const swatchToSelect = document.querySelector(`.color-swatch[data-color='${d.color}']`);
+      if (swatchToSelect) swatchToSelect.classList.add('selected-swatch');
+    }
+    document.getElementById('modal').style.display = 'block';
+  }
+
+  function saveToFile() {
+    try {
+      const flowchartNameValue = document.getElementById('flowchartNameInput').value;
+      data.flowchartName = flowchartNameValue || "Untitled Flowchart";
+      const exportData = {
+        flowchartName: data.flowchartName,
+        nodes: data.nodes.map(n => ({
+          id: n.id, name: n.name, status: n.status, responsible: n.responsible,
+          deadline: n.deadline, priority: n.priority, actionDescription: n.actionDescription,
+          color: n.color, x: n.x, y: n.y, fx: n.fx, fy: n.fy
+        })),
+        links: data.links.map(l => ({
           source: typeof l.source === 'object' ? l.source.id : l.source,
           target: typeof l.target === 'object' ? l.target.id : l.target
-      }))
-    };
-    console.log("3. Data prepared for export:", exportData); // Log prepared data
-
-    const dataStr = JSON.stringify(exportData, null, 2); // Pretty print JSON
-    console.log("4. Data stringified."); // Log stringification success
-
-    const blob = new Blob([dataStr], { type: 'application/json' });
-    console.log("5. Blob created:", blob); // Log blob creation
-
-    const url = URL.createObjectURL(blob);
-    console.log("6. Object URL created:", url); // Log URL creation
-
-    const a = document.createElement('a');
-    a.href = url;
-    const safeFileName = (exportData.flowchartName.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'flowchart') + '.json';
-    a.download = safeFileName;
-    console.log("7. Download link element created:", a); // Log link element
-
-    document.body.appendChild(a); // Append link to body
-    console.log("8. Link appended to body.");
-
-    a.click(); // Simulate click to trigger download
-    console.log("9. Click simulated on link.");
-
-    // Add a slight delay before removing, just in case
-    setTimeout(() => {
-        try {
-            document.body.removeChild(a); // Remove link from body
-            URL.revokeObjectURL(url); // Release object URL
-            console.log("10. Link removed and URL revoked.");
-        } catch (removeError) {
-            console.error("Error removing link or revoking URL:", removeError);
-        }
-    }, 100); // 100ms delay
-
-  } catch (error) {
-    console.error("Error during file export process:", error); // Log any error in the try block
-    alert("An error occurred while trying to export the file. Please check the console for details.");
-  }
-}
-
-    
-    // Load data from file
-    function loadFromFile(file) {
-      if (!file) {
-        alert('No file selected.');
-        return;
-      }
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        try {
-          const fileData = JSON.parse(e.target.result);
-          if (fileData.nodes && fileData.links) {
-            data = fileData;
-            update();
-          } else {
-            alert('Invalid file format');
-          }
-        } catch (error) {
-          alert('Error reading file');
-        }
+        }))
       };
-      reader.readAsText(file);
+      const dataStr = JSON.stringify(exportData, null, 2);
+      const blob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const safeFileName = (exportData.flowchartName.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'flowchart') + '.json';
+      a.download = safeFileName;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => {
+        try {
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        } catch (removeError) {
+          console.error("Error removing link or revoking URL:", removeError);
+        }
+      }, 100);
+    } catch (error) {
+      console.error("Error during file export process:", error);
+      alert("An error occurred while trying to export the file. Please check the console for details.");
     }
-    
-    // Load template data
-    function loadTemplate(template) {
-      switch (template) {
-        case 'prototype':
-          data = {
-            nodes: [
-              { id: '1', name: 'Design', status: 'Completed', actionDescription: '' },
-              { id: '2', name: 'Development', status: 'In Progress', actionDescription: '' },
-              { id: '3', name: 'Testing', status: 'Not Started', actionDescription: '' }
-            ],
-            links: [
-              { source: '1', target: '2' },
-              { source: '2', target: '3' }
-            ]
-          };
-          break;
-        case 'vendor':
-          data = {
-            nodes: [
-              { id: '1', name: 'Identify', status: 'Completed', actionDescription: '' },
-              { id: '2', name: 'Outreach', status: 'In Progress', actionDescription: '' },
-              { id: '3', name: 'Negotiate', status: 'Not Started', actionDescription: '' }
-            ],
-            links: [
-              { source: '1', target: '2' },
-              { source: '2', target: '3' }
-            ]
-          };
-          break;
-        case 'marketing':
-          data = {
-            nodes: [
-              { id: '1', name: 'Research', status: 'Completed', actionDescription: '' },
-              { id: '2', name: 'Planning', status: 'In Progress', actionDescription: '' },
-              { id: '3', name: 'Execute', status: 'Not Started', actionDescription: '' }
-            ],
-            links: [
-              { source: '1', target: '2' },
-              { source: '2', target: '3' }
-            ]
-          };
-          break;
+  }
+
+  function loadFromFile(file) {
+    if (!file) {
+      alert('No file selected.');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const fileData = JSON.parse(e.target.result);
+        if (fileData.nodes && fileData.links) {
+          data = fileData;
+          update();
+        } else {
+          alert('Invalid file format');
+        }
+      } catch (error) {
+        alert('Error reading file');
       }
-      placeNodesDiagonally();
+    };
+    reader.readAsText(file);
+  }
+
+  function loadTemplate(template) {
+    switch (template) {
+      case 'prototype':
+        data = {
+          nodes: [
+            { id: '1', name: 'Design', status: 'Completed', actionDescription: '' },
+            { id: '2', name: 'Development', status: 'In Progress', actionDescription: '' },
+            { id: '3', name: 'Testing', status: 'Not Started', actionDescription: '' }
+          ],
+          links: [
+            { source: '1', target: '2' },
+            { source: '2', target: '3' }
+          ]
+        };
+        break;
+      case 'vendor':
+        data = {
+          nodes: [
+            { id: '1', name: 'Identify', status: 'Completed', actionDescription: '' },
+            { id: '2', name: 'Outreach', status: 'In Progress', actionDescription: '' },
+            { id: '3', name: 'Negotiate', status: 'Not Started', actionDescription: '' }
+          ],
+          links: [
+            { source: '1', target: '2' },
+            { source: '2', target: '3' }
+          ]
+        };
+        break;
+      case 'marketing':
+        data = {
+          nodes: [
+            { id: '1', name: 'Research', status: 'Completed', actionDescription: '' },
+            { id: '2', name: 'Planning', status: 'In Progress', actionDescription: '' },
+            { id: '3', name: 'Execute', status: 'Not Started', actionDescription: '' }
+          ],
+          links: [
+            { source: '1', target: '2' },
+            { source: '2', target: '3' }
+          ]
+        };
+        break;
+    }
+    placeNodesDiagonally();
+    update();
+  }
+
+  document.getElementById('taskForm').onsubmit = (e) => {
+    e.preventDefault();
+    if (selectedNode) {
+      let taskRows = document.querySelectorAll('#taskTable tbody tr');
+      let tasks = [];
+      taskRows.forEach(row => {
+        let checkbox = row.querySelector('input[type="checkbox"]');
+        let taskInput = row.querySelector('input[type="text"], textarea');
+        if (taskInput && taskInput.value.trim() !== "") {
+          tasks.push({
+            completed: checkbox.checked,
+            task: taskInput.value.trim()
+          });
+        }
+      });
+      Object.assign(selectedNode, {
+        name: document.getElementById('taskName').value,
+        responsible: document.getElementById('responsible').value,
+        status: document.getElementById('status').value,
+        deadline: document.getElementById('deadline').value,
+        priority: document.getElementById('priority').value,
+        actionDescription: JSON.stringify(tasks),
+        color: document.getElementById('nodeColor').value || null
+      });
       update();
     }
-    
-    // Save node edits including tasks from the table
-    document.getElementById('taskForm').onsubmit = (e) => {
+    document.getElementById('modal').style.display = 'none';
+  };
+
+  document.getElementById('addTaskRowBtn').addEventListener('click', () => addTaskRow({}));
+
+  document.getElementById('deleteTaskBtn').addEventListener('click', function() {
+    let selectedRow = document.querySelector('#taskTable tbody tr.selectedTaskRow');
+    if (selectedRow) selectedRow.remove();
+    document.getElementById('taskTextPopup').style.display = 'none';
+  });
+
+  document.getElementById('deleteNodeBtn').addEventListener('click', function() {
+    if (selectedNode && confirm("Are you sure you want to delete this node? This action cannot be undone.")) {
+      data.nodes = data.nodes.filter(n => n.id !== selectedNode.id);
+      data.links = data.links.filter(link => link.source !== selectedNode.id && link.target !== selectedNode.id);
+      selectedNode = null;
+      update();
+      document.getElementById('modal').style.display = 'none';
+    }
+  });
+
+  document.addEventListener('DOMContentLoaded', () => {
+    initD3();
+
+    document.querySelectorAll('.color-swatch').forEach(swatch => {
+      swatch.addEventListener('click', () => {
+        document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected-swatch'));
+        swatch.classList.add('selected-swatch');
+        document.getElementById('nodeColor').value = swatch.dataset.color;
+      });
+    });
+
+    document.getElementById('templateBtn').onclick = () => {
+      document.getElementById('templateModal').style.display = 'block';
+    };
+    document.querySelectorAll('.template-btn').forEach(btn => {
+      btn.onclick = (e) => {
+        loadTemplate(e.target.dataset.template);
+        document.getElementById('templateModal').style.display = 'none';
+      };
+    });
+
+    document.getElementById('addNodeBtn').onclick = (e) => {
       e.preventDefault();
       if (selectedNode) {
-        let taskRows = document.querySelectorAll('#taskTable tbody tr');
-        let tasks = [];
-        taskRows.forEach(row => {
-          let checkbox = row.querySelector('input[type="checkbox"]');
-          let taskInput = row.querySelector('input[type="text"]');
-          if (taskInput && taskInput.value.trim() !== "") {
-            tasks.push({
-              completed: checkbox.checked,
-              task: taskInput.value.trim()
-            });
-          }
-        });
-        Object.assign(selectedNode, {
-          name: document.getElementById('taskName').value,
-          responsible: document.getElementById('responsible').value,
-          status: document.getElementById('status').value,
-          deadline: document.getElementById('deadline').value,
-          priority: document.getElementById('priority').value,
-          actionDescription: JSON.stringify(tasks),
-          color: document.getElementById('nodeColor').value || null
-        });
-        update();
+        const newNode = createNode(selectedNode);
+        selectedNode = newNode;
+        nodeClick(e, newNode);
       }
-      document.getElementById('modal').style.display = 'none';
     };
-    
-    document.getElementById('addTaskRowBtn').addEventListener('click', () => {
-      addTaskRow({});
-    });
-    
-    document.getElementById('deleteTaskBtn').addEventListener('click', function() {
-      let selectedRow = document.querySelector('#taskTable tbody tr.selectedTaskRow');
-      if (selectedRow) {
-        selectedRow.remove();
+
+    document.getElementById('exportBtn').onclick = saveToFile;
+
+    const uploadButton = document.getElementById('uploadBtn');
+    const fileInput = document.getElementById('fileInput');
+    uploadButton.onclick = () => fileInput.click();
+    fileInput.onchange = (e) => {
+      if (e.target.files.length > 0) {
+        loadFromFile(e.target.files[0]);
+        const fileName = e.target.files[0].name;
+        document.getElementById('fileNameDisplay').innerText = `Uploaded File: ${fileName}`;
       }
-      document.getElementById('taskTextPopup').style.display = 'none';
+    };
+
+    document.querySelectorAll('.close-button').forEach(btn => {
+      btn.onclick = (e) => {
+        e.stopPropagation();
+        btn.closest('.modal').style.display = 'none';
+      };
     });
-    
-    // Delete Node functionality with confirmation
-    document.getElementById('deleteNodeBtn').addEventListener('click', function() {
-      if (selectedNode) {
-        if (confirm("Are you sure you want to delete this node? This action cannot be undone.")) {
-          data.nodes = data.nodes.filter(n => n.id !== selectedNode.id);
-          data.links = data.links.filter(link => link.source !== selectedNode.id && link.target !== selectedNode.id);
-          selectedNode = null;
-          update();
-          document.getElementById('modal').style.display = 'none';
-        }
-      }
-    });
-    
-    // DOMContentLoaded events
-    document.addEventListener('DOMContentLoaded', () => {
-      initD3();
-      
-      document.querySelectorAll('.color-swatch').forEach(swatch => {
-        swatch.addEventListener('click', () => {
-          document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected-swatch'));
-          swatch.classList.add('selected-swatch');
-          document.getElementById('nodeColor').value = swatch.dataset.color;
-        });
-      });
-      
-      document.getElementById('templateBtn').onclick = () => {
-        document.getElementById('templateModal').style.display = 'block';
-      };
-      document.querySelectorAll('.template-btn').forEach(btn => {
-        btn.onclick = (e) => {
-          loadTemplate(e.target.dataset.template);
-          document.getElementById('templateModal').style.display = 'none';
-        };
-      });
-      
-      document.getElementById('addNodeBtn').onclick = (e) => {
-        e.preventDefault();
-        if (selectedNode) {
-          const newNode = createNode(selectedNode);
-          selectedNode = newNode;
-          nodeClick(e, newNode);
-        }
-      };
-      
-      document.getElementById('exportBtn').onclick = saveToFile;
-      
-      const uploadButton = document.getElementById('uploadBtn');
-      const fileInput = document.getElementById('fileInput');
-      uploadButton.onclick = () => fileInput.click();
-      fileInput.onchange = (e) => {
-        if (e.target.files.length > 0) {
-          loadFromFile(e.target.files[0]);
-          const fileName = e.target.files[0].name;
-          document.getElementById('fileNameDisplay').innerText = `Uploaded File: ${fileName}`;
-        }
-      };
-      
-      document.querySelectorAll('.close-button').forEach(btn => {
-        btn.onclick = (e) => {
-          e.stopPropagation();
-          btn.closest('.modal').style.display = 'none';
-        };
-      });
-      window.onclick = (e) => {
-        if (e.target.classList.contains('modal')) {
-          e.target.style.display = 'none';
-        }
-      };
-      
-      loadTemplate('prototype');
-    });
-    
-    // Create a new node
-    function createNode(parentNode) {
-      const newNodeId = `node-${Date.now()}`;
-      const newNode = {
-        id: newNodeId,
-        name: 'New Task',
-        status: 'Not Started',
-        responsible: '',
-        deadline: '',
-        priority: 'Normal',
-        actionDescription: '',
-        color: null
-      };
-      data.nodes.push(newNode);
-      if (parentNode) {
-        data.links.push({
-          source: parentNode.id,
-          target: newNodeId
-        });
-      }
-      update();
-      return newNode;
+    window.onclick = (e) => { if (e.target.classList.contains('modal')) e.target.style.display = 'none'; };
+
+    loadTemplate('prototype');
+  });
+
+  function createNode(parentNode) {
+    const newNodeId = `node-${Date.now()}`;
+    const newNode = {
+      id: newNodeId,
+      name: 'New Task',
+      status: 'Not Started',
+      responsible: '',
+      deadline: '',
+      priority: 'Normal',
+      actionDescription: '',
+      color: null
+    };
+    data.nodes.push(newNode);
+    if (parentNode) {
+      data.links.push({ source: parentNode.id, target: newNodeId });
     }
-    
-    // Update nodes and links on the canvas, using a rounded rectangle for the task count
-    function update() {
-      const links = linkGroup.selectAll('.link')
-        .data(data.links);
-      links.exit().remove();
-      
-      const linkGen = d3.linkRadial()
-        .angle(d => {
+    update();
+    return newNode;
+  }
+
+  function update() {
+    const links = linkGroup.selectAll('.link').data(data.links);
+    links.exit().remove();
+    const linkGen = d3.linkRadial()
+      .angle(d => {
+        const sourceNode = data.nodes.find(node => node.id === d.source);
+        const targetNode = data.nodes.find(node => node.id === d.target);
+        return (sourceNode && targetNode) ? Math.atan2(targetNode.y - sourceNode.y, targetNode.x - sourceNode.x) : 0;
+      })
+      .radius(curveRadius);
+    links.enter()
+      .append('path')
+      .attr('class', 'link')
+      .merge(links)
+      .attr("d", d => {
+        const sourceNode = data.nodes.find(node => node.id === d.source);
+        const targetNode = data.nodes.find(node => node.id === d.target);
+        return (sourceNode && targetNode) ? linkGen({ source: {x: sourceNode.x, y: sourceNode.y}, target: {x: targetNode.x, y: targetNode.y} }) : "";
+      });
+    const nodes = nodeGroup.selectAll('.node').data(data.nodes);
+    nodes.exit().remove();
+    const nodesEnter = nodes.enter()
+      .append('g')
+      .attr('class', 'node')
+      .call(d3.drag().on('start', dragStart).on('drag', dragging).on('end', dragEnd))
+      .on('click', nodeClick);
+    const allNodes = nodesEnter.merge(nodes);
+    allNodes.selectAll('circle').remove();
+    allNodes.selectAll('text').remove();
+    allNodes.selectAll('.taskCountGroup').remove();
+    allNodes.append('circle')
+      .attr('r', 60)
+      .attr('fill', d => d.color ? d.color : getStatusColor(d.status))
+      .attr('filter', 'url(#nodeShadow)');
+    allNodes.append('text')
+      .attr('text-anchor', 'middle')
+      .attr('dominant-baseline', 'central')
+      .text(d => d.name)
+      .call(wrapText, 100);
+    allNodes.append('g')
+      .attr('class', 'taskCountGroup')
+      .attr('transform', 'translate(0,-70)')
+      .each(function(d) {
+        let tasks = [];
+        if (d.actionDescription) {
+          try { tasks = JSON.parse(d.actionDescription); } catch (e) { tasks = []; }
+        }
+        const completedCount = tasks.filter(t => t.completed).length;
+        const totalCount = tasks.length;
+        const textString = `✅ ${completedCount} of ${totalCount}`;
+        const textEl = d3.select(this).append('text')
+          .attr('text-anchor', 'middle')
+          .attr('dy', '0.35em')
+          .attr('fill', 'white')
+          .style('font-size', '10px')
+          .text(textString);
+        const textNode = textEl.node();
+        const textWidth = textNode.getComputedTextLength();
+        const rectWidth = textWidth + 12;
+        const rectHeight = 18;
+        d3.select(this).insert('rect', 'text')
+          .attr('width', rectWidth)
+          .attr('height', rectHeight)
+          .attr('x', -rectWidth / 2)
+          .attr('y', -rectHeight / 2)
+          .attr('rx', 9)
+          .attr('ry', 9)
+          .attr('fill', '#2c3e50');
+      });
+    simulation.nodes(data.nodes)
+      .on('tick', () => {
+        allNodes.attr('transform', d => `translate(${d.x},${d.y})`);
+        links.attr("d", d => {
           const sourceNode = data.nodes.find(node => node.id === d.source);
           const targetNode = data.nodes.find(node => node.id === d.target);
-          if (sourceNode && targetNode) {
-            return Math.atan2(targetNode.y - sourceNode.y, targetNode.x - sourceNode.x);
-          }
-          return 0;
-        })
-        .radius(curveRadius);
-      
-      links.enter()
-        .append('path')
-        .attr('class', 'link')
-        .merge(links)
-        .attr("d", d => {
-          const sourceNode = data.nodes.find(node => node.id === d.source);
-          const targetNode = data.nodes.find(node => node.id === d.target);
-          if (sourceNode && targetNode) {
-            return linkGen({
-              source: { x: sourceNode.x, y: sourceNode.y },
-              target: { x: targetNode.x, y: targetNode.y }
-            });
-          } else {
-            return "";
-          }
+          return (sourceNode && targetNode) ? linkGen({ source: {x: sourceNode.x, y: sourceNode.y}, target: {x: targetNode.x, y: targetNode.y} }) : "";
         });
-      
-      const nodes = nodeGroup.selectAll('.node')
-        .data(data.nodes);
-      nodes.exit().remove();
-      
-      const nodesEnter = nodes.enter()
-        .append('g')
-        .attr('class', 'node')
-        .call(d3.drag()
-          .on('start', dragStart)
-          .on('drag', dragging)
-          .on('end', dragEnd))
-        .on('click', nodeClick);
-      
-      const allNodes = nodesEnter.merge(nodes);
-      
-      allNodes.selectAll('circle').remove();
-      allNodes.selectAll('text').remove();
-      allNodes.selectAll('.taskCountGroup').remove();
-      
-      allNodes.append('circle')
-        .attr('r', 60)
-        .attr('fill', d => d.color ? d.color : getStatusColor(d.status))
-        .attr('filter', 'url(#nodeShadow)');
-      
-      allNodes.append('text')
-        .attr('text-anchor', 'middle')
-        .attr('dominant-baseline', 'central') // Use "central" to center vertically
-        .text(d => d.name)
-        .call(wrapText, 100);
-      
-      allNodes.append('g')
-        .attr('class', 'taskCountGroup')
-        .attr('transform', 'translate(0,-70)')
-        .each(function(d) {
-          let tasks = [];
-          if (d.actionDescription) {
-            try {
-              tasks = JSON.parse(d.actionDescription);
-            } catch (e) {
-              tasks = [];
-            }
-          }
-          let completedCount = tasks.filter(t => t.completed).length;
-          let totalCount = tasks.length;
-          let textString = `✅ ${completedCount} of ${totalCount}`;
-          
-          const textEl = d3.select(this).append('text')
-            .attr('text-anchor', 'middle')
-            .attr('dy', '0.35em')
-            .attr('fill', 'white')
-            .style('font-size', '10px')
-            .text(textString);
-          
-          const textNode = textEl.node();
-          const textWidth = textNode.getComputedTextLength();
-          const rectWidth = textWidth + 12;
-          const rectHeight = 18;
-          
-          d3.select(this).insert('rect', 'text')
-            .attr('width', rectWidth)
-            .attr('height', rectHeight)
-            .attr('x', -rectWidth / 2)
-            .attr('y', -rectHeight / 2)
-            .attr('rx', 9)
-            .attr('ry', 9)
-            .attr('fill', '#2c3e50');
-        });
-      
-      simulation.nodes(data.nodes)
-        .on('tick', () => {
-          allNodes.attr('transform', d => `translate(${d.x},${d.y})`);
-          links.attr("d", d => {
-            const sourceNode = data.nodes.find(node => node.id === d.source);
-            const targetNode = data.nodes.find(node => node.id === d.target);
-            if (sourceNode && targetNode) {
-              return linkGen({
-                source: { x: sourceNode.x, y: sourceNode.y },
-                target: { x: targetNode.x, y: targetNode.y }
-              });
-            }
-            return "";
-          });
-        });
-      
-      simulation.force('link').links(data.links);
-      simulation.alpha(1).restart();
-      
-      const flowchart = document.getElementById('flowchart');
-      const containerWidth = flowchart.clientWidth;
-      const requiredWidth = Math.max(containerWidth * 2, data.nodes.length * nodeWidthEstimate);
-      svg.attr('width', requiredWidth);
+      });
+    simulation.force('link').links(data.links);
+    simulation.alpha(1).restart();
+    const flowchart = document.getElementById('flowchart');
+    const containerWidth = flowchart.clientWidth;
+    const requiredWidth = Math.max(containerWidth * 2, data.nodes.length * nodeWidthEstimate);
+    svg.attr('width', requiredWidth);
+  }
+
+  function getStatusColor(status) {
+    switch (status) {
+      case 'Not Started': return '#e74c3c';
+      case 'In Progress': return '#f1c40f';
+      case 'Completed':   return '#2ecc71';
+      default:            return '#3498db';
     }
-    
-    function getStatusColor(status) {
-      switch (status) {
-        case 'Not Started': return '#e74c3c';
-        case 'In Progress': return '#f1c40f';
-        case 'Completed':   return '#2ecc71';
-        default:            return '#3498db';
-      }
-    }
-    
-    // D3 drag handlers
-    function dragStart(event) {
-      if (!event.active) simulation.alphaTarget(0.3).restart();
-      event.subject.fx = event.subject.x;
-      event.subject.fy = event.subject.y;
-    }
-    function dragging(event) {
-      event.subject.fx = event.x;
-      event.subject.fy = event.y;
-      event.subject.x = event.x;
-      event.subject.y = event.y;
-    }
-    function dragEnd(event) {
-      if (!event.active) simulation.alphaTarget(0);
-      event.subject.fx = null;
-      event.subject.fy = null;
-    }
-    
-    // Immediately update data.chartName as the user types:
-    document.getElementById('chartName').addEventListener('input', function() {
-      data.chartName = this.value;
-    });
-  </script>
+  }
+
+  function dragStart(event) {
+    if (!event.active) simulation.alphaTarget(0.3).restart();
+    event.subject.fx = event.subject.x;
+    event.subject.fy = event.subject.y;
+  }
+  function dragging(event) {
+    event.subject.fx = event.x;
+    event.subject.fy = event.y;
+    event.subject.x = event.x;
+    event.subject.y = event.y;
+  }
+  function dragEnd(event) {
+    if (!event.active) simulation.alphaTarget(0);
+    event.subject.fx = null;
+    event.subject.fy = null;
+  }
+
+  // Update chart name on input
+  document.getElementById('flowchartNameInput').addEventListener('input', function() {
+    data.flowchartName = this.value;
+  });
+</script>
 </body>
 </html>
