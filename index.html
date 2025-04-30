@@ -403,10 +403,11 @@
       checkbox.checked = task && task.completed ? true : false;
       tdCheckbox.appendChild(checkbox);
       const tdTask = document.createElement('td');
-      const taskInput = document.createElement('input');
-      taskInput.type = 'text';
+      const taskInput = document.createElement('textarea');
       taskInput.value = task && task.task ? task.task : '';
+      // Set style for the textarea so it expands vertically
       taskInput.style.width = '100%';
+      taskInput.style.resize = 'vertical';
       taskInput.addEventListener('dblclick', function(e) {
         tr.classList.add('selectedTaskRow');
         showTaskPopup(this.value);
@@ -477,14 +478,13 @@
     
     // Export data as JSON
     function saveToFile() {
-      // Register chart name in exported JSON
       data.chartName = document.getElementById('chartName').value;
       const dataStr = JSON.stringify(data, null, 2);
       const blob = new Blob([dataStr], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = url;
-      a.download = 'flowchart-data.json';
+      // Use the chart name as the downloaded file name if available.
+      a.download = data.chartName ? `${data.chartName}.json` : 'flowchart-data.json';
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -853,8 +853,8 @@
       event.subject.fy = null;
     }
     
-    // Immediately update data.chartName when user changes it
-    document.getElementById('chartName').addEventListener('change', function() {
+    // Immediately update data.chartName as the user types:
+    document.getElementById('chartName').addEventListener('input', function() {
       data.chartName = this.value;
     });
   </script>
