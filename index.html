@@ -1,1036 +1,632 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" >
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FlowChart Manager</title>
-  <link rel="icon" type="image/png" href="https://static.wixstatic.com/media/c3283f_a3e1ec47496f42f7be617a2cd7a7bc9e~mv2.png">
-
-  <style>
-    * {
-      box-sizing: border-box;
-    }
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: #f4f4f4;
-      display: flex; 
-      flex-direction: column; 
-      min-height: 100vh; 
-    }
-    header {
-      background: #2c3e50;
-      color: white;
-      padding: 1rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-shrink: 0; 
-    }
-    header h1 {
-      margin: 0;
-      display: flex;
-      align-items: center;
-      font-size: 1.5em; 
-    }
-    header h1 input#flowchartNameInput {
-      margin-left: 10px;
-      font-size: 0.9em; 
-      padding: 4px 8px;
-      border: none;
-      border-radius: 4px;
-      background-color: #fff;
-      color: #333;
-    }
-    nav {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem; 
-    }
-    nav button {
-      background: #2980b9;
-      border: none;
-      color: white;
-      padding: 0.5rem 1rem;
-      cursor: pointer;
-      border-radius: 4px;
-      white-space: nowrap; 
-    }
-    nav input[type="file"] {
-      display: none;
-    }
-    nav .upload-btn {
-      background: #27ae60;
-      display: inline-block;
-    }
-    nav .ai-assistant-btn {
-      background: #8e44ad; 
-    }
-    #fileNameDisplay {
-      margin-left: 0.5rem;
-      font-size: 0.9em;
-      color: #ecf0f1;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 150px; 
-    }
-    #flowchartContainer { 
-      width: 100%;
-      flex-grow: 1; 
-      border: 1px solid #ccc;
-      background: white;
-      overflow: auto; 
-      position: relative; 
-    }
-    #flowchart { 
-      display: block; 
-    }
-    .modal {
-      display: none;
-      position: fixed;
-      z-index: 1000;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.5);
-      padding-top: 50px;
-      overflow-y: auto; 
-    }
-    .modal-content {
-      background: white;
-      margin: 20px auto; 
-      padding: 20px;
-      width: 90%;
-      max-width: 500px;
-      overflow-y: visible; 
-      border-radius: 8px;
-      position: relative;
-    }
-    .close-button {
-      position: absolute;
-      right: 10px;
-      top: 10px;
-      font-size: 24px;
-      cursor: pointer;
-      color: #777; 
-    }
-    .close-button:hover {
-      color: #333;
-    }
-    form {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    input,
-    select,
-    button, 
-    textarea {
-      padding: 8px 12px; 
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      font-size: 1em; 
-    }
-    textarea {
-      resize: vertical;
-      min-height: 60px;
-    }
-    #taskName {
-      width: 100%;
-    }
-    .template-btn {
-      background: #8e44ad;
-      color: white;
-      border: none;
-      padding: 10px;
-      margin: 5px 0;
-      cursor: pointer;
-      border-radius: 4px;
-    }
-    .node circle {
-      stroke: white;
-      stroke-width: 2px; 
-    }
-    .node text.node-name { 
-      fill: white;
-      font-size: 14px;
-      text-anchor: middle;
-      dominant-baseline: central; 
-      pointer-events: none; 
-    }
-    .link {
-      stroke: #aaa;
-      stroke-width: 2px;
-      stroke-opacity: 0.6;
-      marker-end: url(#arrowhead);
-    }
-    .action-buttons {
-      display: flex;
-      gap: 10px;
-      margin-top: 15px; 
-    }
-    .action-buttons button { 
-      color: white;
-      border: none;
-      padding: 10px 16px; 
-      border-radius: 4px;
-      cursor: pointer;
-      flex: 1;
-      font-weight: 500;
-    }
-    .add-node-btn {
-      background: #27ae60;
-    }
-    .save-btn {
-      background: #2980b9;
-    }
-    .color-panel {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-top: 8px;
-      margin-bottom: 8px; 
-    }
-    .color-swatch {
-      width: 24px;
-      height: 24px;
-      border: 1px solid #ddd; 
-      border-radius: 4px;
-      cursor: pointer;
-      transition: transform 0.1s ease;
-    }
-    .color-swatch:hover {
-      transform: scale(1.1);
-    }
-    .selected-swatch {
-      outline: 2px solid #2c3e50; 
-      outline-offset: 2px; 
-    }
-    .selectedTaskRow {
-      border: 2px solid #3498db;
-      background-color: #ecf0f1; 
-    }
-    #deleteNodeBtn { 
-      background-color: #e74c3c;
-      color: white;
-      padding: 10px 16px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-weight: 500;
-    }
-    .taskCountGroup text { 
-      fill: white;
-      font-size: 10px;
-      text-anchor: middle;
-      dy: 0.35em; 
-    }
-    .taskCountGroup rect { 
-      fill: #2c3e50;
-      rx: 9; 
-      ry: 9; 
-    }
-    .arrange-btn {
-      background: #f39c12;
-      display: inline-block;
-    }
-
-    @media (max-width: 768px) {
-      header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.5rem;
-      }
-      header h1 {
-        font-size: 1.25em;
-      }
-      nav {
-        width: 100%;
-        flex-wrap: wrap; 
-      }
-      nav button {
-        flex-grow: 1; 
-        min-width: 100px; 
-      }
-      #fileNameDisplay {
-        width: 100%;
-        text-align: center;
-        margin-top: 0.5rem;
-      }
-      .modal-content {
-        width: 95%;
-        padding: 15px;
-      }
-       #flowchartContainer {
-        height: 70vh; 
-      }
-    }
-  </style>
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+  <title>F3D Action Planner</title>
 </head>
 <body>
-  <header>
-    <h1>FlowChart Manager <input type="text" id="flowchartNameInput" placeholder="Enter Flowchart Name..."></h1>
-    <nav>
-      <button id="aiAssistantBtn" class="ai-assistant-btn">Flowchart AI Assistant</button>
-      <button id="templateBtn">Templates</button>
-      <button id="exportBtn">Export</button>
-      <input type="file" id="fileInput" accept=".json">
-      <button id="uploadBtn" class="upload-btn">Upload</button>
-      <button id="arrangeBtn" class="arrange-btn">Rearrange</button>
-      <div id="fileNameDisplay">No file loaded</div>
-    </nav>
-  </header>
+<!-- partial:index.partial.html -->
+<!DOCTYPE html>
+<html lang="en">
 
-  <div id="flowchartContainer">
-    <svg id="flowchart"></svg>
-  </div>
-
-  <div id="modal" class="modal">
-    <div class="modal-content">
-      <span class="close-button" id="closeModal">×</span>
-      <h2>Task Details</h2>
-      <form id="taskForm">
-        <label>Task Name:
-          <textarea id="taskName" required></textarea>
-        </label>
-        <label>Responsible:
-          <input type="text" id="responsible" required>
-        </label>
-        <label>Status:
-          <select id="status">
-            <option value="Not Started">Not Started</option>
-            <option value="In Progress">In Progress</option>
-            <option value="Completed">Completed</option>
-          </select>
-        </label>
-        <label>Deadline:
-          <input type="date" id="deadline">
-        </label>
-        <label>Priority:
-          <select id="priority">
-            <option value="Low">Low</option>
-            <option value="Normal">Normal</option>
-            <option value="High">High</option>
-          </select>
-        </label>
-        <label>Action Description (Sub-tasks):</label>
-        <table id="taskTable" style="width:100%; margin-bottom:10px;">
-          <thead>
-            <tr>
-              <th style="width: 30px;">✓</th>
-              <th>Task</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-        <button type="button" id="addTaskRowBtn" style="align-self: flex-start; background-color: #5cb85c;">Add Task</button>
-        <label>Node Color:</label>
-        <input type="hidden" id="nodeColor" />
-        <div class="color-panel">
-          <div class="color-swatch" style="background-color: #e74c3c;" data-color="#e74c3c"></div>
-          <div class="color-swatch" style="background-color: #f1c40f;" data-color="#f1c40f"></div>
-          <div class="color-swatch" style="background-color: #2ecc71;" data-color="#2ecc71"></div>
-          <div class="color-swatch" style="background-color: #3498db;" data-color="#3498db"></div>
-          <div class="color-swatch" style="background-color: #9b59b6;" data-color="#9b59b6"></div>
-          <div class="color-swatch" style="background-color: #34495e;" data-color="#34495e"></div>
-        </div>
-        <div class="action-buttons">
-          <button type="submit" class="save-btn">Save Node</button>
-          <button type="button" class="add-node-btn" id="addNodeBtn">Add Child Node</button>
-        </div>
-        <div style="text-align: center; margin-top: 15px;">
-          <button type="button" id="deleteNodeBtn">Delete Node</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <div id="templateModal" class="modal">
-    <div class="modal-content">
-      <span class="close-button" id="closeTemplateModal">×</span>
-      <h2>Select Template</h2>
-      <button class="template-btn" data-template="prototype">Prototype Development</button>
-      <button class="template-btn" data-template="vendor">Vendor Outreach</button>
-      <button class="template-btn" data-template="marketing">Marketing Campaign</button>
-      <button class="template-btn" data-template="swn">SWN Development</button>
-    </div>
-  </div>
-
-  <div id="taskTextPopup" class="modal">
-    <div class="modal-content">
-      <span class="close-button" id="closeTaskPopup">×</span>
-      <p id="taskFullText" style="white-space: pre-wrap; max-height: 60vh; overflow-y: auto;"></p>
-      <button id="deleteTaskBtn" style="margin-top: 10px; background-color: #e74c3c; color: white;">Delete Task</button>
-    </div>
-  </div>
-
-  <script>
-    // --- Global D3 Variables ---
-    let selectedNode = null;
-    let data = { flowchartName: "Untitled Flowchart", nodes: [], links: [] }; 
-    let simulation, svg, nodeGroup, linkGroup, mainZoomGroup;
-    let currentLayout = 'force'; // Default layout
-    
-    const nodeRadius = 60;
-    
-    // --- AI Assistant Button Function ---
-    function openAIAssistant() {
-      const assistantUrl = 'https://chatgpt.com/g/g-678c450b02988191b07d47c7a5bd9d4a-flow-chart-assistant';
-      const screenWidth = window.screen.availWidth;
-      const screenHeight = window.screen.availHeight;
-      const baseSize = Math.min(screenWidth, screenHeight);
-      const popupWidth = Math.floor(baseSize * 0.45); 
-      const popupHeight = Math.floor(baseSize * 0.55); 
-      const left = Math.floor((screenWidth - popupWidth) / 2);
-      const top = Math.floor((screenHeight - popupHeight) / 2);
-      const features = `width=${popupWidth},height=${popupHeight},left=${left},top=${top},resizable=yes,scrollbars=yes,status=no,location=no,menubar=no,toolbar=no`;
-      window.open(assistantUrl, 'FlowchartAIAssistant', features);
-    }
-
-    // --- Text Wrapping Function ---
-    function wrapText(textElement, width) {
-      textElement.each(function() {
-        const textNode = d3.select(this);
-        const words = textNode.text().split(/\s+/).reverse();
-        let word;
-        let line = [];
-        let lineNumber = 0;
-        const lineHeight = 1.1; // ems
-        const x = textNode.attr("x") || 0;
-        
-        textNode.text(null); 
-
-        let tspan = textNode.append("tspan").attr("x", x);
-        let tspans = [tspan];
-
-        while (word = words.pop()) {
-          line.push(word);
-          tspan.text(line.join(" "));
-          if (tspan.node().getComputedTextLength() > width && line.length > 1) {
-            line.pop(); 
-            tspan.text(line.join(" ")); 
-            line = [word]; 
-            tspan = textNode.append("tspan").attr("x", x).attr("dy", `${lineHeight}em`).text(word);
-            tspans.push(tspan);
-            lineNumber++;
-          }
+<head>
+    <meta charset="UTF-8">
+    <title>Project Manager</title>
+    <style>
+        * {
+            box-sizing: border-box;
         }
-        
-        // Vertical centering
-        const initialDyOffset = - (lineNumber * lineHeight / 2);
-        tspans[0].attr("dy", `${initialDyOffset}em`); 
-      });
-    }
 
-    // --- D3 Initialization ---
-    function initD3() {
-      const flowchartContainer = document.getElementById('flowchartContainer');
-      d3.select(flowchartContainer).select("svg").remove();
-
-      const containerWidth = flowchartContainer.clientWidth;
-      const containerHeight = flowchartContainer.clientHeight;
-      const virtualWidth = Math.max(containerWidth * 1.5, 2000); 
-      const virtualHeight = Math.max(containerHeight * 1.5, 1500);
-
-      svg = d3.select(flowchartContainer)
-        .append('svg')
-        .attr('id', 'flowchart')
-        .attr('width', "100%") 
-        .attr('height', "100%")
-        .attr('viewBox', `0 0 ${virtualWidth} ${virtualHeight}`) 
-        .attr('preserveAspectRatio', 'xMidYMid meet');
-        
-      mainZoomGroup = svg.append('g'); 
-
-      const zoom = d3.zoom().on("zoom", function (event) {
-         mainZoomGroup.attr("transform", event.transform);
-      });
-      svg.call(zoom).on("dblclick.zoom", null);
-
-      // Define Arrow Marker for links
-      mainZoomGroup.append('defs').html(`
-        <filter id="nodeShadow" x="-20%" y="-20%" width="140%" height="140%">
-          <feGaussianBlur in="SourceAlpha" stdDeviation="2.5" result="blur" />
-          <feOffset in="blur" dx="3" dy="3" result="offsetBlur" />
-          <feMerge>
-            <feMergeNode in="offsetBlur"/>
-            <feMergeNode in="SourceGraphic"/>
-          </feMerge>
-        </filter>
-        <marker id="arrowhead" viewBox="0 -5 10 10" refX="23" refY="0" 
-                markerWidth="6" markerHeight="6" orient="auto">
-          <path d="M0,-5L10,0L0,5" fill="#aaa"/>
-        </marker>
-      `);
-
-      linkGroup = mainZoomGroup.append('g').attr("class", "links");
-      nodeGroup = mainZoomGroup.append('g').attr("class", "nodes");
-
-      simulation = d3.forceSimulation()
-        .force('link', d3.forceLink().id(d => d.id).distance(150))
-        .force('charge', d3.forceManyBody().strength(-1000))
-        .force('collide', d3.forceCollide().radius(nodeRadius + 15).strength(0.8))
-        .force('center', d3.forceCenter(virtualWidth / 2, virtualHeight / 2)); 
-
-      window.addEventListener('resize', () => {
-        const newContainerWidth = flowchartContainer.clientWidth;
-        const newContainerHeight = flowchartContainer.clientHeight;
-        const newVirtualWidth = Math.max(newContainerWidth * 1.5, virtualWidth);
-        const newVirtualHeight = Math.max(newContainerHeight* 1.5, virtualHeight);
-        simulation.force('center', d3.forceCenter(newVirtualWidth / 2, newVirtualHeight / 2));
-        simulation.alpha(0.3).restart(); 
-      });
-    }
-
-    // Layout functions
-    function applyForceLayout() {
-      data.nodes.forEach(node => {
-        node.fx = null;
-        node.fy = null;
-      });
-      
-      simulation.alpha(0.3).restart();
-      currentLayout = 'force';
-    }
-
-    function applyHorizontalLayout() {
-      const xSpace = nodeRadius * 3.5;
-      const ySpace = nodeRadius * 4;
-      const startX = 200;
-      const startY = svg.attr('viewBox').split(' ')[3] / 2;
-      
-      const rows = Math.ceil(Math.sqrt(data.nodes.length));
-      const cols = Math.ceil(data.nodes.length / rows);
-      
-      data.nodes.forEach((node, i) => {
-        const row = Math.floor(i / cols);
-        const col = i % cols;
-        
-        node.x = startX + col * xSpace;
-        node.y = startY + (row - rows/2) * ySpace;
-        node.fx = node.x;
-        node.fy = node.y;
-      });
-      
-      simulation.alpha(0.1).restart();
-      currentLayout = 'horizontal';
-    }
-
-    function applyCircularLayout() {
-      const viewBox = svg.attr('viewBox').split(' ');
-      const centerX = parseFloat(viewBox[2]) / 2;
-      const centerY = parseFloat(viewBox[3]) / 2;
-      const radius = Math.min(centerX, centerY) * 0.7;
-      
-      data.nodes.forEach((node, i) => {
-        const angle = (i / data.nodes.length) * 2 * Math.PI;
-        node.x = centerX + radius * Math.cos(angle);
-        node.y = centerY + radius * Math.sin(angle);
-        node.fx = node.x;
-        node.fy = node.y;
-      });
-      
-      simulation.alpha(0.1).restart();
-      currentLayout = 'circular';
-    }
-
-    function cycleLayout() {
-      if (currentLayout === 'force') {
-        applyHorizontalLayout();
-      } else if (currentLayout === 'horizontal') {
-        applyCircularLayout();
-      } else {
-        applyForceLayout();
-      }
-    }
-
-    // --- Task Table Functions ---
-    function addTaskRow(task) {
-      const tbody = document.querySelector('#taskTable tbody');
-      const tr = document.createElement('tr');
-      tr.addEventListener('click', function() {
-        document.querySelectorAll('#taskTable tbody tr').forEach(row => row.classList.remove('selectedTaskRow'));
-        this.classList.add('selectedTaskRow');
-      });
-      const tdCheckbox = document.createElement('td');
-      const checkbox = document.createElement('input');
-      checkbox.type = 'checkbox';
-      checkbox.checked = task && task.completed ? true : false;
-      tdCheckbox.appendChild(checkbox);
-
-      const tdTask = document.createElement('td');
-      const taskInput = document.createElement('textarea'); 
-      taskInput.value = task && task.task ? task.task : '';
-      taskInput.rows = 1; 
-      taskInput.style.width = '100%';
-      taskInput.style.resize = 'vertical';
-      taskInput.style.border = '1px solid #eee'; 
-      taskInput.style.padding = '4px';
-      taskInput.addEventListener('input', function() { 
-        this.style.height = 'auto';
-        this.style.height = (this.scrollHeight) + 'px';
-      });
-
-      taskInput.addEventListener('dblclick', function(e) {
-        e.stopPropagation(); 
-        tr.classList.add('selectedTaskRow');
-        showTaskPopup(this.value);
-      });
-      let pressTimer;
-      taskInput.addEventListener('touchstart', function(e) {
-        e.stopPropagation();
-        pressTimer = window.setTimeout(() => {
-          tr.classList.add('selectedTaskRow');
-          showTaskPopup(this.value);
-        }, 800);
-      });
-      taskInput.addEventListener('touchend', function() { clearTimeout(pressTimer); });
-      taskInput.addEventListener('touchmove', function() { clearTimeout(pressTimer); });
-
-      tdTask.appendChild(taskInput);
-      tr.appendChild(tdCheckbox);
-      tr.appendChild(tdTask);
-      tbody.appendChild(tr);
-      taskInput.dispatchEvent(new Event('input')); 
-      return tr;
-    }
-
-    function populateTaskTable(taskDataString) {
-      const tbody = document.querySelector('#taskTable tbody');
-      tbody.innerHTML = ''; 
-      let tasksArray = [];
-      
-      if (taskDataString && typeof taskDataString === 'string') {
-        try {
-          tasksArray = JSON.parse(taskDataString);
-          if (!Array.isArray(tasksArray)) { 
-            tasksArray = taskDataString.trim() ? [{ completed: false, task: taskDataString }] : [];
-          }
-        } catch (e) {
-           tasksArray = taskDataString.trim() ? [{ completed: false, task: taskDataString }] : [];
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background: #f4f4f4;
         }
-      } else if (Array.isArray(taskDataString)) { 
-        tasksArray = taskDataString;
-      }
 
-      if (tasksArray.length > 0) {
-        tasksArray.forEach(task => addTaskRow(task));
-      } else {
-        addTaskRow({}); 
-      }
-    }
+        header {
+            background: #2c3e50;
+            color: white;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
 
-    function showTaskPopup(text) {
-      document.getElementById('taskFullText').textContent = text;
-      document.getElementById('taskTextPopup').style.display = 'block';
-    }
+        header h1 {
+            margin: 0;
+        }
 
-    function nodeClick(event, d) {
-      event.stopPropagation();
-      selectedNode = d;
-      document.getElementById('taskName').value = d.name || '';
-      document.getElementById('responsible').value = d.responsible || '';
-      document.getElementById('status').value = d.status || 'Not Started';
-      document.getElementById('deadline').value = d.deadline || '';
-      document.getElementById('priority').value = d.priority || 'Normal';
-      populateTaskTable(d.actionDescription || ''); 
-      document.getElementById('nodeColor').value = d.color || '';
-      document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected-swatch'));
-      if (d.color) {
-        const swatchToSelect = document.querySelector(`.color-swatch[data-color='${d.color}']`);
-        if (swatchToSelect) swatchToSelect.classList.add('selected-swatch');
-      }
-      document.getElementById('modal').style.display = 'block';
-    }
+        nav button {
+            background: #2980b9;
+            border: none;
+            color: white;
+            padding: 0.5rem 1rem;
+            margin-left: 0.5rem;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        nav input[type="file"] {
+            display: none;
+        }
+        nav .upload-btn {
+            background: #27ae60;
+            display: inline-block;
+        }
+        #flowchart {
+            width: 100%;
+            height: 80vh;
+            border: 1px solid #ccc;
+            background: white;
+            overflow: hidden;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            padding-top: 50px;
+        }
+        .modal-content {
+            background: white;
+            margin: auto;
+            padding: 20px;
+            width: 90%;
+            max-width: 500px;
+            border-radius: 8px;
+            position: relative;
+        }
+        .close-button {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
 
-    // --- File Functions ---
-    function saveToFile() {
-      try {
-        const flowchartNameValue = document.getElementById('flowchartNameInput').value;
-        data.flowchartName = flowchartNameValue || "Untitled Flowchart"; 
-        
-        const exportData = {
-          flowchartName: data.flowchartName,
-          nodes: data.nodes.map(n => ({
-            id: n.id, 
-            name: n.name, 
-            status: n.status, 
-            responsible: n.responsible,
-            deadline: n.deadline, 
-            priority: n.priority, 
-            actionDescription: n.actionDescription,
-            color: n.color, 
-            x: n.x, 
-            y: n.y, 
-            fx: n.fx, 
-            fy: n.fy 
-          })),
-          links: data.links.map(l => ({
-            source: typeof l.source === 'object' ? l.source.id : l.source,
-            target: typeof l.target === 'object' ? l.target.id : l.target
-          }))
-        };
-        
-        const dataStr = JSON.stringify(exportData, null, 2);
-        const blob = new Blob([dataStr], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        const safeFileName = (exportData.flowchartName.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'flowchart') + '.json';
-        a.href = url; 
-        a.download = safeFileName;
-        document.body.appendChild(a);
-        a.click();
-        setTimeout(() => {
-          try {
+        input,
+        select,
+        button,
+        textarea {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .template-btn {
+            background: #8e44ad;
+            color: white;
+            border: none;
+            padding: 10px;
+            margin: 5px 0;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+       .upload-btn{
+          background: #27ae60;
+       }
+        .node circle {
+            stroke: white;
+            stroke-width: 2px;
+        }
+
+        .node text {
+            fill: white;
+            font-size: 12px;
+        }
+
+       .link {
+            stroke: #999;
+            stroke-opacity: 0.6;
+            stroke-width: 2px;
+            fill: none;
+       }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .add-node-btn {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            flex: 1;
+        }
+        .reorder-btn {
+           background: #f39c12;
+           color: white;
+           border: none;
+           padding: 8px 16px;
+           border-radius: 4px;
+           cursor: pointer;
+           flex: 1;
+        }
+
+        .save-btn {
+            background: #2980b9;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            flex: 1;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+</head>
+
+<body>
+    <header>
+        <h1>Project Manager</h1>
+        <nav>
+            <button id="templateBtn">Templates</button>
+            <button id="exportBtn">Export</button>
+            <input type="file" id="fileInput" accept=".json">
+            <button id="uploadBtn" class="upload-btn">Upload</button>
+        </nav>
+    </header>
+
+    <div id="flowchart"></div>
+
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="closeModal">×</span>
+            <h2>Task Details</h2>
+            <form id="taskForm">
+                <label>Task Name:
+                    <input type="text" id="taskName" required>
+                </label>
+                <label>Responsible:
+                    <input type="text" id="responsible" required>
+                </label>
+                <label>Status:
+                    <select id="status">
+                        <option value="Not Started">Not Started</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Completed">Completed</option>
+                    </select>
+                </label>
+                <label>Deadline:
+                    <input type="date" id="deadline">
+                </label>
+                <label>Priority:
+                    <select id="priority">
+                        <option value="Low">Low</option>
+                        <option value="Normal">Normal</option>
+                        <option value="High">High</option>
+                    </select>
+                </label>
+                <!-- Added field for Action Description -->
+                <label>Action Description:
+                    <textarea id="actionDescription" maxlength="300"></textarea>
+                </label>
+                <div class="action-buttons">
+                    <button type="submit" class="save-btn">Save</button>
+                    <button type="button" class="add-node-btn" id="addNodeBtn">Add Child Node</button>
+                    <button type="button" class="reorder-btn" id="moveUpBtn">Move Up</button>
+                    <button type="button" class="reorder-btn" id="moveDownBtn">Move Down</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="templateModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="closeTemplateModal">×</span>
+            <h2>Select Template</h2>
+            <button class="template-btn" data-template="prototype">Prototype Development</button>
+            <button class="template-btn" data-template="vendor">Vendor Outreach</button>
+            <button class="template-btn" data-template="marketing">Marketing Campaign</button>
+        </div>
+    </div>
+
+    <script>
+        let selectedNode = null;
+        let data = { nodes: [], links: [] };
+        let simulation;
+        let svg;
+        let linkGroup;
+        let nodeGroup;
+        const curveRadius = 200;
+
+        // --- initD3() remains the same except for removing forces that cause pushing/pulling ---
+        function initD3() {
+            const flowchart = document.getElementById('flowchart');
+            const width = flowchart.clientWidth;
+            const height = flowchart.clientHeight;
+            flowchart.innerHTML = '';
+
+            svg = d3.select('#flowchart')
+                .append('svg')
+                .attr('width', width)
+                .attr('height', height);
+
+            // Simulation with no node repulsion or center force
+            simulation = d3.forceSimulation()
+                .force('link', d3.forceLink().id(d => d.id).distance(150).strength(0))
+                .force('charge', d3.forceManyBody().strength(0));
+
+            linkGroup = svg.append('g');
+            nodeGroup = svg.append('g');
+        }
+
+        // --- New helper function to position nodes in a centered horizontal line ---
+        function centerNodes() {
+            // Grab current svg dimensions
+            const width = +svg.attr('width');
+            const height = +svg.attr('height');
+
+            // Space between consecutive nodes
+            const spacing = 200;
+            const totalNodes = data.nodes.length;
+
+            // Calculate starting X so the entire row is centered
+            const startX = width / 2 - ((totalNodes - 1) * spacing) / 2;
+            const centerY = height / 2;
+
+            data.nodes.forEach((node, i) => {
+                node.x = startX + i * spacing;
+                node.y = centerY;
+            });
+        }
+
+        function createNode(parentNode) {
+            const newNodeId = `node-${Date.now()}`;
+            const newNode = {
+                id: newNodeId,
+                name: 'New Task',
+                status: 'Not Started',
+                responsible: '',
+                deadline: '',
+                priority: 'Normal',
+                actionDescription: ''
+            };
+
+            data.nodes.push(newNode);
+
+            if (parentNode) {
+                data.links.push({
+                    source: parentNode.id,
+                    target: newNodeId
+                });
+            }
+
+            update();
+            return newNode;
+        }
+
+        function update() {
+            const links = linkGroup.selectAll('.link')
+                .data(data.links);
+
+            links.exit().remove();
+
+            const linkGen = d3.linkRadial()
+                .angle(d => {
+                    const sourceNode = data.nodes.find(node => node.id === d.source);
+                    const targetNode = data.nodes.find(node => node.id === d.target);
+                    if (sourceNode && targetNode) {
+                        return Math.atan2(targetNode.y - sourceNode.y, targetNode.x - sourceNode.x);
+                    }
+                    return 0;
+                })
+                .radius(curveRadius);
+
+            links.enter()
+                .append('path')
+                .attr('class', 'link')
+                .merge(links)
+                .attr("d", d => {
+                    const sourceNode = data.nodes.find(node => node.id === d.source);
+                    const targetNode = data.nodes.find(node => node.id === d.target);
+                    if (sourceNode && targetNode) {
+                        return linkGen({
+                            source: { x: sourceNode.x, y: sourceNode.y },
+                            target: { x: targetNode.x, y: targetNode.y }
+                        });
+                    } else {
+                        return "";
+                    }
+                });
+
+            const nodes = nodeGroup.selectAll('.node')
+                .data(data.nodes);
+
+            nodes.exit().remove();
+
+            const nodesEnter = nodes.enter()
+                .append('g')
+                .attr('class', 'node')
+                .call(d3.drag()
+                    .on('start', dragStart)
+                    .on('drag', dragging)
+                    .on('end', dragEnd))
+                .on('click', nodeClick);
+
+            const allNodes = nodesEnter.merge(nodes);
+
+            allNodes.selectAll('circle').remove();
+            allNodes.selectAll('text').remove();
+
+            allNodes.append('circle')
+                .attr('r', 30)
+                .attr('fill', d => getStatusColor(d.status));
+
+            allNodes.append('text')
+                .attr('text-anchor', 'middle')
+                .attr('dy', '0.3em')
+                .text(d => d.name);
+
+            simulation.nodes(data.nodes)
+                .on('tick', () => {
+                    allNodes.attr('transform', d => `translate(${d.x},${d.y})`);
+                    links.attr("d", d => {
+                        const sourceNode = data.nodes.find(node => node.id === d.source);
+                        const targetNode = data.nodes.find(node => node.id === d.target);
+                        if (sourceNode && targetNode) {
+                            return linkGen({
+                                source: { x: sourceNode.x, y: sourceNode.y },
+                                target: { x: targetNode.x, y: targetNode.y }
+                            });
+                        } else {
+                            return "";
+                        }
+                    });
+                });
+
+            simulation.force('link').links(data.links);
+            simulation.alpha(1).restart();
+        }
+
+        function getStatusColor(status) {
+            switch (status) {
+                case 'Not Started':
+                    return '#e74c3c';
+                case 'In Progress':
+                    return '#f1c40f';
+                case 'Completed':
+                    return '#2ecc71';
+                default:
+                    return '#3498db';
+            }
+        }
+
+        function dragStart(event) {
+            if (!event.active) simulation.alphaTarget(0.3).restart();
+            event.subject.fx = event.subject.x;
+            event.subject.fy = event.subject.y;
+        }
+
+        function dragging(event) {
+            event.subject.fx = event.x;
+            event.subject.fy = event.y;
+        }
+
+        function dragEnd(event) {
+            if (!event.active) simulation.alphaTarget(0);
+            event.subject.fx = null;
+            event.subject.fy = null;
+        }
+
+        function nodeClick(event, d) {
+            event.stopPropagation();
+            selectedNode = d;
+            const modal = document.getElementById('modal');
+            document.getElementById('taskName').value = d.name || '';
+            document.getElementById('responsible').value = d.responsible || '';
+            document.getElementById('status').value = d.status || 'Not Started';
+            document.getElementById('deadline').value = d.deadline || '';
+            document.getElementById('priority').value = d.priority || 'Normal';
+            document.getElementById('actionDescription').value = d.actionDescription || '';
+            modal.style.display = 'block';
+        }
+
+        function saveToFile() {
+            const dataStr = JSON.stringify(data, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'project-data.json';
+            document.body.appendChild(a);
+            a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
-          } catch (removeError) {
-            console.error("Error removing link or revoking URL:", removeError);
-          }
-        }, 100);
-      } catch (error) {
-        console.error("Error during file export process:", error);
-        alert("An error occurred while trying to export the file. Please check the console for details.");
-      }
-    }
-
-    function loadFromFile(file) {
-      if (!file) {
-        alert('No file selected.');
-        return;
-      }
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        try {
-          const fileData = JSON.parse(e.target.result);
-          if (fileData && typeof fileData === 'object' && Array.isArray(fileData.nodes)) { 
-            data.flowchartName = fileData.flowchartName || "Untitled Flowchart";
-            document.getElementById('flowchartNameInput').value = data.flowchartName;
-            
-            data.nodes = fileData.nodes.map(n => ({ 
-              ...n,
-              x: n.x !== undefined ? n.x : null, 
-              y: n.y !== undefined ? n.y : null, 
-              fx: n.fx !== undefined ? n.fx : null, 
-              fy: n.fy !== undefined ? n.fy : null
-            }));
-            
-            // Process links array - ensure source and target are strings
-            if (Array.isArray(fileData.links)) {
-              data.links = fileData.links.map(link => ({
-                source: typeof link.source === 'object' ? link.source.id : link.source,
-                target: typeof link.target === 'object' ? link.target.id : link.target
-              }));
-            } else {
-              data.links = [];
-            }
-            
-            document.getElementById('fileNameDisplay').innerText = `Loaded: ${file.name}`;
-            document.getElementById('fileNameDisplay').title = `Loaded: ${file.name}`;
-            
-            // Check if nodes have fixed positions
-            if (data.nodes.every(n => n.fx === null && n.fy === null)) {
-              applyForceLayout();
-            } else {
-              update();
-            }
-          } else {
-            alert('Invalid file format. Must contain a "nodes" array.');
-          }
-        } catch (error) {
-          alert('Error reading or parsing the file. Check console for details.');
-          console.error("Error in loadFromFile:", error);
         }
-      };
-      reader.onerror = () => alert('Error reading file.');
-      reader.readAsText(file);
-    }
 
-    // --- Template and Node Functions ---
-    function loadTemplate(template) {
-      data.flowchartName = template.charAt(0).toUpperCase() + template.slice(1) + " Template";
-      document.getElementById('flowchartNameInput').value = data.flowchartName;
-
-      switch (template) {
-        case 'prototype':
-          data.nodes = [
-            { id: '1', name: 'Design', status: 'Completed', actionDescription: '[{"completed":false,"task":"Define user stories"},{"completed":false,"task":"Create wireframes"}]', color: '#2ecc71' },
-            { id: '2', name: 'Development', status: 'In Progress', actionDescription: '[{"completed":false,"task":"Setup environment"},{"completed":false,"task":"Build core features"}]', color: '#f1c40f' },
-            { id: '3', name: 'Testing', status: 'Not Started', actionDescription: '[{"completed":false,"task":"Write test cases"},{"completed":false,"task":"Perform QA"}]', color: '#e74c3c' }
-          ];
-          data.links = [
-            { source: '1', target: '2' },
-            { source: '2', target: '3' }
-          ];
-          break;
-        case 'vendor':
-          data.nodes = [
-            { id: '1', name: 'Identify Vendors', status: 'Completed', actionDescription: '[{"completed":false,"task":"Research options"},{"completed":false,"task":"Shortlist 5 vendors"}]', color: '#2ecc71' },
-            { id: '2', name: 'Outreach & Demo', status: 'In Progress', actionDescription: '[{"completed":false,"task":"Send RFPs"},{"completed":false,"task":"Schedule demos"}]', color: '#f1c40f' },
-            { id: '3', name: 'Negotiate & Select', status: 'Not Started', actionDescription: '[{"completed":false,"task":"Compare proposals"},{"completed":false,"task":"Finalize contract"}]', color: '#e74c3c' }
-          ];
-          data.links = [
-            { source: '1', target: '2' },
-            { source: '2', target: '3' }
-          ];
-          break;
-        case 'marketing':
-          data.nodes = [
-            { id: '1', name: 'Market Research', status: 'Completed', actionDescription: '[{"completed":false,"task":"Analyze competitors"},{"completed":false,"task":"Define target audience"}]', color: '#2ecc71' },
-            { id: '2', name: 'Campaign Planning', status: 'In Progress', actionDescription: '[{"completed":false,"task":"Set goals & KPIs"},{"completed":false,"task":"Develop content strategy"}]', color: '#f1c40f' },
-            { id: '3', name: 'Execution & Launch', status: 'Not Started', actionDescription: '[{"completed":false,"task":"Create assets"},{"completed":false,"task":"Launch campaign"}]', color: '#e74c3c' }
-          ];
-          data.links = [
-            { source: '1', target: '2' },
-            { source: '2', target: '3' }
-          ];
-          break;
-        case 'swn':
-          data.nodes = [
-            { id: '1', name: '1. Core Design & User Journey Finalization', status: 'In Progress', actionDescription: '[{"completed":false,"task":"Finalize all aspects of user journey, including onboarding, form layouts, and interaction design."}]', responsible: 'Shakoure', deadline: '2025-05-21', priority: 'High' },
-            { id: '2', name: '2. Core Platform Development', status: 'Completed', actionDescription: '[{"completed":true,"task":"Complete dashboard and AI chat module with Supabase auth and form logic."}]', responsible: 'Shakoure', deadline: '2025-02-20', priority: 'High' },
-            { id: '3', name: '3. Marketing Strategy & Asset Development', status: 'In Progress', actionDescription: '[{"completed":false,"task":"Develop marketing assets, email drip campaigns, SEO blog on Wix, and social strategy."}]', responsible: 'Shakoure', deadline: '2025-03-01', priority: 'Normal' },
-            { id: '4', name: '4. Influencer Program Development - Phase 1: Flowchart Creation', status: 'Not Started', actionDescription: '[{"completed":false,"task":"Create detailed flowchart for influencer partnerships including onboarding, in-app content, and agreements."}]', responsible: 'Shakoure', deadline: '2025-05-26', priority: 'High' },
-            { id: '5', name: '5. Jotform AI Onboarding Assistant', status: 'Not Started', actionDescription: '[{"completed":false,"task":"Train and configure Jotform AI agent to explain profile fields and guide onboarding."}]', responsible: 'Shakoure', deadline: '2025-03-10', priority: 'High' },
-            { id: '6', name: '6. Technical Improvements from Codebase Review', status: 'Not Started', actionDescription: '[{"completed":false,"task":"Implement 10 improvement areas from codebase review covering UX, backend, and performance."}]', responsible: 'Shakoure', deadline: '2025-06-15', priority: 'Normal' },
-            { id: '7', name: '7. Chat UX Consistency', status: 'Not Started', actionDescription: '[{"completed":false,"task":"Unify Dashboard\'s ChatGPT UI with Jotform AI Assistant UI using a consistent iframe/modal design."}]', responsible: 'Shakoure', deadline: '2025-05-20', priority: 'High' }
-          ];
-          data.links = [
-            { source: '1', target: '2' },
-            { source: '2', target: '3' },
-            { source: '3', target: '4' },
-            { source: '4', target: '5' },
-            { source: '2', target: '6' },
-            { source: '2', target: '7' }
-          ];
-          break;
-        default:
-          data.nodes = [{id: 'root-1', name: 'Start Here', status: 'Not Started', actionDescription: '[]', color: '#3498db' }];
-          data.flowchartName = "New Flowchart";
-          document.getElementById('flowchartNameInput').value = data.flowchartName;
-          data.links = [];
-      }
-      
-      // Reset any fixed positions for new template
-      data.nodes.forEach(n => { 
-        n.fx = null;
-        n.fy = null;
-      });
-      
-      applyForceLayout(); // Let simulation arrange template nodes
-    }
-
-    function createNode(parentNode) { 
-      const newNodeId = `node-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
-      
-      let initialX, initialY;
-      const svgViewBox = svg.attr('viewBox').split(' ');
-      const viewBoxWidth = parseFloat(svgViewBox[2]);
-      const viewBoxHeight = parseFloat(svgViewBox[3]);
-
-      if (parentNode && typeof parentNode.x === 'number' && typeof parentNode.y === 'number') {
-        initialX = parentNode.x + (Math.random() * 100 - 50); 
-        initialY = parentNode.y + (nodeRadius * 2.5) + (Math.random() * 20 - 10); 
-      } else {
-        initialX = viewBoxWidth / 2 + (Math.random() * 200 - 100); 
-        initialY = viewBoxHeight / 3 + (Math.random() * 100 - 50);
-      }
-      
-      initialX = Math.max(nodeRadius, Math.min(initialX, viewBoxWidth - nodeRadius));
-      initialY = Math.max(nodeRadius, Math.min(initialY, viewBoxHeight - nodeRadius));
-
-      const newNode = {
-        id: newNodeId,
-        name: 'New Task',
-        status: 'Not Started',
-        responsible: '',
-        deadline: '',
-        priority: 'Normal',
-        actionDescription: '[]', 
-        color: null,
-        x: initialX,
-        y: initialY,
-        fx: initialX, 
-        fy: initialY  
-      };
-      
-      data.nodes.push(newNode);
-      
-      // If parent node exists, create a link from parent to new node
-      if (parentNode) {
-        data.links.push({
-          source: parentNode.id,
-          target: newNodeId
-        });
-      }
-      
-      update();
-      return newNode;
-    }
-    
-    function getStatusColor(status) {
-      switch (status) {
-        case 'Not Started': return '#e74c3c'; 
-        case 'In Progress': return '#f1c40f'; 
-        case 'Completed':   return '#2ecc71'; 
-        default:            return '#3498db'; 
-      }
-    }
-
-    function dragStart(event, d) {
-      if (!event.active) simulation.alphaTarget(0.3).restart();
-      d.fx = d.x; 
-      d.fy = d.y;
-    }
-    
-    function dragging(event, d) {
-      d.fx = event.x;
-      d.fy = event.y;
-    }
-    
-    function dragEnd(event, d) {
-      if (!event.active) simulation.alphaTarget(0);
-      // Keep nodes fixed where dragged
-    }
-
-    function update() {
-      if (!svg || !simulation || !nodeGroup || !mainZoomGroup) { 
-        console.error("D3 elements not fully initialized for update");
-        return;
-      }
-
-      // Process links (convert any string references to objects)
-      const processedLinks = data.links.map(link => {
-        // Handle both string and object sources/targets
-        const sourceId = typeof link.source === 'object' ? link.source.id : link.source;
-        const targetId = typeof link.target === 'object' ? link.target.id : link.target;
-        
-        return {
-          source: sourceId,
-          target: targetId
-        };
-      });
-
-      // Update link simulation force
-      simulation.force('link').links(processedLinks);
-
-      // Render links
-      const links = linkGroup.selectAll('.link')
-        .data(processedLinks, d => `${d.source}-${d.target}`);
-      
-      links.exit().remove();
-      
-      links.enter()
-        .append('line')
-        .attr('class', 'link')
-        .merge(links);
-
-      // Render nodes
-      const nodes = nodeGroup.selectAll('.node')
-        .data(data.nodes, d => d.id);
-
-      nodes.exit().remove();
-
-      const nodesEnter = nodes.enter()
-        .append('g')
-        .attr('class', 'node')
-        .call(d3.drag()
-          .on('start', dragStart)
-          .on('drag', dragging)
-          .on('end', dragEnd))
-        .on('click', nodeClick);
-
-      nodesEnter.append('circle')
-        .attr('r', nodeRadius)
-        .attr('filter', 'url(#nodeShadow)');
-
-      nodesEnter.append('text')
-        .attr('class', 'node-name') 
-        .attr('text-anchor', 'middle')
-        .attr('dominant-baseline', 'central');
-
-      // Task Counter Group
-      nodesEnter.append('g')
-        .attr('class', 'taskCountGroup')
-        .attr('transform', `translate(0, -${nodeRadius + 12})`);
-
-      const allNodes = nodesEnter.merge(nodes);
-
-      allNodes.select('circle')
-        .attr('fill', d => d.color ? d.color : getStatusColor(d.status));
-
-      allNodes.select('text.node-name')
-        .text(d => d.name)
-        .call(wrapText, nodeRadius * 1.5);
-
-      // Update task counter
-      allNodes.select('.taskCountGroup')
-        .each(function(d) {
-          const group = d3.select(this);
-          group.selectAll('*').remove(); 
-          
-          let tasks = [];
-          if (d.actionDescription) {
-            try { 
-              const parsed = JSON.parse(d.actionDescription);
-              if (Array.isArray(parsed)) tasks = parsed;
-            } catch (e) { /* ignore if not valid JSON array */ }
-          }
-          
-          const completedCount = tasks.filter(t => t.completed).length;
-          const totalCount = tasks.length;
-          
-          if (totalCount > 0) { 
-            const textString = `✅ ${completedCount}/${totalCount}`;
-            const textEl = group.append('text').text(textString); 
-            
-            const textNode = textEl.node();
-            if (textNode) { 
-              const bbox = textNode.getBBox();
-              const rectPaddingHorizontal = 6; 
-              const rectPaddingVertical = 3;   
-              const rectWidth = bbox.width + rectPaddingHorizontal * 2; 
-              const rectHeight = bbox.height + rectPaddingVertical * 2;  
-              group.insert('rect', 'text') 
-                .attr('width', rectWidth)
-                .attr('height', rectHeight)
-                .attr('x', -rectWidth / 2)
-                .attr('y', -(rectHeight / 2) - 2);
+        function loadFromFile(file) {
+            if (!file) {
+                alert('No file selected.');
+                return;
             }
-          }
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const fileData = JSON.parse(e.target.result);
+                    if (fileData.nodes && fileData.links) {
+                        data = fileData;
+                        // Center them if you wish:
+                        centerNodes();
+                        update();
+                    } else {
+                        alert('Invalid file format');
+                    }
+                } catch (error) {
+                    alert('Error reading file');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function loadTemplate(template) {
+            switch (template) {
+                case 'prototype':
+                    data = {
+                        nodes: [
+                            { id: '1', name: 'Design', status: 'Completed' },
+                            { id: '2', name: 'Development', status: 'In Progress' },
+                            { id: '3', name: 'Testing', status: 'Not Started' }
+                        ],
+                        links: [
+                            { source: '1', target: '2' },
+                            { source: '2', target: '3' }
+                        ]
+                    };
+                    break;
+                case 'vendor':
+                    data = {
+                        nodes: [
+                            { id: '1', name: 'Identify', status: 'Completed' },
+                            { id: '2', name: 'Outreach', status: 'In Progress' },
+                            { id: '3', name: 'Negotiate', status: 'Not Started' }
+                        ],
+                        links: [
+                            { source: '1', target: '2' },
+                            { source: '2', target: '3' }
+                        ]
+                    };
+                    break;
+                case 'marketing':
+                    data = {
+                        nodes: [
+                            { id: '1', name: 'Research', status: 'Completed' },
+                            { id: '2', name: 'Planning', status: 'In Progress' },
+                            { id: '3', name: 'Execute', status: 'Not Started' }
+                        ],
+                        links: [
+                            { source: '1', target: '2' },
+                            { source: '2', target: '3' }
+                        ]
+                    };
+                    break;
+            }
+            // Center nodes each time a template is loaded
+            centerNodes();
+            update();
+        }
+
+        function reorderNodes(direction){
+            if(!selectedNode) return;
+
+            const links = data.links;
+            const index = links.findIndex(link => link.target === selectedNode.id);
+
+            if(index === -1) {
+                alert("This node cannot be reordered as it's a root node");
+                return;
+            }
+            const currentLink = links[index];
+            const previousIndex = links.findIndex(link => link.target === currentLink.source);
+
+            if (direction === 'up') {
+                if(previousIndex === -1) {
+                    alert("This is the first node, it cannot be moved up");
+                    return;
+                }
+                const previousLink = links[previousIndex];
+                links[index] = { source: previousLink.source, target: currentLink.target };
+                links[previousIndex] = { source: currentLink.source, target: previousLink.target };
+
+            } else if (direction === 'down') {
+                const nextIndex = links.findIndex(link => link.source === currentLink.target);
+                if(nextIndex === -1) {
+                    alert("This is the last node, it cannot be moved down");
+                    return;
+                }
+                const nextLink = links[nextIndex];
+                links[index] = { source: currentLink.target, target: nextLink.target };
+                links[nextIndex] = { source: currentLink.source, target: nextLink.source };
+            }
+            update();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initD3();
+
+            document.getElementById('addNodeBtn').onclick = (e) => {
+                e.preventDefault();
+                if (selectedNode) {
+                    const newNode = createNode(selectedNode);
+                    selectedNode = newNode;
+                    nodeClick(e, newNode);
+                }
+            };
+
+            document.getElementById('moveUpBtn').onclick = () => reorderNodes('up');
+            document.getElementById('moveDownBtn').onclick = () => reorderNodes('down');
+
+            document.getElementById('templateBtn').onclick = () => {
+                document.getElementById('templateModal').style.display = 'block';
+            };
+
+            document.querySelectorAll('.template-btn').forEach(btn => {
+                btn.onclick = (e) => {
+                    loadTemplate(e.target.dataset.template);
+                    document.getElementById('templateModal').style.display = 'none';
+                };
+            });
+
+            document.getElementById('taskForm').onsubmit = (e) => {
+                e.preventDefault();
+                if (selectedNode) {
+                    Object.assign(selectedNode, {
+                        name: document.getElementById('taskName').value,
+                        responsible: document.getElementById('responsible').value,
+                        status: document.getElementById('status').value,
+                        deadline: document.getElementById('deadline').value,
+                        priority: document.getElementById('priority').value,
+                        actionDescription: document.getElementById('actionDescription').value
+                    });
+                    update();
+                }
+                document.getElementById('modal').style.display = 'none';
+            };
+
+            document.getElementById('exportBtn').onclick = saveToFile;
+
+            const uploadButton = document.getElementById('uploadBtn');
+            const fileInput = document.getElementById('fileInput');
+            uploadButton.onclick = () => fileInput.click();
+            fileInput.onchange = (e) => {
+                if (e.target.files.length > 0) {
+                    loadFromFile(e.target.files[0]);
+                }
+            };
+
+            document.querySelectorAll('.close-button').forEach(btn => {
+                btn.onclick = (e) => {
+                    e.stopPropagation();
+                    btn.closest('.modal').style.display = 'none';
+                };
+            });
+
+            window.onclick = (e) => {
+                if (e.target.classList.contains('modal')) {
+                    e.target.style.display = 'none';
+                }
+            };
+
+            // Load the default template and center nodes immediately
+            loadTemplate('prototype');
         });
+    </script>
+</body>
 
-      // Update simulation
-      simulation.nodes(data.nodes);
-      
-      // Tick function to update positions
-      simulation.on('tick', () => {
-        // Position nodes
-        allNodes.attr('transform', d => `translate(${d.x || 0},${d.y || 0})`);
-        
-        // Position links with proper offsets for arrow markers
-        linkGroup.selectAll('.link')
-          .attr('x1', d => {
-            const source = typeof d.source === 'object' ? d.source : data.nodes.find(n => n.id === d.source);
-            return source ? source.x : 0;
-          })
-          .attr('y1', d => {
-            const source = typeof d.source === 'object' ? d.source : data.nodes.find(n => n.id === d.source);
-            return source ? source.y : 0;
-          })
-          .attr('x2', d => {
-            const target = typeof d.target === 'object' ? d.target : data.nodes.find(n => n.id === d.target);
-            return target ? target.x : 0;
-          })
-          .attr('y2', d => {
-            const target = typeof d.target === 'object' ? d.target : data.nodes.find(n => n.id === d.target);
-            return target ? target.y : 0;
-          });
-      });
-
-      simulation.alpha(0.3).restart();
-    }
+</html>
+<!-- partial -->
+  
+</body>
+</html>
