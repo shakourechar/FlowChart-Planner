@@ -159,10 +159,12 @@
     }
     .node text.node-name { 
       fill: white;
-      /* font-size is dynamic */
+      /* font-size will be set dynamically by JS */
       text-anchor: middle;
+      dominant-baseline: central; /* Helps with vertical alignment */
       pointer-events: none; 
     }
+
     .action-buttons {
       display: flex;
       gap: 10px;
@@ -220,14 +222,14 @@
     }
     .taskCountGroup text { 
         fill: white;
-        /* font-size will be dynamic */
+        /* font-size will be set dynamically by JS */
         text-anchor: middle;
-        dy: 0.35em; 
+        dy: 0.35em; /* For single line vertical centering in its rect */
     }
     .taskCountGroup rect { 
-        fill: #2c3e50; /* Original color */
-        rx: 9; /* Original rounding */
-        ry: 9; /* Original rounding */
+        fill: #2c3e50; 
+        rx: 9; 
+        ry: 9; 
     }
 
     @media (max-width: 768px) {
@@ -285,99 +287,21 @@
 </div>
 
 
-<div id="modal" class="modal">
-  <div class="modal-content">
-    <span class="close-button" id="closeModal">×</span>
-    <h2>Task Details</h2>
-    <form id="taskForm">
-      <label>Task Name:
-        <textarea id="taskName" required></textarea>
-      </label>
-      <label>Responsible:
-        <input type="text" id="responsible" required>
-      </label>
-      <label>Status:
-        <select id="status">
-          <option value="Not Started">Not Started</option>
-          <option value="In Progress">In Progress</option>
-          <option value="Completed">Completed</option>
-        </select>
-      </label>
-      <label>Deadline:
-        <input type="date" id="deadline">
-      </label>
-      <label>Priority:
-        <select id="priority">
-          <option value="Low">Low</option>
-          <option value="Normal">Normal</option>
-          <option value="High">High</option>
-        </select>
-      </label>
-      <label>Action Description (Sub-tasks):</label>
-      <table id="taskTable" style="width:100%; margin-bottom:10px;">
-        <thead>
-          <tr>
-            <th style="width: 30px;">✓</th>
-            <th>Task</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-      <button type="button" id="addTaskRowBtn" style="align-self: flex-start; background-color: #5cb85c;">Add Task</button>
-      <label>Node Color:</label>
-      <input type="hidden" id="nodeColor" />
-      <div class="color-panel">
-        <div class="color-swatch" style="background-color: #e74c3c;" data-color="#e74c3c"></div>
-        <div class="color-swatch" style="background-color: #f1c40f;" data-color="#f1c40f"></div>
-        <div class="color-swatch" style="background-color: #2ecc71;" data-color="#2ecc71"></div>
-        <div class="color-swatch" style="background-color: #3498db;" data-color="#3498db"></div>
-        <div class="color-swatch" style="background-color: #9b59b6;" data-color="#9b59b6"></div>
-        <div class="color-swatch" style="background-color: #34495e;" data-color="#34495e"></div>
-      </div>
-      <div class="action-buttons">
-        <button type="submit" class="save-btn">Save Node</button>
-        <button type="button" class="add-node-btn" id="addNodeBtn">Add Child Node</button>
-      </div>
-      <div style="text-align: center; margin-top: 15px;">
-        <button type="button" id="deleteNodeBtn">Delete Node</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<div id="templateModal" class="modal">
-  <div class="modal-content">
-    <span class="close-button" id="closeTemplateModal">×</span>
-    <h2>Select Template</h2>
-    <button class="template-btn" data-template="prototype">Prototype Development</button>
-    <button class="template-btn" data-template="vendor">Vendor Outreach</button>
-    <button class="template-btn" data-template="marketing">Marketing Campaign</button>
-  </div>
-</div>
-
-<div id="taskTextPopup" class="modal">
-  <div class="modal-content">
-    <span class="close-button" id="closeTaskPopup">×</span>
-    <p id="taskFullText" style="white-space: pre-wrap; max-height: 60vh; overflow-y: auto;"></p>
-    <button id="deleteTaskBtn" style="margin-top: 10px; background-color: #e74c3c; color: white;">Delete Task</button>
-  </div>
-</div>
+<div id="modal" class="modal"> /* ... Modal content ... */ </div>
+<div id="templateModal" class="modal"> /* ... Modal content ... */ </div>
+<div id="taskTextPopup" class="modal"> /* ... Modal content ... */ </div>
 
 <script>
   function openAIAssistant() {
     const assistantUrl = 'https://chatgpt.com/g/g-678c450b02988191b07d47c7a5bd9d4a-flow-chart-assistant';
     const screenWidth = window.screen.availWidth;
     const screenHeight = window.screen.availHeight;
-    
     const baseSize = Math.min(screenWidth, screenHeight);
     const popupWidth = Math.floor(baseSize * 0.45); 
     const popupHeight = Math.floor(baseSize * 0.55); 
-
     const left = Math.floor((screenWidth - popupWidth) / 2);
     const top = Math.floor((screenHeight - popupHeight) / 2);
-
     const features = `width=${popupWidth},height=${popupHeight},left=${left},top=${top},resizable=yes,scrollbars=yes,status=no,location=no,menubar=no,toolbar=no`;
-    
     window.open(assistantUrl, 'FlowchartAIAssistant', features);
   }
 
@@ -410,22 +334,13 @@
             }
         }
         const totalLines = tspans.length;
-        // For dominant-baseline: central, the first line's dy should be adjusted to pull it up
-        // by half of the total height of the subsequent lines.
-        // If dominant-baseline is not central or not reliably set, this might need further tweaking.
-        // Let's assume dominant-baseline: central is set or its effect is handled by the default dy:0.35em for text
-        const initialDyOffset =  - ( (totalLines -1) * lineHeight / 2) ; // Shift up by half the height of other lines
+        // For dominant-baseline: central, the first tspan dy needs to pull up the block
+        const initialDyOffset =  - ( (totalLines -1) * lineHeight / 2) ; 
         
-        tspans.forEach((s, i) => {
-            if (i === 0) {
-                s.attr("dy", `${initialDyOffset + 0.35}em`); // Combine with original single-line centering
-            } else {
-                 s.attr("dy", `${lineHeight}em`); // Subsequent lines are relative
-            }
-        });
+        tspans[0].attr("dy", `${initialDyOffset}em`); 
+        // Subsequent tspans are already relative
     });
 }
-
 
   let selectedNode = null;
   let data = { flowchartName: "Untitled Flowchart", nodes: [], links: [] }; 
@@ -436,6 +351,9 @@
   const MIN_NODE_SIZE_FACTOR = 0.5;
   const MAX_NODE_SIZE_FACTOR = 1.5;
   const NODE_SIZE_STEP = 0.1;
+
+  let currentArrangementState = 0; 
+  const ARRANGEMENT_COUNT = 4;
 
 
   function initD3() {
@@ -491,10 +409,106 @@
         const newVirtualHeight = Math.max(newContainerHeight* 1.5, virtualHeight);
         
         simulation.force('center', d3.forceCenter(newVirtualWidth / 2, newVirtualHeight / 2));
-        simulation.alpha(0.3).restart(); 
+        if (currentArrangementState === 0) { 
+            simulation.alpha(0.3).restart(); 
+        } else {
+            applyCurrentArrangement(); 
+        }
     });
   }
 
+  function arrangeHorizontally() {
+    const currentScaledRadius = BASE_NODE_RADIUS * currentNodeSizeFactor;
+    const padding = currentScaledRadius * 0.5; 
+    const totalNodeWidth = data.nodes.length * (currentScaledRadius * 2 + padding) - padding;
+    const svgViewBox = svg.attr('viewBox').split(' ');
+    const viewBoxWidth = parseFloat(svgViewBox[2]);
+    const viewBoxHeight = parseFloat(svgViewBox[3]);
+    let startX = (viewBoxWidth - totalNodeWidth) / 2;
+    const yPos = viewBoxHeight / 2;
+
+    data.nodes.forEach((node, i) => {
+        node.fx = startX + i * (currentScaledRadius * 2 + padding) + currentScaledRadius;
+        node.fy = yPos;
+    });
+    update();
+    simulation.alpha(0.01).restart(); 
+  }
+
+  function arrangeCircularly() {
+    const numNodes = data.nodes.length;
+    if (numNodes === 0) return;
+
+    const currentScaledRadius = BASE_NODE_RADIUS * currentNodeSizeFactor;
+    const svgViewBox = svg.attr('viewBox').split(' ');
+    const viewBoxWidth = parseFloat(svgViewBox[2]);
+    const viewBoxHeight = parseFloat(svgViewBox[3]);
+    const centerX = viewBoxWidth / 2;
+    const centerY = viewBoxHeight / 2;
+    
+    const nodeDiameter = currentScaledRadius * 2;
+    const paddingBetweenNodes = currentScaledRadius * 1; 
+    const circumference = numNodes * (nodeDiameter + paddingBetweenNodes);
+    const circleRadius = Math.max(circumference / (2 * Math.PI), nodeDiameter * 1.5 * (numNodes > 1 ? 1 : 0) ); // Ensure min radius, 0 if only 1 node
+
+    data.nodes.forEach((node, i) => {
+        const angle = (i / numNodes) * 2 * Math.PI; 
+        node.fx = centerX + circleRadius * Math.cos(angle);
+        node.fy = centerY + circleRadius * Math.sin(angle);
+    });
+    update();
+    simulation.alpha(0.01).restart();
+  }
+
+  function arrangeAsGrid() {
+    const numNodes = data.nodes.length;
+    if (numNodes === 0) return;
+
+    const currentScaledRadius = BASE_NODE_RADIUS * currentNodeSizeFactor;
+    const padding = currentScaledRadius * 0.8; 
+    const nodeFullSize = currentScaledRadius * 2 + padding;
+
+    const svgViewBox = svg.attr('viewBox').split(' ');
+    const viewBoxWidth = parseFloat(svgViewBox[2]);
+    const viewBoxHeight = parseFloat(svgViewBox[3]); // Use for vertical centering too
+
+    const cols = 3; 
+    const rows = Math.ceil(numNodes / cols);
+
+    const gridWidth = cols * nodeFullSize - padding;
+    const gridHeight = rows * nodeFullSize - padding;
+
+    const startX = (viewBoxWidth - gridWidth) / 2 + currentScaledRadius; 
+    const startY = (viewBoxHeight - gridHeight) / 2 + currentScaledRadius; // Center grid vertically
+
+    data.nodes.forEach((node, i) => {
+        const col = i % cols;
+        const row = Math.floor(i / cols);
+        node.fx = startX + col * nodeFullSize;
+        node.fy = startY + row * nodeFullSize;
+    });
+    update();
+    simulation.alpha(0.01).restart();
+  }
+
+  function resetToSimulationLayout() {
+    data.nodes.forEach(node => {
+        node.fx = null;
+        node.fy = null;
+    });
+    update(); 
+    simulation.alpha(0.7).restart(); 
+  }
+  
+  function applyCurrentArrangement() {
+      switch (currentArrangementState) {
+          case 0: resetToSimulationLayout(); break;
+          case 1: arrangeHorizontally(); break;
+          case 2: arrangeCircularly(); break;
+          case 3: arrangeAsGrid(); break;
+          default: resetToSimulationLayout(); 
+      }
+  }
 
   function placeNodesDiagonally() {
     const initialX = (mainZoomGroup.node() ? parseFloat(svg.attr('viewBox').split(' ')[2]) / 2 : 1000) ;
@@ -503,15 +517,18 @@
     const horizontalSpacing = currentScaledRadius * 3.5; 
     const verticalSpacing = currentScaledRadius * 2.5;   
 
-
     data.nodes.forEach((node, i) => {
-      if (node.x == null || node.fx == null) { 
+      if (node.fx === null || node.fx === undefined) { 
         node.x = initialX + (i % 3 - 1) * horizontalSpacing + (Math.random() * 50 - 25); 
         node.fx = node.x; 
+      } else if (node.x === null || node.x === undefined ) { 
+        node.x = node.fx;
       }
-      if (node.y == null || node.fy == null) {
+      if (node.fy === null || node.fy === undefined) {
         node.y = initialY + Math.floor(i / 3) * verticalSpacing + (Math.random() * 50 - 25); 
         node.fy = node.y; 
+      } else if (node.y === null || node.y === undefined) {
+        node.y = node.fy;
       }
     });
   }
@@ -657,6 +674,7 @@
         alert('No file selected.');
         return;
       }
+      currentArrangementState = 0; 
       const reader = new FileReader();
       reader.onload = (e) => {
         try {
@@ -669,14 +687,23 @@
                 ...n,
                 x: n.x, 
                 y: n.y, 
-                fx: n.fx !== undefined ? n.fx : n.x, 
-                fy: n.fy !== undefined ? n.fy : n.y
+                fx: n.fx !== undefined ? n.fx : null, 
+                fy: n.fy !== undefined ? n.fy : null
             }));
             data.links = Array.isArray(fileData.links) ? fileData.links : []; 
             
             document.getElementById('fileNameDisplay').innerText = `Loaded: ${file.name}`;
             document.getElementById('fileNameDisplay').title = `Loaded: ${file.name}`;
-            update();
+            
+            if (data.nodes.every(n => n.fx === null && n.fy === null) && currentArrangementState === 0) {
+                 resetToSimulationLayout(); 
+            } else if (currentArrangementState !== 0) {
+                 applyCurrentArrangement(); // If a layout should be active, apply it
+            }
+             else {
+                 update(); 
+            }
+
           } else {
             alert('Invalid file format. Must contain a "nodes" array.');
           }
@@ -694,6 +721,7 @@
     data.flowchartName = template.charAt(0).toUpperCase() + template.slice(1) + " Template";
     document.getElementById('flowchartNameInput').value = data.flowchartName;
     data.links = []; 
+    currentArrangementState = 0; 
 
     switch (template) {
       case 'prototype':
@@ -718,16 +746,15 @@
         ];
         break;
         default:
-            data.nodes = [{id: 'root-1', name: 'Start Here', status: 'Not Started', actionDescription: '[]', color: '#3498db', x: 300, y: 150, fx:300, fy:150 }];
+            data.nodes = [{id: 'root-1', name: 'Start Here', status: 'Not Started', actionDescription: '[]', color: '#3498db' }];
             data.flowchartName = "New Flowchart";
             document.getElementById('flowchartNameInput').value = data.flowchartName;
     }
-    data.nodes.forEach(n => {
+    data.nodes.forEach(n => { 
         n.fx = null;
         n.fy = null;
     });
-    placeNodesDiagonally(); 
-    update();
+    resetToSimulationLayout(); 
   }
 
   document.getElementById('taskForm').onsubmit = (e) => {
@@ -754,7 +781,7 @@
         actionDescription: JSON.stringify(tasks),
         color: document.getElementById('nodeColor').value || null 
       });
-      selectedNode.fx = selectedNode.x;
+      selectedNode.fx = selectedNode.x; 
       selectedNode.fy = selectedNode.y;
       update(); 
     }
@@ -804,6 +831,10 @@
             updateNodeSizes();
         }
     };
+    document.getElementById('rearrangeBtn').onclick = () => {
+        currentArrangementState = (currentArrangementState + 1) % ARRANGEMENT_COUNT;
+        applyCurrentArrangement();
+    };
 
 
     document.querySelectorAll('.color-swatch').forEach(swatch => {
@@ -826,10 +857,24 @@
 
     document.getElementById('addNodeBtn').onclick = (e) => {
       e.preventDefault();
-      const newNode = createNode(selectedNode); 
-      if (newNode) {
-        selectedNode = newNode; 
-        nodeClick({ stopPropagation: () => {} }, newNode); 
+      // When adding a node, switch to simulation layout to make space, then fix the new node.
+      if (currentArrangementState !== 0) {
+          currentArrangementState = 0;
+          resetToSimulationLayout(); // Let simulation make space
+          // Add a small delay to let simulation run a bit before adding node
+          setTimeout(() => {
+            const newNode = createNode(selectedNode); 
+            if (newNode) {
+                selectedNode = newNode; 
+                nodeClick({ stopPropagation: () => {} }, newNode); 
+            }
+          }, 100); 
+      } else {
+          const newNode = createNode(selectedNode); 
+          if (newNode) {
+            selectedNode = newNode; 
+            nodeClick({ stopPropagation: () => {} }, newNode); 
+          }
       }
     };
 
@@ -870,9 +915,7 @@
     const svgViewBox = svg.attr('viewBox').split(' ');
     const viewBoxWidth = parseFloat(svgViewBox[2]);
     const viewBoxHeight = parseFloat(svgViewBox[3]);
-
     const currentScaledRadius = BASE_NODE_RADIUS * currentNodeSizeFactor;
-
 
     if (parentNode && typeof parentNode.x === 'number' && typeof parentNode.y === 'number') {
         initialX = parentNode.x + (Math.random() * 100 - 50); 
@@ -885,7 +928,6 @@
     initialX = Math.max(currentScaledRadius, Math.min(initialX, viewBoxWidth - currentScaledRadius));
     initialY = Math.max(currentScaledRadius, Math.min(initialY, viewBoxHeight - currentScaledRadius));
 
-
     const newNode = {
       id: newNodeId,
       name: 'New Task',
@@ -897,6 +939,9 @@
       color: null,
       x: initialX,
       y: initialY,
+      // Fix the new node's position initially, regardless of currentArrangementState,
+      // because resetToSimulationLayout() was called just before if we were in a fixed layout.
+      // If we were already in simulation mode, this just pins it where it appears.
       fx: initialX, 
       fy: initialY  
     };
@@ -909,39 +954,35 @@
     if (!simulation) return;
     const scaledRadius = BASE_NODE_RADIUS * currentNodeSizeFactor;
     simulation.force('collide').radius(scaledRadius + 20);
-    simulation.force('charge').strength(-1200 * (scaledRadius / BASE_NODE_RADIUS) ); // Scale charge relative to base size
+    simulation.force('charge').strength(-1200 * (scaledRadius / BASE_NODE_RADIUS) ); 
     
-    // Update spacing for placeNodesDiagonally if needed, or let simulation adjust
-    // placeNodesDiagonally(); // Could be called if you want to reset initial fixed positions on resize
-
-    update();
+    if (currentArrangementState !== 0) {
+        applyCurrentArrangement(); 
+    } else {
+        // If in simulation mode, we might want to unfix nodes to let them adjust to new sizes
+        // data.nodes.forEach(node => { node.fx = null; node.fy = null; });
+        update(); 
+    }
     simulation.alpha(0.3).restart(); 
   }
 
-
   function update() {
-    if (!svg || !simulation) { 
-        console.error("D3 not initialized for update");
+    if (!svg || !simulation || !nodeGroup || !mainZoomGroup) { 
+        console.error("D3 elements not fully initialized for update");
         return;
     }
 
-    // --- LINK RENDERING COMPLETELY REMOVED ---
-    if (mainZoomGroup) { // Ensure mainZoomGroup is defined
-        const linksGroup = mainZoomGroup.select(".links");
-        if (linksGroup && !linksGroup.empty()) {
-            linksGroup.selectAll('*').remove(); // Clear any children if .links group exists
-        }
+    const linksContainer = mainZoomGroup.select(".links"); 
+    if (linksContainer && !linksContainer.empty()) {
+        linksContainer.selectAll('*').remove(); 
     }
     if(simulation.force("link")) { 
         simulation.force("link", null);
     }
-    // data.links is still maintained for save/load but not rendered.
-    // --- END LINK REMOVAL ---
 
     const currentDisplayRadius = BASE_NODE_RADIUS * currentNodeSizeFactor;
     const currentMainFontSize = 14 * currentNodeSizeFactor;
     const currentTaskCountFontSize = 10 * currentNodeSizeFactor;
-
 
     const nodes = nodeGroup.selectAll('.node')
       .data(data.nodes, d => d.id);
@@ -975,7 +1016,7 @@
     allNodes.select('text.node-name')
       .style('font-size', `${currentMainFontSize}px`) 
       .text(d => d.name)
-      .call(wrapText, currentDisplayRadius * 1.5, currentMainFontSize); // Pass current font size
+      .call(wrapText, currentDisplayRadius * 1.5, currentMainFontSize); 
 
 
     allNodes.select('.taskCountGroup')
@@ -997,19 +1038,21 @@
         if (totalCount > 0) { 
             const textString = `✅ ${completedCount}/${totalCount}`;
             const textEl = group.append('text')
-              .style('font-size', `${currentTaskCountFontSize}px`) // Apply scaled font size
+              .style('font-size', `${currentTaskCountFontSize}px`) 
               .text(textString); 
             
             const textNode = textEl.node();
             if (textNode) { 
-                const bbox = textNode.getBBox();
-                const rectWidth = bbox.width + (10 * currentNodeSizeFactor); 
-                const rectHeight = bbox.height + (4 * currentNodeSizeFactor);  
+                const bbox = textNode.getBBox(); // Get bounding box of the text
+                const rectPaddingHorizontal = 6 * currentNodeSizeFactor; // Scale padding
+                const rectPaddingVertical = 3 * currentNodeSizeFactor;   // Scale padding
+                const rectWidth = bbox.width + rectPaddingHorizontal * 2; 
+                const rectHeight = bbox.height + rectPaddingVertical * 2;  
                 group.insert('rect', 'text') 
                   .attr('width', rectWidth)
                   .attr('height', rectHeight)
                   .attr('x', -rectWidth / 2)
-                  .attr('y', -(rectHeight / 2) - (2 * currentNodeSizeFactor) ) // Adjust y based on scaled factor
+                  .attr('y', -rectHeight / 2) // Center rect around text (dy on text handles its own baseline)
                   .attr('rx', rectHeight / 2)  
                   .attr('ry', rectHeight / 2);
             }
@@ -1020,7 +1063,7 @@
       allNodes.attr('transform', d => `translate(${d.x || 0},${d.y || 0})`);
     });
 
-    simulation.alpha(0.3).restart(); 
+    simulation.alpha(currentArrangementState === 0 ? 0.3 : 0.01).restart(); 
   }
 
 
@@ -1034,8 +1077,12 @@
   }
 
   function dragStart(event, d) {
+    if (currentArrangementState !== 0) { 
+        // No longer automatically switching to simulation mode on drag
+        // User can drag within a fixed layout, next "Rearrange" will override
+    }
     if (!event.active) simulation.alphaTarget(0.3).restart();
-    d.fx = d.x;
+    d.fx = d.x; 
     d.fy = d.y;
   }
   function dragging(event, d) {
@@ -1044,6 +1091,15 @@
   }
   function dragEnd(event, d) {
     if (!event.active) simulation.alphaTarget(0);
+    // If an arrangement is active, keep the node fixed where dragged.
+    // If in simulation mode (state 0), unfix it to let simulation continue.
+    if (currentArrangementState === 0) {
+        d.fx = null; 
+        d.fy = null;
+    } else {
+        d.fx = d.x; // Keep fixed where user dropped it within the arrangement
+        d.fy = d.y;
+    }
   }
 
   document.getElementById('flowchartNameInput').addEventListener('input', function() {
