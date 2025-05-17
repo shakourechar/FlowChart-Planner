@@ -63,13 +63,10 @@
       background: #27ae60;
       display: inline-block;
     }
-    nav .ai-assistant-btn {
+    nav .ai-assistant-btn { /* Retained for when you want to re-add it */
       background: #8e44ad; 
     }
-    nav .node-size-btn { 
-        background: #f39c12; 
-        padding: 0.5rem 0.75rem;
-    }
+    /* Removed .node-size-btn for this version */
     #fileNameDisplay {
         margin-left: 0.5rem;
         font-size: 0.9em;
@@ -159,10 +156,12 @@
     }
     .node text.node-name { 
       fill: white;
-      /* font-size is dynamic */
+      font-size: 14px; /* Restored original font size */
       text-anchor: middle;
+      dominant-baseline: central; 
       pointer-events: none; 
     }
+
     .action-buttons {
       display: flex;
       gap: 10px;
@@ -220,14 +219,14 @@
     }
     .taskCountGroup text { 
         fill: white;
-        /* font-size will be dynamic */
+        font-size: 10px; /* Original task count font size */
         text-anchor: middle;
         dy: 0.35em; 
     }
     .taskCountGroup rect { 
-        fill: #2c3e50; /* Original color */
-        rx: 9; /* Original rounding */
-        ry: 9; /* Original rounding */
+        fill: #2c3e50; /* Original task count background */
+        rx: 9; 
+        ry: 9; 
     }
 
     @media (max-width: 768px) {
@@ -269,8 +268,6 @@
   <h1>FlowChart Manager</h1>
   <input type="text" id="flowchartNameInput" placeholder="Enter Flowchart Name...">
   <nav>
-    <button id="nodeSizeIncreaseBtn" class="node-size-btn">Node Size +</button>
-    <button id="nodeSizeDecreaseBtn" class="node-size-btn">Node Size -</button>
     <button id="aiAssistantBtn" class="ai-assistant-btn">Flowchart AI Assistant</button>
     <button id="templateBtn">Templates</button>
     <button id="exportBtn">Export</button>
@@ -364,37 +361,35 @@
 </div>
 
 <script>
+  // --- AI Assistant Button Function (Kept as it's unrelated to D3 issues) ---
   function openAIAssistant() {
     const assistantUrl = 'https://chatgpt.com/g/g-678c450b02988191b07d47c7a5bd9d4a-flow-chart-assistant';
     const screenWidth = window.screen.availWidth;
     const screenHeight = window.screen.availHeight;
-    
     const baseSize = Math.min(screenWidth, screenHeight);
     const popupWidth = Math.floor(baseSize * 0.45); 
     const popupHeight = Math.floor(baseSize * 0.55); 
-
     const left = Math.floor((screenWidth - popupWidth) / 2);
     const top = Math.floor((screenHeight - popupHeight) / 2);
-
     const features = `width=${popupWidth},height=${popupHeight},left=${left},top=${top},resizable=yes,scrollbars=yes,status=no,location=no,menubar=no,toolbar=no`;
-    
     window.open(assistantUrl, 'FlowchartAIAssistant', features);
   }
 
-  function wrapText(textElement, width, baseFontSize) { 
+  // --- Text Wrapping Function (Restored to a known good state) ---
+  function wrapText(textElement, width) { // baseFontSize removed as it's fixed now
     textElement.each(function() {
         const textNode = d3.select(this);
         const words = textNode.text().split(/\s+/).reverse();
         let word;
         let line = [];
         let lineNumber = 0;
-        const lineHeight = 1.1; 
-        const x = textNode.attr("x") || 0; 
-        const y = textNode.attr("y") || 0; 
+        const lineHeight = 1.1; // ems
+        const x = textNode.attr("x") || 0; // Should be 0 for centered text
+        // const y = textNode.attr("y") || 0; // Not needed if using dominant-baseline
         
         textNode.text(null); 
 
-        let tspan = textNode.append("tspan").attr("x", x).attr("y", y); 
+        let tspan = textNode.append("tspan").attr("x", x)/*.attr("y", y)*/; // y is inherited
         let tspans = [tspan];
 
         while (word = words.pop()) {
@@ -406,48 +401,36 @@
                 line = [word]; 
                 tspan = textNode.append("tspan").attr("x", x).attr("dy", `${lineHeight}em`).text(word);
                 tspans.push(tspan);
-                lineNumber++;
+                lineNumber++; // This correctly counts additional lines after the first.
             }
         }
-        const totalLines = tspans.length;
-        // For dominant-baseline: central, the first line's dy should be adjusted to pull it up
-        // by half of the total height of the subsequent lines.
-        // If dominant-baseline is not central or not reliably set, this might need further tweaking.
-        // Let's assume dominant-baseline: central is set or its effect is handled by the default dy:0.35em for text
-        const initialDyOffset =  - ( (totalLines -1) * lineHeight / 2) ; // Shift up by half the height of other lines
+        // Vertical centering for dominant-baseline: central
+        // The first line needs to be shifted up by half the height of the subsequent lines.
+        const initialDyOffset = - (lineNumber * lineHeight / 2) ; // lineNumber = totalLines - 1
         
-        tspans.forEach((s, i) => {
-            if (i === 0) {
-                s.attr("dy", `${initialDyOffset + 0.35}em`); // Combine with original single-line centering
-            } else {
-                 s.attr("dy", `${lineHeight}em`); // Subsequent lines are relative
-            }
-        });
+        tspans[0].attr("dy", `${initialDyOffset}em`); 
     });
-}
+  }
 
-
+  // --- Global D3 Variables ---
   let selectedNode = null;
   let data = { flowchartName: "Untitled Flowchart", nodes: [], links: [] }; 
   let simulation, svg, nodeGroup, mainZoomGroup;
   
-  const BASE_NODE_RADIUS = 60; 
-  let currentNodeSizeFactor = 1.0; 
-  const MIN_NODE_SIZE_FACTOR = 0.5;
-  const MAX_NODE_SIZE_FACTOR = 1.5;
-  const NODE_SIZE_STEP = 0.1;
+  const nodeRadius = 60; // Original fixed radius
+  // Removed currentNodeSizeFactor and related constants
 
+  // Removed Arrangement state variables
 
+  // --- D3 Initialization ---
   function initD3() {
     const flowchartContainer = document.getElementById('flowchartContainer');
     d3.select(flowchartContainer).select("svg").remove();
 
     const containerWidth = flowchartContainer.clientWidth;
     const containerHeight = flowchartContainer.clientHeight;
-
     const virtualWidth = Math.max(containerWidth * 1.5, 2000); 
     const virtualHeight = Math.max(containerHeight * 1.5, 1500);
-
 
     svg = d3.select(flowchartContainer)
       .append('svg')
@@ -462,9 +445,7 @@
     const zoom = d3.zoom().on("zoom", function (event) {
        mainZoomGroup.attr("transform", event.transform);
     });
-    svg.call(zoom)
-       .on("dblclick.zoom", null);
-
+    svg.call(zoom).on("dblclick.zoom", null);
 
     mainZoomGroup.append('defs').html(`
       <filter id="nodeShadow" x="-20%" y="-20%" width="140%" height="140%">
@@ -478,8 +459,8 @@
     `);
 
     simulation = d3.forceSimulation()
-      .force('charge', d3.forceManyBody().strength(-1200 * (BASE_NODE_RADIUS * currentNodeSizeFactor / 60) )) 
-      .force('collide', d3.forceCollide().radius( (BASE_NODE_RADIUS * currentNodeSizeFactor) + 20).strength(0.9)) 
+      .force('charge', d3.forceManyBody().strength(-1000)) // Adjusted strength slightly
+      .force('collide', d3.forceCollide().radius(nodeRadius + 15).strength(0.8)) // Adjusted based on fixed nodeRadius
       .force('center', d3.forceCenter(virtualWidth / 2, virtualHeight / 2)); 
 
     nodeGroup = mainZoomGroup.append('g').attr("class", "nodes");
@@ -489,33 +470,37 @@
         const newContainerHeight = flowchartContainer.clientHeight;
         const newVirtualWidth = Math.max(newContainerWidth * 1.5, virtualWidth);
         const newVirtualHeight = Math.max(newContainerHeight* 1.5, virtualHeight);
-        
         simulation.force('center', d3.forceCenter(newVirtualWidth / 2, newVirtualHeight / 2));
         simulation.alpha(0.3).restart(); 
     });
   }
 
+  // --- Arrangement functions removed for stability ---
 
   function placeNodesDiagonally() {
-    const initialX = (mainZoomGroup.node() ? parseFloat(svg.attr('viewBox').split(' ')[2]) / 2 : 1000) ;
+    const initialX = (svg && mainZoomGroup.node() ? parseFloat(svg.attr('viewBox').split(' ')[2]) / 2 : 1000) ;
     const initialY = 150; 
-    const currentScaledRadius = BASE_NODE_RADIUS * currentNodeSizeFactor;
-    const horizontalSpacing = currentScaledRadius * 3.5; 
-    const verticalSpacing = currentScaledRadius * 2.5;   
-
+    const horizontalSpacing = nodeRadius * 3.5; 
+    const verticalSpacing = nodeRadius * 2.5;   
 
     data.nodes.forEach((node, i) => {
-      if (node.x == null || node.fx == null) { 
+      if (node.fx === null || node.fx === undefined) { 
         node.x = initialX + (i % 3 - 1) * horizontalSpacing + (Math.random() * 50 - 25); 
         node.fx = node.x; 
+      } else if (node.x === null || node.x === undefined ) { 
+        node.x = node.fx;
       }
-      if (node.y == null || node.fy == null) {
+      if (node.fy === null || node.fy === undefined) {
         node.y = initialY + Math.floor(i / 3) * verticalSpacing + (Math.random() * 50 - 25); 
         node.fy = node.y; 
+      } else if (node.y === null || node.y === undefined) {
+        node.y = node.fy;
       }
     });
   }
 
+  // --- Other existing utility functions (addTaskRow, populateTaskTable, etc.) ---
+  // These should be fine as they mainly interact with the modal.
   function addTaskRow(task) {
     const tbody = document.querySelector('#taskTable tbody');
     const tr = document.createElement('tr');
@@ -669,14 +654,20 @@
                 ...n,
                 x: n.x, 
                 y: n.y, 
-                fx: n.fx !== undefined ? n.fx : n.x, 
-                fy: n.fy !== undefined ? n.fy : n.y
+                fx: n.fx !== undefined ? n.fx : null, 
+                fy: n.fy !== undefined ? n.fy : null
             }));
             data.links = Array.isArray(fileData.links) ? fileData.links : []; 
             
             document.getElementById('fileNameDisplay').innerText = `Loaded: ${file.name}`;
             document.getElementById('fileNameDisplay').title = `Loaded: ${file.name}`;
-            update();
+            
+            if (data.nodes.every(n => n.fx === null && n.fy === null)) {
+                 resetToSimulationLayout(); 
+            } else {
+                 update(); 
+            }
+
           } else {
             alert('Invalid file format. Must contain a "nodes" array.');
           }
@@ -718,16 +709,15 @@
         ];
         break;
         default:
-            data.nodes = [{id: 'root-1', name: 'Start Here', status: 'Not Started', actionDescription: '[]', color: '#3498db', x: 300, y: 150, fx:300, fy:150 }];
+            data.nodes = [{id: 'root-1', name: 'Start Here', status: 'Not Started', actionDescription: '[]', color: '#3498db' }];
             data.flowchartName = "New Flowchart";
             document.getElementById('flowchartNameInput').value = data.flowchartName;
     }
-    data.nodes.forEach(n => {
+    data.nodes.forEach(n => { 
         n.fx = null;
         n.fy = null;
     });
-    placeNodesDiagonally(); 
-    update();
+    resetToSimulationLayout(); // Use this to let simulation arrange template nodes
   }
 
   document.getElementById('taskForm').onsubmit = (e) => {
@@ -754,7 +744,7 @@
         actionDescription: JSON.stringify(tasks),
         color: document.getElementById('nodeColor').value || null 
       });
-      selectedNode.fx = selectedNode.x;
+      selectedNode.fx = selectedNode.x; 
       selectedNode.fy = selectedNode.y;
       update(); 
     }
@@ -774,7 +764,7 @@
   document.getElementById('deleteNodeBtn').addEventListener('click', function() {
     if (selectedNode && confirm("Are you sure you want to delete this node? This action cannot be undone.")) {
       data.nodes = data.nodes.filter(n => n.id !== selectedNode.id);
-      data.links = data.links.filter(link => 
+      data.links = data.links.filter(link =>  // Keep this for data integrity, though links aren't drawn
         (link.source.id || link.source) !== selectedNode.id && 
         (link.target.id || link.target) !== selectedNode.id
       );
@@ -792,19 +782,8 @@
         aiAssistantButton.onclick = openAIAssistant;
     }
 
-    document.getElementById('nodeSizeIncreaseBtn').onclick = () => {
-        if (currentNodeSizeFactor < MAX_NODE_SIZE_FACTOR) {
-            currentNodeSizeFactor = parseFloat((currentNodeSizeFactor + NODE_SIZE_STEP).toFixed(2));
-            updateNodeSizes();
-        }
-    };
-    document.getElementById('nodeSizeDecreaseBtn').onclick = () => {
-        if (currentNodeSizeFactor > MIN_NODE_SIZE_FACTOR) {
-            currentNodeSizeFactor = parseFloat((currentNodeSizeFactor - NODE_SIZE_STEP).toFixed(2));
-            updateNodeSizes();
-        }
-    };
-
+    // Node Sizing and Rearrange buttons are removed for this stable version
+    // Their JS logic is also removed below to prevent errors.
 
     document.querySelectorAll('.color-swatch').forEach(swatch => {
       swatch.addEventListener('click', () => {
@@ -871,20 +850,16 @@
     const viewBoxWidth = parseFloat(svgViewBox[2]);
     const viewBoxHeight = parseFloat(svgViewBox[3]);
 
-    const currentScaledRadius = BASE_NODE_RADIUS * currentNodeSizeFactor;
-
-
     if (parentNode && typeof parentNode.x === 'number' && typeof parentNode.y === 'number') {
         initialX = parentNode.x + (Math.random() * 100 - 50); 
-        initialY = parentNode.y + (currentScaledRadius * 2.5) + (Math.random() * 20 - 10); 
+        initialY = parentNode.y + (nodeRadius * 2.5) + (Math.random() * 20 - 10); 
     } else {
         initialX = viewBoxWidth / 2 + (Math.random() * 200 - 100); 
         initialY = viewBoxHeight / 3 + (Math.random() * 100 - 50);
     }
     
-    initialX = Math.max(currentScaledRadius, Math.min(initialX, viewBoxWidth - currentScaledRadius));
-    initialY = Math.max(currentScaledRadius, Math.min(initialY, viewBoxHeight - currentScaledRadius));
-
+    initialX = Math.max(nodeRadius, Math.min(initialX, viewBoxWidth - nodeRadius));
+    initialY = Math.max(nodeRadius, Math.min(initialY, viewBoxHeight - nodeRadius));
 
     const newNode = {
       id: newNodeId,
@@ -905,42 +880,23 @@
     return newNode;
   }
   
-  function updateNodeSizes() {
-    if (!simulation) return;
-    const scaledRadius = BASE_NODE_RADIUS * currentNodeSizeFactor;
-    simulation.force('collide').radius(scaledRadius + 20);
-    simulation.force('charge').strength(-1200 * (scaledRadius / BASE_NODE_RADIUS) ); // Scale charge relative to base size
-    
-    // Update spacing for placeNodesDiagonally if needed, or let simulation adjust
-    // placeNodesDiagonally(); // Could be called if you want to reset initial fixed positions on resize
-
-    update();
-    simulation.alpha(0.3).restart(); 
-  }
-
+  // updateNodeSizes function REMOVED as dynamic sizing is deferred
 
   function update() {
-    if (!svg || !simulation) { 
-        console.error("D3 not initialized for update");
+    if (!svg || !simulation || !nodeGroup || !mainZoomGroup) { 
+        console.error("D3 elements not fully initialized for update");
         return;
     }
 
-    // --- LINK RENDERING COMPLETELY REMOVED ---
-    if (mainZoomGroup) { // Ensure mainZoomGroup is defined
-        const linksGroup = mainZoomGroup.select(".links");
-        if (linksGroup && !linksGroup.empty()) {
-            linksGroup.selectAll('*').remove(); // Clear any children if .links group exists
-        }
+    // --- LINK RENDERING CODE & linkGroup references FULLY REMOVED ---
+    const linksContainer = mainZoomGroup.select(".links"); 
+    if (linksContainer && !linksContainer.empty()) {
+        linksContainer.selectAll('*').remove(); 
     }
     if(simulation.force("link")) { 
         simulation.force("link", null);
     }
-    // data.links is still maintained for save/load but not rendered.
     // --- END LINK REMOVAL ---
-
-    const currentDisplayRadius = BASE_NODE_RADIUS * currentNodeSizeFactor;
-    const currentMainFontSize = 14 * currentNodeSizeFactor;
-    const currentTaskCountFontSize = 10 * currentNodeSizeFactor;
 
 
     const nodes = nodeGroup.selectAll('.node')
@@ -955,6 +911,7 @@
       .on('click', nodeClick);
 
     nodesEnter.append('circle')
+      .attr('r', nodeRadius) // Use fixed nodeRadius
       .attr('filter', 'url(#nodeShadow)');
 
     nodesEnter.append('text')
@@ -962,24 +919,27 @@
       .attr('text-anchor', 'middle')
       .attr('dominant-baseline', 'central');
 
+    // --- TASK COUNTER GROUP CREATION ---
     nodesEnter.append('g')
-      .attr('class', 'taskCountGroup');
+      .attr('class', 'taskCountGroup')
+      .attr('transform', `translate(0, -${nodeRadius + 12})`); // Position based on fixed radius
 
 
     const allNodes = nodesEnter.merge(nodes);
 
     allNodes.select('circle')
-      .attr('r', currentDisplayRadius) 
+      .attr('r', nodeRadius) // Use fixed nodeRadius
       .attr('fill', d => d.color ? d.color : getStatusColor(d.status));
 
     allNodes.select('text.node-name')
-      .style('font-size', `${currentMainFontSize}px`) 
+      .style('font-size', `14px`) // Fixed font size
       .text(d => d.name)
-      .call(wrapText, currentDisplayRadius * 1.5, currentMainFontSize); // Pass current font size
+      .call(wrapText, nodeRadius * 1.5); // Wrap width based on fixed radius
 
 
+    // --- TASK COUNTER UPDATE LOGIC ---
     allNodes.select('.taskCountGroup')
-      .attr('transform', `translate(0, -${currentDisplayRadius + (12 * currentNodeSizeFactor)})`) 
+      .attr('transform', `translate(0, -${nodeRadius + 12})`) // Ensure position is correct
       .each(function(d) {
         const group = d3.select(this);
         group.selectAll('*').remove(); 
@@ -988,7 +948,7 @@
           try { 
             const parsed = JSON.parse(d.actionDescription);
             if (Array.isArray(parsed)) tasks = parsed;
-          } catch (e) { /* ignore */ }
+          } catch (e) { /* ignore if not valid JSON array */ }
         }
         
         const completedCount = tasks.filter(t => t.completed).length;
@@ -997,21 +957,23 @@
         if (totalCount > 0) { 
             const textString = `✅ ${completedCount}/${totalCount}`;
             const textEl = group.append('text')
-              .style('font-size', `${currentTaskCountFontSize}px`) // Apply scaled font size
+              // .style('font-size', `10px`) // Styling via CSS .taskCountGroup text
               .text(textString); 
             
             const textNode = textEl.node();
             if (textNode) { 
                 const bbox = textNode.getBBox();
-                const rectWidth = bbox.width + (10 * currentNodeSizeFactor); 
-                const rectHeight = bbox.height + (4 * currentNodeSizeFactor);  
+                const rectPaddingHorizontal = 6; 
+                const rectPaddingVertical = 3;   
+                const rectWidth = bbox.width + rectPaddingHorizontal * 2; 
+                const rectHeight = bbox.height + rectPaddingVertical * 2;  
                 group.insert('rect', 'text') 
                   .attr('width', rectWidth)
                   .attr('height', rectHeight)
                   .attr('x', -rectWidth / 2)
-                  .attr('y', -(rectHeight / 2) - (2 * currentNodeSizeFactor) ) // Adjust y based on scaled factor
-                  .attr('rx', rectHeight / 2)  
-                  .attr('ry', rectHeight / 2);
+                  .attr('y', -(rectHeight / 2) - 2 ) 
+                  // .attr('rx', rectHeight / 2)  // Styling via CSS
+                  // .attr('ry', rectHeight / 2)
             }
         }
       });
@@ -1035,7 +997,7 @@
 
   function dragStart(event, d) {
     if (!event.active) simulation.alphaTarget(0.3).restart();
-    d.fx = d.x;
+    d.fx = d.x; 
     d.fy = d.y;
   }
   function dragging(event, d) {
@@ -1044,6 +1006,9 @@
   }
   function dragEnd(event, d) {
     if (!event.active) simulation.alphaTarget(0);
+    // Keep nodes fixed where dragged by default
+    // d.fx = null; // Uncomment to allow simulation to move after drag
+    // d.fy = null; // Uncomment to allow simulation to move after drag
   }
 
   document.getElementById('flowchartNameInput').addEventListener('input', function() {
