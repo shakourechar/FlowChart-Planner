@@ -14,6 +14,9 @@
       margin: 0;
       font-family: 'Segoe UI', sans-serif;
       background: #f4f4f4;
+      display: flex; 
+      flex-direction: column; 
+      min-height: 100vh; 
     }
     header {
       background: #2c3e50;
@@ -22,27 +25,36 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      flex-shrink: 0; 
     }
     header h1 {
       margin: 0;
       display: flex;
       align-items: center;
+      font-size: 1.5em; 
     }
     header h1 input#flowchartNameInput {
       margin-left: 10px;
-      font-size: inherit;
-      padding: 4px;
+      font-size: 0.9em; 
+      padding: 4px 8px;
       border: none;
       border-radius: 4px;
+      background-color: #fff;
+      color: #333;
+    }
+    nav {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem; 
     }
     nav button {
       background: #2980b9;
       border: none;
       color: white;
       padding: 0.5rem 1rem;
-      margin-left: 0.5rem;
       cursor: pointer;
       border-radius: 4px;
+      white-space: nowrap; 
     }
     nav input[type="file"] {
       display: none;
@@ -51,21 +63,33 @@
       background: #27ae60;
       display: inline-block;
     }
-    /* New style for the AI Assistant button */
     nav .ai-assistant-btn {
-      background: #8e44ad; /* Distinct color - purple */
-      /* You can add other specific styles here if needed */
+      background: #8e44ad; 
     }
-    /* The main flowchart container */
-    #flowchart {
-      width: 100%;
-      height: 80vh;
-      border: 1px solid #ccc;
-      background: white;
-      overflow-x: auto;
-      overflow-y: auto;
+    nav .node-size-btn { 
+        background: #f39c12; 
+        padding: 0.5rem 0.75rem;
     }
-    /* Modal styling */
+    #fileNameDisplay {
+        margin-left: 0.5rem;
+        font-size: 0.9em;
+        color: #ecf0f1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 150px; 
+    }
+    #flowchartContainer { 
+        width: 100%;
+        flex-grow: 1; 
+        border: 1px solid #ccc;
+        background: white;
+        overflow: auto; 
+        position: relative; 
+    }
+    #flowchart { 
+        display: block; 
+    }
     .modal {
       display: none;
       position: fixed;
@@ -76,21 +100,17 @@
       height: 100%;
       background: rgba(0,0,0,0.5);
       padding-top: 50px;
+      overflow-y: auto; 
     }
     .modal-content {
       background: white;
-      margin: auto;
+      margin: 20px auto; 
       padding: 20px;
       width: 90%;
       max-width: 500px;
-      max-height: 90vh;
-      overflow-y: auto;
-      scrollbar-width: none;
+      overflow-y: visible; 
       border-radius: 8px;
       position: relative;
-    }
-    .modal-content::-webkit-scrollbar {
-      display: none;
     }
     .close-button {
       position: absolute;
@@ -98,6 +118,10 @@
       top: 10px;
       font-size: 24px;
       cursor: pointer;
+      color: #777; 
+    }
+    .close-button:hover {
+        color: #333;
     }
     form {
       display: flex;
@@ -106,11 +130,16 @@
     }
     input,
     select,
-    button,
+    button, 
     textarea {
-      padding: 8px;
+      padding: 8px 12px; 
       border: 1px solid #ccc;
       border-radius: 4px;
+      font-size: 1em; 
+    }
+    textarea {
+        resize: vertical;
+        min-height: 60px;
     }
     #taskName {
       width: 100%;
@@ -126,66 +155,111 @@
     }
     .node circle {
       stroke: white;
-      stroke-width: 2px;
+      stroke-width: 2px; 
     }
-    .node text {
+    .node text.node-name { 
       fill: white;
-      font-size: 14px;
+      /* font-size is dynamic */
       text-anchor: middle;
-      /* Center vertically with dy */
-      dy: 0.35em;
-    }
-    .link {
-      stroke: #999;
-      stroke-opacity: 0.6;
-      stroke-width: 2px;
-      fill: none;
+      pointer-events: none; 
     }
     .action-buttons {
       display: flex;
       gap: 10px;
-      margin-top: 10px;
+      margin-top: 15px; 
+    }
+    .action-buttons button { 
+        color: white;
+        border: none;
+        padding: 10px 16px; 
+        border-radius: 4px;
+        cursor: pointer;
+        flex: 1;
+        font-weight: 500;
     }
     .add-node-btn {
       background: #27ae60;
-      color: white;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 4px;
-      cursor: pointer;
-      flex: 1;
     }
     .save-btn {
       background: #2980b9;
-      color: white;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 4px;
-      cursor: pointer;
-      flex: 1;
     }
     .color-panel {
       display: flex;
       flex-wrap: wrap;
       gap: 6px;
       margin-top: 8px;
+      margin-bottom: 8px; 
     }
     .color-swatch {
       width: 24px;
       height: 24px;
-      border: 1px solid #ccc;
+      border: 1px solid #ddd; 
       border-radius: 4px;
       cursor: pointer;
+      transition: transform 0.1s ease;
+    }
+    .color-swatch:hover {
+        transform: scale(1.1);
     }
     .selected-swatch {
-      outline: 2px solid #333;
-      outline-offset: -2px;
+      outline: 2px solid #2c3e50; 
+      outline-offset: 2px; 
     }
     .selectedTaskRow {
       border: 2px solid #3498db;
+      background-color: #ecf0f1; 
     }
-    @media (max-width: 768px) { }
-    @media (max-width: 480px) { }
+    #deleteNodeBtn { 
+        background-color: #e74c3c;
+        color: white;
+        padding: 10px 16px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 500;
+    }
+    .taskCountGroup text { 
+        fill: white;
+        /* font-size will be dynamic */
+        text-anchor: middle;
+        dy: 0.35em; 
+    }
+    .taskCountGroup rect { 
+        fill: #2c3e50; /* Original color */
+        rx: 9; /* Original rounding */
+        ry: 9; /* Original rounding */
+    }
+
+    @media (max-width: 768px) {
+        header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+        header h1 {
+            font-size: 1.25em;
+        }
+        nav {
+            width: 100%;
+            flex-wrap: wrap; 
+        }
+        nav button {
+            flex-grow: 1; 
+            min-width: 100px; 
+        }
+        #fileNameDisplay {
+            width: 100%;
+            text-align: center;
+            margin-top: 0.5rem;
+        }
+        .modal-content {
+            width: 95%;
+            padding: 15px;
+        }
+         #flowchartContainer {
+            height: 70vh; 
+        }
+    }
   </style>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
@@ -195,7 +269,9 @@
   <h1>FlowChart Manager</h1>
   <input type="text" id="flowchartNameInput" placeholder="Enter Flowchart Name...">
   <nav>
-    <button id="aiAssistantBtn" class="ai-assistant-btn">Flowchart AI Assistant</button> {/* */}
+    <button id="nodeSizeIncreaseBtn" class="node-size-btn">Node Size +</button>
+    <button id="nodeSizeDecreaseBtn" class="node-size-btn">Node Size -</button>
+    <button id="aiAssistantBtn" class="ai-assistant-btn">Flowchart AI Assistant</button>
     <button id="templateBtn">Templates</button>
     <button id="exportBtn">Export</button>
     <input type="file" id="fileInput" accept=".json">
@@ -204,7 +280,10 @@
   </nav>
 </header>
 
-<div id="flowchart"></div>
+<div id="flowchartContainer">
+    <svg id="flowchart"></svg>
+</div>
+
 
 <div id="modal" class="modal">
   <div class="modal-content">
@@ -212,7 +291,7 @@
     <h2>Task Details</h2>
     <form id="taskForm">
       <label>Task Name:
-        <textarea id="taskName" required style="width:100%; resize:vertical;"></textarea>
+        <textarea id="taskName" required></textarea>
       </label>
       <label>Responsible:
         <input type="text" id="responsible" required>
@@ -234,17 +313,17 @@
           <option value="High">High</option>
         </select>
       </label>
-      <label>Action Description:</label>
+      <label>Action Description (Sub-tasks):</label>
       <table id="taskTable" style="width:100%; margin-bottom:10px;">
         <thead>
           <tr>
-            <th style="width: 20px;">✓</th>
+            <th style="width: 30px;">✓</th>
             <th>Task</th>
           </tr>
         </thead>
         <tbody></tbody>
       </table>
-      <button type="button" id="addTaskRowBtn">Add Task</button>
+      <button type="button" id="addTaskRowBtn" style="align-self: flex-start; background-color: #5cb85c;">Add Task</button>
       <label>Node Color:</label>
       <input type="hidden" id="nodeColor" />
       <div class="color-panel">
@@ -256,13 +335,11 @@
         <div class="color-swatch" style="background-color: #34495e;" data-color="#34495e"></div>
       </div>
       <div class="action-buttons">
-        <button type="submit" class="save-btn">Save</button>
+        <button type="submit" class="save-btn">Save Node</button>
         <button type="button" class="add-node-btn" id="addNodeBtn">Add Child Node</button>
       </div>
-      <div style="text-align: center; margin-top: 10px;">
-        <button type="button" id="deleteNodeBtn" style="background-color: #e74c3c; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer;">
-          Delete Node
-        </button>
+      <div style="text-align: center; margin-top: 15px;">
+        <button type="button" id="deleteNodeBtn">Delete Node</button>
       </div>
     </form>
   </div>
@@ -281,93 +358,160 @@
 <div id="taskTextPopup" class="modal">
   <div class="modal-content">
     <span class="close-button" id="closeTaskPopup">×</span>
-    <p id="taskFullText" style="white-space: pre-wrap;"></p>
-    <button id="deleteTaskBtn" style="margin-top: 10px; background-color: #e74c3c; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer;">Delete Task</button>
+    <p id="taskFullText" style="white-space: pre-wrap; max-height: 60vh; overflow-y: auto;"></p>
+    <button id="deleteTaskBtn" style="margin-top: 10px; background-color: #e74c3c; color: white;">Delete Task</button>
   </div>
 </div>
 
 <script>
-  // Function to open AI Assistant Popup
   function openAIAssistant() {
     const assistantUrl = 'https://chatgpt.com/g/g-678c450b02988191b07d47c7a5bd9d4a-flow-chart-assistant';
     const screenWidth = window.screen.availWidth;
     const screenHeight = window.screen.availHeight;
-    const popupWidth = Math.floor(screenWidth / 3);
-    const popupHeight = Math.floor(screenHeight); // Full height or adjust as needed
+    
+    const baseSize = Math.min(screenWidth, screenHeight);
+    const popupWidth = Math.floor(baseSize * 0.45); 
+    const popupHeight = Math.floor(baseSize * 0.55); 
 
-    // Minimal features for the popup window
-    const features = `width=${popupWidth},height=${popupHeight},left=${screenWidth - popupWidth},top=0,resizable=yes,scrollbars=yes,status=no,location=no,menubar=no,toolbar=no`;
+    const left = Math.floor((screenWidth - popupWidth) / 2);
+    const top = Math.floor((screenHeight - popupHeight) / 2);
+
+    const features = `width=${popupWidth},height=${popupHeight},left=${left},top=${top},resizable=yes,scrollbars=yes,status=no,location=no,menubar=no,toolbar=no`;
     
     window.open(assistantUrl, 'FlowchartAIAssistant', features);
   }
 
-
-  // Utility: wrap text in multiple lines for SVG text elements
-  function wrapText(textElement, width) {
+  function wrapText(textElement, width, baseFontSize) { 
     textElement.each(function() {
-      let textNode = d3.select(this),
-          words = textNode.text().split(/\s+/).reverse(),
-          word,
-          line = [],
-          lineNumber = 0,
-          lineHeight = 1.1,
-          x = textNode.attr("x") || 0,
-          dy = 0,
-          tspan = textNode.text(null).append("tspan").attr("x", x).attr("dy", dy + "em");
+        const textNode = d3.select(this);
+        const words = textNode.text().split(/\s+/).reverse();
+        let word;
+        let line = [];
+        let lineNumber = 0;
+        const lineHeight = 1.1; 
+        const x = textNode.attr("x") || 0; 
+        const y = textNode.attr("y") || 0; 
+        
+        textNode.text(null); 
 
-      while (word = words.pop()) {
-        line.push(word);
-        tspan.text(line.join(" "));
-        if (tspan.node().getComputedTextLength() > width && line.length > 1) {
-          line.pop();
-          tspan.text(line.join(" "));
-          line = [word];
-          tspan = textNode.append("tspan").attr("x", x).attr("dy", lineHeight + "em").text(word);
-          lineNumber++;
+        let tspan = textNode.append("tspan").attr("x", x).attr("y", y); 
+        let tspans = [tspan];
+
+        while (word = words.pop()) {
+            line.push(word);
+            tspan.text(line.join(" "));
+            if (tspan.node().getComputedTextLength() > width && line.length > 1) {
+                line.pop(); 
+                tspan.text(line.join(" ")); 
+                line = [word]; 
+                tspan = textNode.append("tspan").attr("x", x).attr("dy", `${lineHeight}em`).text(word);
+                tspans.push(tspan);
+                lineNumber++;
+            }
         }
-      }
+        const totalLines = tspans.length;
+        // For dominant-baseline: central, the first line's dy should be adjusted to pull it up
+        // by half of the total height of the subsequent lines.
+        // If dominant-baseline is not central or not reliably set, this might need further tweaking.
+        // Let's assume dominant-baseline: central is set or its effect is handled by the default dy:0.35em for text
+        const initialDyOffset =  - ( (totalLines -1) * lineHeight / 2) ; // Shift up by half the height of other lines
+        
+        tspans.forEach((s, i) => {
+            if (i === 0) {
+                s.attr("dy", `${initialDyOffset + 0.35}em`); // Combine with original single-line centering
+            } else {
+                 s.attr("dy", `${lineHeight}em`); // Subsequent lines are relative
+            }
+        });
     });
-  }
+}
+
 
   let selectedNode = null;
-  let data = { nodes: [], links: [] };
-  let simulation, svg, linkGroup, nodeGroup;
-  const curveRadius = 200;
-  const nodeWidthEstimate = 200;
+  let data = { flowchartName: "Untitled Flowchart", nodes: [], links: [] }; 
+  let simulation, svg, nodeGroup, mainZoomGroup;
+  
+  const BASE_NODE_RADIUS = 60; 
+  let currentNodeSizeFactor = 1.0; 
+  const MIN_NODE_SIZE_FACTOR = 0.5;
+  const MAX_NODE_SIZE_FACTOR = 1.5;
+  const NODE_SIZE_STEP = 0.1;
+
 
   function initD3() {
-    const flowchart = document.getElementById('flowchart');
-    const containerWidth = flowchart.clientWidth;
-    const containerHeight = flowchart.clientHeight;
-    flowchart.innerHTML = '';
-    svg = d3.select('#flowchart')
+    const flowchartContainer = document.getElementById('flowchartContainer');
+    d3.select(flowchartContainer).select("svg").remove();
+
+    const containerWidth = flowchartContainer.clientWidth;
+    const containerHeight = flowchartContainer.clientHeight;
+
+    const virtualWidth = Math.max(containerWidth * 1.5, 2000); 
+    const virtualHeight = Math.max(containerHeight * 1.5, 1500);
+
+
+    svg = d3.select(flowchartContainer)
       .append('svg')
-      .attr('width', containerWidth * 2)
-      .attr('height', containerHeight);
-    svg.append('defs').html(`
+      .attr('id', 'flowchart')
+      .attr('width', "100%") 
+      .attr('height', "100%")
+      .attr('viewBox', `0 0 ${virtualWidth} ${virtualHeight}`) 
+      .attr('preserveAspectRatio', 'xMidYMid meet');
+      
+    mainZoomGroup = svg.append('g'); 
+
+    const zoom = d3.zoom().on("zoom", function (event) {
+       mainZoomGroup.attr("transform", event.transform);
+    });
+    svg.call(zoom)
+       .on("dblclick.zoom", null);
+
+
+    mainZoomGroup.append('defs').html(`
       <filter id="nodeShadow" x="-20%" y="-20%" width="140%" height="140%">
-        <feGaussianBlur in="SourceAlpha" stdDeviation="3" result="blur" />
-        <feOffset in="blur" dx="4" dy="4" result="offsetBlur" />
+        <feGaussianBlur in="SourceAlpha" stdDeviation="2.5" result="blur" />
+        <feOffset in="blur" dx="3" dy="3" result="offsetBlur" />
         <feMerge>
           <feMergeNode in="offsetBlur"/>
           <feMergeNode in="SourceGraphic"/>
         </feMerge>
       </filter>
     `);
+
     simulation = d3.forceSimulation()
-      .force('link', d3.forceLink().id(d => d.id).distance(150).strength(0))
-      .force('charge', d3.forceManyBody().strength(0))
-      .force('collide', d3.forceCollide().radius(60));
-    linkGroup = svg.append('g');
-    nodeGroup = svg.append('g');
+      .force('charge', d3.forceManyBody().strength(-1200 * (BASE_NODE_RADIUS * currentNodeSizeFactor / 60) )) 
+      .force('collide', d3.forceCollide().radius( (BASE_NODE_RADIUS * currentNodeSizeFactor) + 20).strength(0.9)) 
+      .force('center', d3.forceCenter(virtualWidth / 2, virtualHeight / 2)); 
+
+    nodeGroup = mainZoomGroup.append('g').attr("class", "nodes");
+
+    window.addEventListener('resize', () => {
+        const newContainerWidth = flowchartContainer.clientWidth;
+        const newContainerHeight = flowchartContainer.clientHeight;
+        const newVirtualWidth = Math.max(newContainerWidth * 1.5, virtualWidth);
+        const newVirtualHeight = Math.max(newContainerHeight* 1.5, virtualHeight);
+        
+        simulation.force('center', d3.forceCenter(newVirtualWidth / 2, newVirtualHeight / 2));
+        simulation.alpha(0.3).restart(); 
+    });
   }
 
+
   function placeNodesDiagonally() {
-    const leftMargin = 80, topMargin = 80, horizontalSpacing = 150, verticalSpacing = 100;
+    const initialX = (mainZoomGroup.node() ? parseFloat(svg.attr('viewBox').split(' ')[2]) / 2 : 1000) ;
+    const initialY = 150; 
+    const currentScaledRadius = BASE_NODE_RADIUS * currentNodeSizeFactor;
+    const horizontalSpacing = currentScaledRadius * 3.5; 
+    const verticalSpacing = currentScaledRadius * 2.5;   
+
+
     data.nodes.forEach((node, i) => {
-      if (node.x == null && node.y == null) {
-        node.x = leftMargin + i * horizontalSpacing;
-        node.y = topMargin + i * verticalSpacing;
+      if (node.x == null || node.fx == null) { 
+        node.x = initialX + (i % 3 - 1) * horizontalSpacing + (Math.random() * 50 - 25); 
+        node.fx = node.x; 
+      }
+      if (node.y == null || node.fy == null) {
+        node.y = initialY + Math.floor(i / 3) * verticalSpacing + (Math.random() * 50 - 25); 
+        node.fy = node.y; 
       }
     });
   }
@@ -384,17 +528,29 @@
     checkbox.type = 'checkbox';
     checkbox.checked = task && task.completed ? true : false;
     tdCheckbox.appendChild(checkbox);
+
     const tdTask = document.createElement('td');
-    const taskInput = document.createElement('textarea');
+    const taskInput = document.createElement('textarea'); 
     taskInput.value = task && task.task ? task.task : '';
+    taskInput.rows = 1; 
     taskInput.style.width = '100%';
     taskInput.style.resize = 'vertical';
-    taskInput.addEventListener('dblclick', function() {
+    taskInput.style.border = '1px solid #eee'; 
+    taskInput.style.padding = '4px';
+    taskInput.addEventListener('input', function() { 
+        this.style.height = 'auto';
+        this.style.height = (this.scrollHeight) + 'px';
+    });
+
+
+    taskInput.addEventListener('dblclick', function(e) {
+      e.stopPropagation(); 
       tr.classList.add('selectedTaskRow');
       showTaskPopup(this.value);
     });
     let pressTimer;
-    taskInput.addEventListener('touchstart', function() {
+    taskInput.addEventListener('touchstart', function(e) {
+      e.stopPropagation();
       pressTimer = window.setTimeout(() => {
         tr.classList.add('selectedTaskRow');
         showTaskPopup(this.value);
@@ -402,25 +558,36 @@
     });
     taskInput.addEventListener('touchend', function() { clearTimeout(pressTimer); });
     taskInput.addEventListener('touchmove', function() { clearTimeout(pressTimer); });
+
     tdTask.appendChild(taskInput);
     tr.appendChild(tdCheckbox);
     tr.appendChild(tdTask);
     tbody.appendChild(tr);
+    taskInput.dispatchEvent(new Event('input')); 
   }
 
-  function populateTaskTable(taskData) {
+  function populateTaskTable(taskDataString) {
     const tbody = document.querySelector('#taskTable tbody');
-    tbody.innerHTML = '';
-    let tasks = [];
-    if (taskData) {
-      try {
-        tasks = JSON.parse(taskData);
-        if (!Array.isArray(tasks)) tasks = [];
-      } catch(e) {
-        tasks = [{ completed: false, task: taskData }];
-      }
+    tbody.innerHTML = ''; 
+    let tasksArray = [];
+    if (taskDataString && typeof taskDataString === 'string') {
+        try {
+            tasksArray = JSON.parse(taskDataString);
+            if (!Array.isArray(tasksArray)) { 
+                tasksArray = taskDataString.trim() ? [{ completed: false, task: taskDataString }] : [];
+            }
+        } catch (e) {
+             tasksArray = taskDataString.trim() ? [{ completed: false, task: taskDataString }] : [];
+        }
+    } else if (Array.isArray(taskDataString)) { 
+        tasksArray = taskDataString;
     }
-    tasks.forEach(task => addTaskRow(task));
+
+    if (tasksArray.length > 0) {
+        tasksArray.forEach(task => addTaskRow(task));
+    } else {
+        addTaskRow({}); 
+    }
   }
 
   function showTaskPopup(text) {
@@ -436,7 +603,7 @@
     document.getElementById('status').value = d.status || 'Not Started';
     document.getElementById('deadline').value = d.deadline || '';
     document.getElementById('priority').value = d.priority || 'Normal';
-    populateTaskTable(d.actionDescription || '');
+    populateTaskTable(d.actionDescription || ''); 
     document.getElementById('nodeColor').value = d.color || '';
     document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected-swatch'));
     if (d.color) {
@@ -449,25 +616,25 @@
   function saveToFile() {
     try {
       const flowchartNameValue = document.getElementById('flowchartNameInput').value;
-      data.flowchartName = flowchartNameValue || "Untitled Flowchart";
+      data.flowchartName = flowchartNameValue || "Untitled Flowchart"; 
+      
       const exportData = {
         flowchartName: data.flowchartName,
         nodes: data.nodes.map(n => ({
           id: n.id, name: n.name, status: n.status, responsible: n.responsible,
           deadline: n.deadline, priority: n.priority, actionDescription: n.actionDescription,
-          color: n.color, x: n.x, y: n.y, fx: n.fx, fy: n.fy
+          color: n.color, 
+          x: n.x, y: n.y, 
+          fx: n.fx, fy: n.fy 
         })),
-        links: data.links.map(l => ({
-          source: typeof l.source === 'object' ? l.source.id : l.source,
-          target: typeof l.target === 'object' ? l.target.id : l.target
-        }))
+        links: data.links 
       };
       const dataStr = JSON.stringify(exportData, null, 2);
       const blob = new Blob([dataStr], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       const safeFileName = (exportData.flowchartName.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'flowchart') + '.json';
-      a.href = url; // ADDED a.href = url;
+      a.href = url; 
       a.download = safeFileName;
       document.body.appendChild(a);
       a.click();
@@ -485,129 +652,81 @@
     }
   }
 
-      // Load data from file, including flowchart name
     function loadFromFile(file) {
       if (!file) {
         alert('No file selected.');
-        console.warn("loadFromFile called with no file.");
         return;
       }
-      console.log("loadFromFile started for:", file.name);
       const reader = new FileReader();
       reader.onload = (e) => {
-        console.log("FileReader onload event triggered.");
         try {
           const fileData = JSON.parse(e.target.result);
-          console.log("File data parsed:", fileData);
-
-          // Basic validation: check for nodes and links arrays
-          if (fileData && typeof fileData === 'object' && Array.isArray(fileData.nodes) && Array.isArray(fileData.links)) {
-            console.log("Valid file structure found.");
-
-            // *** CORRECTED SECTION START ***
-            // Load flowchart name if present, otherwise use default
+          if (fileData && typeof fileData === 'object' && Array.isArray(fileData.nodes) ) { 
             data.flowchartName = fileData.flowchartName || "Untitled Flowchart";
-            // Update the input field with the loaded name
-            const nameInput = document.getElementById('flowchartNameInput');
-            if (nameInput) {
-                nameInput.value = data.flowchartName;
-                console.log("Flowchart name input updated:", data.flowchartName);
-            } else {
-                console.error("Flowchart name input element not found!");
-            }
-            // *** CORRECTED SECTION END ***
-
-            // Load nodes and links
-            data.nodes = fileData.nodes;
-            data.links = fileData.links;
-            console.log("Nodes and links loaded into data object.");
-
-            // Ensure nodes have positions and handle fixed positions
-            data.nodes.forEach((node, index) => {
-                if (node.x === undefined) node.x = null;
-                if (node.y === undefined) node.y = null;
-                node.fx = node.fx !== undefined ? node.fx : null;
-                node.fy = node.fy !== undefined ? node.fy : null;
-                // Basic check for node validity (optional)
-                if (!node.id) {
-                    console.warn(`Node at index ${index} is missing an ID.`);
-                    node.id = `generated-${Date.now()}-${index}`; // Assign a temporary ID
-                }
-            });
-
-            // Update the display for the loaded file name
-            const fileNameDisplay = document.getElementById('fileNameDisplay');
-            if (fileNameDisplay) {
-                fileNameDisplay.innerText = `Loaded: ${file.name}`;
-                fileNameDisplay.title = `Loaded: ${file.name}`; // Add title for full name on hover
-                console.log("File name display updated.");
-            } else {
-                console.error("File name display element not found!");
-            }
-
-            update(); // Redraw the flowchart with loaded data
-            console.log("Flowchart update called.");
-
+            document.getElementById('flowchartNameInput').value = data.flowchartName;
+            
+            data.nodes = fileData.nodes.map(n => ({ 
+                ...n,
+                x: n.x, 
+                y: n.y, 
+                fx: n.fx !== undefined ? n.fx : n.x, 
+                fy: n.fy !== undefined ? n.fy : n.y
+            }));
+            data.links = Array.isArray(fileData.links) ? fileData.links : []; 
+            
+            document.getElementById('fileNameDisplay').innerText = `Loaded: ${file.name}`;
+            document.getElementById('fileNameDisplay').title = `Loaded: ${file.name}`;
+            update();
           } else {
-            console.error('Invalid file format. Missing "nodes" or "links".', fileData);
-            alert('Invalid file format. Missing "nodes" or "links".');
+            alert('Invalid file format. Must contain a "nodes" array.');
           }
         } catch (error) {
-          console.error("Error reading or parsing file:", error);
           alert('Error reading or parsing the file. Check console for details.');
+          console.error("Error in loadFromFile:", error);
         }
       };
-      reader.onerror = (e) => {
-          console.error("FileReader error:", e);
-          alert('Error reading file.');
-      };
-      reader.readAsText(file); // Read the file as text
+      reader.onerror = () => alert('Error reading file.');
+      reader.readAsText(file);
     }
 
 
   function loadTemplate(template) {
+    data.flowchartName = template.charAt(0).toUpperCase() + template.slice(1) + " Template";
+    document.getElementById('flowchartNameInput').value = data.flowchartName;
+    data.links = []; 
+
     switch (template) {
       case 'prototype':
-        data = {
-          nodes: [
-            { id: '1', name: 'Design', status: 'Completed', actionDescription: '' },
-            { id: '2', name: 'Development', status: 'In Progress', actionDescription: '' },
-            { id: '3', name: 'Testing', status: 'Not Started', actionDescription: '' }
-          ],
-          links: [
-            { source: '1', target: '2' },
-            { source: '2', target: '3' }
-          ]
-        };
+        data.nodes = [
+          { id: '1', name: 'Design', status: 'Completed', actionDescription: '[{"completed":false,"task":"Define user stories"},{"completed":false,"task":"Create wireframes"}]', color: '#2ecc71' },
+          { id: '2', name: 'Development', status: 'In Progress', actionDescription: '[{"completed":false,"task":"Setup environment"},{"completed":false,"task":"Build core features"}]', color: '#f1c40f' },
+          { id: '3', name: 'Testing', status: 'Not Started', actionDescription: '[{"completed":false,"task":"Write test cases"},{"completed":false,"task":"Perform QA"}]', color: '#e74c3c' }
+        ];
         break;
       case 'vendor':
-        data = {
-          nodes: [
-            { id: '1', name: 'Identify', status: 'Completed', actionDescription: '' },
-            { id: '2', name: 'Outreach', status: 'In Progress', actionDescription: '' },
-            { id: '3', name: 'Negotiate', status: 'Not Started', actionDescription: '' }
-          ],
-          links: [
-            { source: '1', target: '2' },
-            { source: '2', target: '3' }
-          ]
-        };
+        data.nodes = [
+          { id: '1', name: 'Identify Vendors', status: 'Completed', actionDescription: '[{"completed":false,"task":"Research options"},{"completed":false,"task":"Shortlist 5 vendors"}]', color: '#2ecc71' },
+          { id: '2', name: 'Outreach & Demo', status: 'In Progress', actionDescription: '[{"completed":false,"task":"Send RFPs"},{"completed":false,"task":"Schedule demos"}]', color: '#f1c40f' },
+          { id: '3', name: 'Negotiate & Select', status: 'Not Started', actionDescription: '[{"completed":false,"task":"Compare proposals"},{"completed":false,"task":"Finalize contract"}]', color: '#e74c3c' }
+        ];
         break;
       case 'marketing':
-        data = {
-          nodes: [
-            { id: '1', name: 'Research', status: 'Completed', actionDescription: '' },
-            { id: '2', name: 'Planning', status: 'In Progress', actionDescription: '' },
-            { id: '3', name: 'Execute', status: 'Not Started', actionDescription: '' }
-          ],
-          links: [
-            { source: '1', target: '2' },
-            { source: '2', target: '3' }
-          ]
-        };
+        data.nodes = [
+          { id: '1', name: 'Market Research', status: 'Completed', actionDescription: '[{"completed":false,"task":"Analyze competitors"},{"completed":false,"task":"Define target audience"}]', color: '#2ecc71' },
+          { id: '2', name: 'Campaign Planning', status: 'In Progress', actionDescription: '[{"completed":false,"task":"Set goals & KPIs"},{"completed":false,"task":"Develop content strategy"}]', color: '#f1c40f' },
+          { id: '3', name: 'Execution & Launch', status: 'Not Started', actionDescription: '[{"completed":false,"task":"Create assets"},{"completed":false,"task":"Launch campaign"}]', color: '#e74c3c' }
+        ];
         break;
+        default:
+            data.nodes = [{id: 'root-1', name: 'Start Here', status: 'Not Started', actionDescription: '[]', color: '#3498db', x: 300, y: 150, fx:300, fy:150 }];
+            data.flowchartName = "New Flowchart";
+            document.getElementById('flowchartNameInput').value = data.flowchartName;
     }
-    placeNodesDiagonally();
+    data.nodes.forEach(n => {
+        n.fx = null;
+        n.fy = null;
+    });
+    placeNodesDiagonally(); 
     update();
   }
 
@@ -618,7 +737,7 @@
       let tasks = [];
       taskRows.forEach(row => {
         let checkbox = row.querySelector('input[type="checkbox"]');
-        let taskInput = row.querySelector('input[type="text"], textarea');
+        let taskInput = row.querySelector('textarea'); 
         if (taskInput && taskInput.value.trim() !== "") {
           tasks.push({
             completed: checkbox.checked,
@@ -633,9 +752,11 @@
         deadline: document.getElementById('deadline').value,
         priority: document.getElementById('priority').value,
         actionDescription: JSON.stringify(tasks),
-        color: document.getElementById('nodeColor').value || null
+        color: document.getElementById('nodeColor').value || null 
       });
-      update();
+      selectedNode.fx = selectedNode.x;
+      selectedNode.fy = selectedNode.y;
+      update(); 
     }
     document.getElementById('modal').style.display = 'none';
   };
@@ -644,14 +765,19 @@
 
   document.getElementById('deleteTaskBtn').addEventListener('click', function() {
     let selectedRow = document.querySelector('#taskTable tbody tr.selectedTaskRow');
-    if (selectedRow) selectedRow.remove();
+    if (selectedRow) {
+        selectedRow.remove();
+    }
     document.getElementById('taskTextPopup').style.display = 'none';
   });
 
   document.getElementById('deleteNodeBtn').addEventListener('click', function() {
     if (selectedNode && confirm("Are you sure you want to delete this node? This action cannot be undone.")) {
       data.nodes = data.nodes.filter(n => n.id !== selectedNode.id);
-      data.links = data.links.filter(link => link.source.id !== selectedNode.id && link.target.id !== selectedNode.id); // Corrected this line
+      data.links = data.links.filter(link => 
+        (link.source.id || link.source) !== selectedNode.id && 
+        (link.target.id || link.target) !== selectedNode.id
+      );
       selectedNode = null;
       update();
       document.getElementById('modal').style.display = 'none';
@@ -659,13 +785,25 @@
   });
 
   document.addEventListener('DOMContentLoaded', () => {
-    initD3();
+    initD3(); 
 
-    // Event listener for the new AI Assistant button
     const aiAssistantButton = document.getElementById('aiAssistantBtn');
     if (aiAssistantButton) {
         aiAssistantButton.onclick = openAIAssistant;
     }
+
+    document.getElementById('nodeSizeIncreaseBtn').onclick = () => {
+        if (currentNodeSizeFactor < MAX_NODE_SIZE_FACTOR) {
+            currentNodeSizeFactor = parseFloat((currentNodeSizeFactor + NODE_SIZE_STEP).toFixed(2));
+            updateNodeSizes();
+        }
+    };
+    document.getElementById('nodeSizeDecreaseBtn').onclick = () => {
+        if (currentNodeSizeFactor > MIN_NODE_SIZE_FACTOR) {
+            currentNodeSizeFactor = parseFloat((currentNodeSizeFactor - NODE_SIZE_STEP).toFixed(2));
+            updateNodeSizes();
+        }
+    };
 
 
     document.querySelectorAll('.color-swatch').forEach(swatch => {
@@ -688,14 +826,10 @@
 
     document.getElementById('addNodeBtn').onclick = (e) => {
       e.preventDefault();
-      if (selectedNode) {
-        const newNode = createNode(selectedNode);
-        selectedNode = newNode;
-        nodeClick(e, newNode); // Simulate click to open modal for the new node
-      } else { // If no node is selected, create a root node
-        const newNode = createNode(null);
-        selectedNode = newNode;
-        nodeClick(e, newNode);
+      const newNode = createNode(selectedNode); 
+      if (newNode) {
+        selectedNode = newNode; 
+        nodeClick({ stopPropagation: () => {} }, newNode); 
       }
     };
 
@@ -703,12 +837,10 @@
 
     const uploadButton = document.getElementById('uploadBtn');
     const fileInput = document.getElementById('fileInput');
-    uploadButton.onclick = () => fileInput.click();
+    uploadButton.onclick = () => fileInput.click(); 
     fileInput.onchange = (e) => {
       if (e.target.files.length > 0) {
         loadFromFile(e.target.files[0]);
-        const fileName = e.target.files[0].name;
-        document.getElementById('fileNameDisplay').innerText = `Loaded: ${fileName}`;
       }
     };
 
@@ -718,13 +850,42 @@
         btn.closest('.modal').style.display = 'none';
       };
     });
-    window.onclick = (e) => { if (e.target.classList.contains('modal')) e.target.style.display = 'none'; };
-
-    loadTemplate('prototype');
+    window.onclick = (e) => {
+        if (e.target.classList.contains('modal')) {
+            e.target.style.display = 'none';
+        }
+    };
+    
+    if (data.nodes.length === 0) {
+        loadTemplate('prototype'); 
+    } else {
+        update(); 
+    }
   });
 
-  function createNode(parentNode) {
-    const newNodeId = `node-${Date.now()}`;
+  function createNode(parentNode) { 
+    const newNodeId = `node-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
+    
+    let initialX, initialY;
+    const svgViewBox = svg.attr('viewBox').split(' ');
+    const viewBoxWidth = parseFloat(svgViewBox[2]);
+    const viewBoxHeight = parseFloat(svgViewBox[3]);
+
+    const currentScaledRadius = BASE_NODE_RADIUS * currentNodeSizeFactor;
+
+
+    if (parentNode && typeof parentNode.x === 'number' && typeof parentNode.y === 'number') {
+        initialX = parentNode.x + (Math.random() * 100 - 50); 
+        initialY = parentNode.y + (currentScaledRadius * 2.5) + (Math.random() * 20 - 10); 
+    } else {
+        initialX = viewBoxWidth / 2 + (Math.random() * 200 - 100); 
+        initialY = viewBoxHeight / 3 + (Math.random() * 100 - 50);
+    }
+    
+    initialX = Math.max(currentScaledRadius, Math.min(initialX, viewBoxWidth - currentScaledRadius));
+    initialY = Math.max(currentScaledRadius, Math.min(initialY, viewBoxHeight - currentScaledRadius));
+
+
     const newNode = {
       id: newNodeId,
       name: 'New Task',
@@ -732,174 +893,161 @@
       responsible: '',
       deadline: '',
       priority: 'Normal',
-      actionDescription: '',
+      actionDescription: '[]', 
       color: null,
-      // Initialize position for new nodes if parentNode is not null
-      x: parentNode ? parentNode.x + 150 : 80, 
-      y: parentNode ? parentNode.y + 100 : 80,
-      fx: null, // Initially not fixed
-      fy: null  // Initially not fixed
+      x: initialX,
+      y: initialY,
+      fx: initialX, 
+      fy: initialY  
     };
     data.nodes.push(newNode);
-    if (parentNode) {
-      data.links.push({ source: parentNode.id, target: newNodeId });
-    }
     update();
     return newNode;
   }
+  
+  function updateNodeSizes() {
+    if (!simulation) return;
+    const scaledRadius = BASE_NODE_RADIUS * currentNodeSizeFactor;
+    simulation.force('collide').radius(scaledRadius + 20);
+    simulation.force('charge').strength(-1200 * (scaledRadius / BASE_NODE_RADIUS) ); // Scale charge relative to base size
+    
+    // Update spacing for placeNodesDiagonally if needed, or let simulation adjust
+    // placeNodesDiagonally(); // Could be called if you want to reset initial fixed positions on resize
+
+    update();
+    simulation.alpha(0.3).restart(); 
+  }
+
 
   function update() {
-    const links = linkGroup.selectAll('.link').data(data.links, d => `${d.source.id || d.source}-${d.target.id || d.target}`); // Use a key function
-    links.exit().remove();
-    
-    const linkGen = d3.linkHorizontal() // Changed to linkHorizontal for better default appearance
-        .x(d => d.y) // Swap x and y for horizontal layout if preferred, or adjust as needed
-        .y(d => d.x);
+    if (!svg || !simulation) { 
+        console.error("D3 not initialized for update");
+        return;
+    }
 
-    links.enter()
-      .append('path')
-      .attr('class', 'link')
-      .merge(links)
-      .attr("d", d => {
-          // Ensure source and target are node objects, not just IDs
-          const sourceNode = data.nodes.find(node => node.id === (d.source.id || d.source));
-          const targetNode = data.nodes.find(node => node.id === (d.target.id || d.target));
-          
-          if (sourceNode && targetNode) {
-              // Simple straight line, adjust if curved lines are needed
-              return `M${sourceNode.x},${sourceNode.y}L${targetNode.x},${targetNode.y}`;
-          }
-          return "";
-      });
+    // --- LINK RENDERING COMPLETELY REMOVED ---
+    if (mainZoomGroup) { // Ensure mainZoomGroup is defined
+        const linksGroup = mainZoomGroup.select(".links");
+        if (linksGroup && !linksGroup.empty()) {
+            linksGroup.selectAll('*').remove(); // Clear any children if .links group exists
+        }
+    }
+    if(simulation.force("link")) { 
+        simulation.force("link", null);
+    }
+    // data.links is still maintained for save/load but not rendered.
+    // --- END LINK REMOVAL ---
 
-    const nodes = nodeGroup.selectAll('.node').data(data.nodes, d => d.id); // Use a key function
+    const currentDisplayRadius = BASE_NODE_RADIUS * currentNodeSizeFactor;
+    const currentMainFontSize = 14 * currentNodeSizeFactor;
+    const currentTaskCountFontSize = 10 * currentNodeSizeFactor;
+
+
+    const nodes = nodeGroup.selectAll('.node')
+      .data(data.nodes, d => d.id);
+
     nodes.exit().remove();
-    
+
     const nodesEnter = nodes.enter()
       .append('g')
       .attr('class', 'node')
       .call(d3.drag().on('start', dragStart).on('drag', dragging).on('end', dragEnd))
       .on('click', nodeClick);
 
-    const allNodes = nodesEnter.merge(nodes);
-
-    // Update existing elements instead of removing and re-adding everything
-    allNodes.select('circle')
-        .attr('r', 60)
-        .attr('fill', d => d.color ? d.color : getStatusColor(d.status));
-
-    allNodes.select('text.node-name') // Add a class to distinguish this text
-        .text(d => d.name)
-        .call(wrapText, 100);
-    
-    // For new nodes, append elements if they don't exist
     nodesEnter.append('circle')
-      .attr('r', 60)
-      .attr('fill', d => d.color ? d.color : getStatusColor(d.status))
       .attr('filter', 'url(#nodeShadow)');
 
     nodesEnter.append('text')
-      .attr('class', 'node-name') // Add a class here
+      .attr('class', 'node-name') 
       .attr('text-anchor', 'middle')
-      .attr('dominant-baseline', 'central')
+      .attr('dominant-baseline', 'central');
+
+    nodesEnter.append('g')
+      .attr('class', 'taskCountGroup');
+
+
+    const allNodes = nodesEnter.merge(nodes);
+
+    allNodes.select('circle')
+      .attr('r', currentDisplayRadius) 
+      .attr('fill', d => d.color ? d.color : getStatusColor(d.status));
+
+    allNodes.select('text.node-name')
+      .style('font-size', `${currentMainFontSize}px`) 
       .text(d => d.name)
-      .call(wrapText, 100);
+      .call(wrapText, currentDisplayRadius * 1.5, currentMainFontSize); // Pass current font size
 
-    nodesEnter.append('g') // Append task count group only for new nodes
-      .attr('class', 'taskCountGroup')
-      .attr('transform', 'translate(0,-70)');
-    
-    // Update task count for all nodes
-    allNodes.select('.taskCountGroup') 
+
+    allNodes.select('.taskCountGroup')
+      .attr('transform', `translate(0, -${currentDisplayRadius + (12 * currentNodeSizeFactor)})`) 
       .each(function(d) {
-        // Clear previous rect and text before redrawing
-        d3.select(this).selectAll('*').remove();
-
+        const group = d3.select(this);
+        group.selectAll('*').remove(); 
         let tasks = [];
         if (d.actionDescription) {
-          try { tasks = JSON.parse(d.actionDescription); } catch (e) { tasks = []; }
+          try { 
+            const parsed = JSON.parse(d.actionDescription);
+            if (Array.isArray(parsed)) tasks = parsed;
+          } catch (e) { /* ignore */ }
         }
+        
         const completedCount = tasks.filter(t => t.completed).length;
         const totalCount = tasks.length;
-        const textString = `✅ ${completedCount} of ${totalCount}`;
         
-        const textEl = d3.select(this).append('text')
-          .attr('text-anchor', 'middle')
-          .attr('dy', '0.35em')
-          .attr('fill', 'white')
-          .style('font-size', '10px')
-          .text(textString);
-        
-        const textNode = textEl.node();
-        if (textNode) { // Check if textNode is not null
-            const textWidth = textNode.getComputedTextLength();
-            const rectWidth = textWidth + 12;
-            const rectHeight = 18;
-
-            d3.select(this).insert('rect', 'text')
-              .attr('width', rectWidth)
-              .attr('height', rectHeight)
-              .attr('x', -rectWidth / 2)
-              .attr('y', -rectHeight / 2)
-              .attr('rx', 9)
-              .attr('ry', 9)
-              .attr('fill', '#2c3e50');
+        if (totalCount > 0) { 
+            const textString = `✅ ${completedCount}/${totalCount}`;
+            const textEl = group.append('text')
+              .style('font-size', `${currentTaskCountFontSize}px`) // Apply scaled font size
+              .text(textString); 
+            
+            const textNode = textEl.node();
+            if (textNode) { 
+                const bbox = textNode.getBBox();
+                const rectWidth = bbox.width + (10 * currentNodeSizeFactor); 
+                const rectHeight = bbox.height + (4 * currentNodeSizeFactor);  
+                group.insert('rect', 'text') 
+                  .attr('width', rectWidth)
+                  .attr('height', rectHeight)
+                  .attr('x', -rectWidth / 2)
+                  .attr('y', -(rectHeight / 2) - (2 * currentNodeSizeFactor) ) // Adjust y based on scaled factor
+                  .attr('rx', rectHeight / 2)  
+                  .attr('ry', rectHeight / 2);
+            }
         }
       });
 
-    simulation.nodes(data.nodes)
-      .on('tick', () => {
-        allNodes.attr('transform', d => `translate(${d.x || 0},${d.y || 0})`); // Added fallback for x,y
-        links.attr("d", d => {
-            const sourceNode = data.nodes.find(node => node.id === (d.source.id || d.source));
-            const targetNode = data.nodes.find(node => node.id === (d.target.id || d.target));
-            if (sourceNode && targetNode) {
-                return `M${sourceNode.x || 0},${sourceNode.y || 0}L${targetNode.x || 0},${targetNode.y || 0}`;
-            }
-            return "";
-        });
-      });
+    simulation.nodes(data.nodes).on('tick', () => {
+      allNodes.attr('transform', d => `translate(${d.x || 0},${d.y || 0})`);
+    });
 
-    simulation.force('link').links(data.links);
-    simulation.alpha(1).restart();
-    
-    const flowchart = document.getElementById('flowchart');
-    const containerWidth = flowchart.clientWidth;
-    const requiredWidth = Math.max(containerWidth * 2, data.nodes.length * nodeWidthEstimate);
-    svg.attr('width', requiredWidth);
+    simulation.alpha(0.3).restart(); 
   }
+
 
   function getStatusColor(status) {
     switch (status) {
-      case 'Not Started': return '#e74c3c';
-      case 'In Progress': return '#f1c40f';
-      case 'Completed':   return '#2ecc71';
-      default:            return '#3498db';
+      case 'Not Started': return '#e74c3c'; 
+      case 'In Progress': return '#f1c40f'; 
+      case 'Completed':   return '#2ecc71'; 
+      default:            return '#3498db'; 
     }
   }
 
-  function dragStart(event) {
+  function dragStart(event, d) {
     if (!event.active) simulation.alphaTarget(0.3).restart();
-    event.subject.fx = event.subject.x;
-    event.subject.fy = event.subject.y;
+    d.fx = d.x;
+    d.fy = d.y;
   }
-  function dragging(event) {
-    event.subject.fx = event.x;
-    event.subject.fy = event.y;
-    // Optional: if you want the node to immediately update its x,y during drag for other calculations
-    // event.subject.x = event.x;
-    // event.subject.y = event.y;
+  function dragging(event, d) {
+    d.fx = event.x;
+    d.fy = event.y;
   }
-  function dragEnd(event) {
+  function dragEnd(event, d) {
     if (!event.active) simulation.alphaTarget(0);
-    // Keep fx and fy to fix position after drag, remove these lines if you want nodes to be repositioned by simulation after drag
-    // event.subject.fx = null; 
-    // event.subject.fy = null;
   }
 
-  // Update chart name on input
   document.getElementById('flowchartNameInput').addEventListener('input', function() {
-    data.flowchartName = this.value;
+    data.flowchartName = this.value || "Untitled Flowchart"; 
   });
 </script>
 </body>
