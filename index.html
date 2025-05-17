@@ -159,7 +159,8 @@
       text-anchor: middle;
       pointer-events: none; 
     }
-    /* Removed .link style as we are not drawing links */
+    /* NO .link STYLES NEEDED */
+
     .action-buttons {
       display: flex;
       gap: 10px;
@@ -215,14 +216,14 @@
         cursor: pointer;
         font-weight: 500;
     }
-    .taskCountGroup text { /* Style for task count text */
+    .taskCountGroup text { 
         fill: white;
-        font-size: 10px; /* Original size for task count */
+        font-size: 10px; 
         text-anchor: middle;
-        dy: 0.35em; /* Vertical alignment for single line */
+        dy: 0.35em; 
     }
-    .taskCountGroup rect { /* Style for task count background */
-        fill: #2c3e50; /* Original background */
+    .taskCountGroup rect { 
+        fill: #2c3e50; 
         rx: 9;
         ry: 9;
     }
@@ -376,7 +377,7 @@
     window.open(assistantUrl, 'FlowchartAIAssistant', features);
   }
 
-  function wrapText(textElement, width) {
+ function wrapText(textElement, width) {
     textElement.each(function() {
         const textNode = d3.select(this);
         const words = textNode.text().split(/\s+/).reverse();
@@ -384,45 +385,40 @@
         let line = [];
         let lineNumber = 0;
         const lineHeight = 1.1; // ems
-        const x = textNode.attr("x") || 0; // Keep x attribute if present (should be 0 for centered text)
-        const y = textNode.attr("y") || 0; // Keep y attribute if present (should be 0 for centered text)
+        const x = textNode.attr("x") || 0; 
+        const y = textNode.attr("y") || 0; 
         
-        textNode.text(null); // Clear existing text content
+        textNode.text(null); 
 
-        let tspan = textNode.append("tspan").attr("x", x).attr("y", y);
+        let tspan = textNode.append("tspan").attr("x", x).attr("y", y); // Initial tspan dy will be adjusted
         let tspans = [tspan];
 
         while (word = words.pop()) {
             line.push(word);
             tspan.text(line.join(" "));
             if (tspan.node().getComputedTextLength() > width && line.length > 1) {
-                line.pop(); // remove last word
-                tspan.text(line.join(" ")); // set tspan to line without last word
-                line = [word]; // start new line with the popped word
-                tspan = textNode.append("tspan").attr("x", x).attr("y", y).attr("dy", `${++lineNumber * lineHeight}em`).text(word);
+                line.pop(); 
+                tspan.text(line.join(" ")); 
+                line = [word]; 
+                // Subsequent tspans are positioned relative to the previous one using dy
+                tspan = textNode.append("tspan").attr("x", x).attr("dy", `${lineHeight}em`).text(word);
                 tspans.push(tspan);
+                lineNumber++; // Only count additional lines
             }
         }
-        // Vertical centering: shift all tspans up by half of the total height
-        const totalLines = tspans.length;
-        const initialDyOffset = -((totalLines - 1) * lineHeight) / 2;
+        // Vertical centering: shift the entire block of text up
+        const totalHeight = (lineNumber) * lineHeight; // Height of additional lines
+        const initialDyOffset = -(totalHeight / 2);
         
-        tspans.forEach((s, i) => {
-            if (i === 0) {
-                s.attr("dy", `${initialDyOffset}em`);
-            } else {
-                // dy for subsequent lines is already relative to the previous tspan's dy
-                // but we need to adjust it from the initialDyOffset baseline
-                s.attr("dy", `${lineHeight}em`); // This is relative to the previous tspan by default
-            }
-        });
+        tspans[0].attr("dy", `${initialDyOffset}em`); // Apply offset only to the first tspan
+                                                    // Other tspans are already relative via their dy
     });
 }
 
 
   let selectedNode = null;
-  let data = { flowchartName: "Untitled Flowchart", nodes: [], links: [] };
-  let simulation, svg, nodeGroup, mainZoomGroup; // Removed linkGroup
+  let data = { flowchartName: "Untitled Flowchart", nodes: [], links: [] }; // Links array kept for data structure compatibility
+  let simulation, svg, nodeGroup, mainZoomGroup;
   const nodeRadius = 60; // Restored original node radius
 
 
@@ -466,22 +462,19 @@
     `);
 
     simulation = d3.forceSimulation()
-      // Removed .force('link')
-      .force('charge', d3.forceManyBody().strength(-1200)) // Increased repulsion further
-      .force('collide', d3.forceCollide().radius(nodeRadius + 20).strength(0.9)) // Slightly larger collision
+      // LINK FORCE REMOVED
+      .force('charge', d3.forceManyBody().strength(-1200)) 
+      .force('collide', d3.forceCollide().radius(nodeRadius + 20).strength(0.9)) 
       .force('center', d3.forceCenter(virtualWidth / 2, virtualHeight / 2)); 
 
-    // Removed linkGroup initialization
+    // LINK GROUP INITIALIZATION REMOVED
     nodeGroup = mainZoomGroup.append('g').attr("class", "nodes");
 
     window.addEventListener('resize', () => {
         const newContainerWidth = flowchartContainer.clientWidth;
         const newContainerHeight = flowchartContainer.clientHeight;
-        const newVirtualWidth = Math.max(newContainerWidth * 1.5, virtualWidth); // Keep virtual space logic
+        const newVirtualWidth = Math.max(newContainerWidth * 1.5, virtualWidth);
         const newVirtualHeight = Math.max(newContainerHeight* 1.5, virtualHeight);
-
-        // Optional: Recalculate viewBox if you want the "zoom level" to adapt more aggressively on resize.
-        // svg.attr('viewBox', `0 0 ${newVirtualWidth} ${newVirtualHeight}`);
         
         simulation.force('center', d3.forceCenter(newVirtualWidth / 2, newVirtualHeight / 2));
         simulation.alpha(0.3).restart(); 
@@ -492,17 +485,17 @@
   function placeNodesDiagonally() {
     const initialX = (mainZoomGroup.node() ? parseFloat(svg.attr('viewBox').split(' ')[2]) / 2 : 1000) ;
     const initialY = 150; 
-    const horizontalSpacing = 250; // Further increased spacing
-    const verticalSpacing = 200;   // Further increased spacing
+    const horizontalSpacing = 250; 
+    const verticalSpacing = 200;   
 
 
     data.nodes.forEach((node, i) => {
       if (node.x == null || node.fx == null) { 
-        node.x = initialX + (i % 3 - 1) * horizontalSpacing + (Math.random() * 50 - 25); // Add some jitter
+        node.x = initialX + (i % 3 - 1) * horizontalSpacing + (Math.random() * 50 - 25); 
         node.fx = node.x; 
       }
       if (node.y == null || node.fy == null) {
-        node.y = initialY + Math.floor(i / 3) * verticalSpacing + (Math.random() * 50 - 25); // Add some jitter
+        node.y = initialY + Math.floor(i / 3) * verticalSpacing + (Math.random() * 50 - 25); 
         node.fy = node.y; 
       }
     });
@@ -619,10 +612,7 @@
           x: n.x, y: n.y, 
           fx: n.fx, fy: n.fy 
         })),
-        links: data.links.map(l => ({ // Still export links array even if not rendered
-          source: typeof l.source === 'object' ? l.source.id : l.source,
-          target: typeof l.target === 'object' ? l.target.id : l.target
-        }))
+        links: data.links // Keep links in the exported JSON even if not rendered
       };
       const dataStr = JSON.stringify(exportData, null, 2);
       const blob = new Blob([dataStr], { type: 'application/json' });
@@ -656,7 +646,7 @@
       reader.onload = (e) => {
         try {
           const fileData = JSON.parse(e.target.result);
-          if (fileData && typeof fileData === 'object' && Array.isArray(fileData.nodes) ) { // Links array is optional now for loading
+          if (fileData && typeof fileData === 'object' && Array.isArray(fileData.nodes) ) { 
             data.flowchartName = fileData.flowchartName || "Untitled Flowchart";
             document.getElementById('flowchartNameInput').value = data.flowchartName;
             
@@ -667,8 +657,7 @@
                 fx: n.fx !== undefined ? n.fx : n.x, 
                 fy: n.fy !== undefined ? n.fy : n.y
             }));
-            // Load links if they exist, otherwise initialize as empty
-            data.links = Array.isArray(fileData.links) ? fileData.links : []; 
+            data.links = Array.isArray(fileData.links) ? fileData.links : []; // Load links if present, for data integrity
             
             document.getElementById('fileNameDisplay').innerText = `Loaded: ${file.name}`;
             document.getElementById('fileNameDisplay').title = `Loaded: ${file.name}`;
@@ -689,7 +678,7 @@
   function loadTemplate(template) {
     data.flowchartName = template.charAt(0).toUpperCase() + template.slice(1) + " Template";
     document.getElementById('flowchartNameInput').value = data.flowchartName;
-    data.links = []; // Ensure links are reset for templates if they are not defined by template
+    data.links = []; // Templates will not have links by default now
 
     switch (template) {
       case 'prototype':
@@ -698,8 +687,6 @@
           { id: '2', name: 'Development', status: 'In Progress', actionDescription: '[{"completed":false,"task":"Setup environment"},{"completed":false,"task":"Build core features"}]', color: '#f1c40f' },
           { id: '3', name: 'Testing', status: 'Not Started', actionDescription: '[{"completed":false,"task":"Write test cases"},{"completed":false,"task":"Perform QA"}]', color: '#e74c3c' }
         ];
-        // For templates, if you want them connected, define links here
-        // data.links = [ { source: '1', target: '2' }, { source: '2', target: '3' } ]; 
         break;
       case 'vendor':
         data.nodes = [
@@ -707,7 +694,6 @@
           { id: '2', name: 'Outreach & Demo', status: 'In Progress', actionDescription: '[{"completed":false,"task":"Send RFPs"},{"completed":false,"task":"Schedule demos"}]', color: '#f1c40f' },
           { id: '3', name: 'Negotiate & Select', status: 'Not Started', actionDescription: '[{"completed":false,"task":"Compare proposals"},{"completed":false,"task":"Finalize contract"}]', color: '#e74c3c' }
         ];
-        // data.links = [ { source: '1', target: '2' }, { source: '2', target: '3' } ];
         break;
       case 'marketing':
         data.nodes = [
@@ -715,7 +701,6 @@
           { id: '2', name: 'Campaign Planning', status: 'In Progress', actionDescription: '[{"completed":false,"task":"Set goals & KPIs"},{"completed":false,"task":"Develop content strategy"}]', color: '#f1c40f' },
           { id: '3', name: 'Execution & Launch', status: 'Not Started', actionDescription: '[{"completed":false,"task":"Create assets"},{"completed":false,"task":"Launch campaign"}]', color: '#e74c3c' }
         ];
-        // data.links = [ { source: '1', target: '2' }, { source: '2', target: '3' } ];
         break;
         default:
             data.nodes = [{id: 'root-1', name: 'Start Here', status: 'Not Started', actionDescription: '[]', color: '#3498db', x: 300, y: 150, fx:300, fy:150 }];
@@ -772,15 +757,13 @@
   });
 
   document.getElementById('deleteNodeBtn').addEventListener('click', function() {
-    if (selectedNode && confirm("Are you sure you want to delete this node? This will also remove any connections if they were present.")) {
+    if (selectedNode && confirm("Are you sure you want to delete this node? This action cannot be undone.")) {
       data.nodes = data.nodes.filter(n => n.id !== selectedNode.id);
-      // Also remove links connected to the deleted node if links were to be drawn
-      // Since links are fully removed from drawing, this part might not be strictly necessary for visuals
-      // but good for data integrity if links were to be re-enabled.
-      data.links = data.links.filter(link => 
-        (link.source.id || link.source) !== selectedNode.id && 
-        (link.target.id || link.target) !== selectedNode.id
-      );
+      // Links are already not being rendered, but if they were, this would be where to filter them:
+      // data.links = data.links.filter(link => 
+      //   (link.source.id || link.source) !== selectedNode.id && 
+      //   (link.target.id || link.target) !== selectedNode.id
+      // );
       selectedNode = null;
       update();
       document.getElementById('modal').style.display = 'none';
@@ -852,24 +835,25 @@
     }
   });
 
-  function createNode(parentNode) { // parentNode can be null for a root node
+  function createNode(parentNode) { 
     const newNodeId = `node-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
     
     let initialX, initialY;
-    const svgWidth = parseFloat(svg.attr('viewBox').split(' ')[2]);
-    const svgHeight = parseFloat(svg.attr('viewBox').split(' ')[3]);
+    const svgViewBox = svg.attr('viewBox').split(' ');
+    const viewBoxWidth = parseFloat(svgViewBox[2]);
+    const viewBoxHeight = parseFloat(svgViewBox[3]);
 
 
     if (parentNode && typeof parentNode.x === 'number' && typeof parentNode.y === 'number') {
         initialX = parentNode.x + (Math.random() * 100 - 50); 
-        initialY = parentNode.y + 150 + (Math.random() * 20 - 10); // Typically below parent
+        initialY = parentNode.y + 150 + (Math.random() * 20 - 10); 
     } else {
-        initialX = svgWidth / 2 + (Math.random() * 200 - 100); // More spread for initial root nodes
-        initialY = svgHeight / 3 + (Math.random() * 100 - 50);
+        initialX = viewBoxWidth / 2 + (Math.random() * 200 - 100); 
+        initialY = viewBoxHeight / 3 + (Math.random() * 100 - 50);
     }
     
-    initialX = Math.max(nodeRadius, Math.min(initialX, svgWidth - nodeRadius));
-    initialY = Math.max(nodeRadius, Math.min(initialY, svgHeight - nodeRadius));
+    initialX = Math.max(nodeRadius, Math.min(initialX, viewBoxWidth - nodeRadius));
+    initialY = Math.max(nodeRadius, Math.min(initialY, viewBoxHeight - nodeRadius));
 
 
     const newNode = {
@@ -887,10 +871,7 @@
       fy: initialY  
     };
     data.nodes.push(newNode);
-    // Removed link creation logic as links are disabled
-    // if (parentNode && parentNode.id) { 
-    //   data.links.push({ source: parentNode.id, target: newNodeId });
-    // }
+    // Link creation logic removed
     update();
     return newNode;
   }
@@ -901,10 +882,12 @@
         return;
     }
 
-    // --- LINKS ARE COMPLETELY REMOVED FROM RENDERING ---
-    if (linkGroup) linkGroup.selectAll('.link').remove(); // Ensure any old links are gone
-    data.links = []; // Clear any links from the data to prevent simulation issues
-    simulation.force('link', null); // Remove link force if it was ever added
+    // --- ALL LINK RENDERING CODE IS REMOVED ---
+    // Ensure linkGroup is not referenced. If it was defined globally, it's now removed.
+    // The simulation also no longer has a link force.
+    // data.links can still exist in the `data` object for file I/O.
+    const currentLinksSelection = mainZoomGroup.select(".links").selectAll('.link');
+    currentLinksSelection.remove(); // Explicitly remove any link elements that might exist from previous renders
     // --- END OF LINK REMOVAL ---
 
 
@@ -920,32 +903,32 @@
       .on('click', nodeClick);
 
     nodesEnter.append('circle')
-      .attr('r', nodeRadius) // Use original nodeRadius
+      .attr('r', nodeRadius) 
       .attr('filter', 'url(#nodeShadow)');
 
     nodesEnter.append('text')
       .attr('class', 'node-name') 
       .attr('text-anchor', 'middle');
-      // dy for vertical centering will be handled by wrapText
+      // dy for vertical centering is handled by wrapText
 
-    // Logic for Task Counter - RESTORED
+    // Task Counter Group - Appended for new nodes
     nodesEnter.append('g')
       .attr('class', 'taskCountGroup')
-      .attr('transform', `translate(0, -${nodeRadius + 12})`); // Position above node circle
+      .attr('transform', `translate(0, -${nodeRadius + 12})`);
 
 
     const allNodes = nodesEnter.merge(nodes);
 
     allNodes.select('circle')
-      .attr('r', nodeRadius) // Ensure existing circles also use original radius
+      .attr('r', nodeRadius) 
       .attr('fill', d => d.color ? d.color : getStatusColor(d.status));
 
     allNodes.select('text.node-name')
       .text(d => d.name)
-      .call(wrapText, nodeRadius * 1.6); // wrapWidth based on radius
+      .call(wrapText, nodeRadius * 1.6); 
 
 
-    // Update/Create Task Counter - RESTORED
+    // Task Counter Update - RESTORED and VERIFIED
     allNodes.select('.taskCountGroup')
       .each(function(d) {
         d3.select(this).selectAll('*').remove(); 
@@ -954,7 +937,7 @@
           try { 
             const parsed = JSON.parse(d.actionDescription);
             if (Array.isArray(parsed)) tasks = parsed;
-          } catch (e) { /* ignore if not valid JSON array */ }
+          } catch (e) { /* If not valid JSON, tasks remains empty */ }
         }
         
         const completedCount = tasks.filter(t => t.completed).length;
@@ -963,37 +946,29 @@
         if (totalCount > 0) { 
             const textString = `✅ ${completedCount}/${totalCount}`;
             const textEl = d3.select(this).append('text')
-              // .attr('text-anchor', 'middle') // Already styled in CSS
-              // .attr('dy', '0.35em')          // Already styled in CSS
-              // .attr('fill', '#fff')           // Already styled in CSS
-              // .style('font-size', '10px')     // Already styled in CSS
-              // .style('font-weight', '500') // Can add if needed
-              .text(textString);
+              .text(textString); // Styling is now in CSS
             
             const textNode = textEl.node();
-            if (textNode) {
+            if (textNode) { // Check if textNode is available
                 const bbox = textNode.getBBox();
-                const rectWidth = bbox.width + 12; // Padding for rect
-                const rectHeight = bbox.height + 6;  // Padding for rect
-                d3.select(this).insert('rect', 'text')
+                const rectWidth = bbox.width + 10; 
+                const rectHeight = bbox.height + 6;  
+                d3.select(this).insert('rect', 'text') // Insert rect behind text
                   .attr('width', rectWidth)
                   .attr('height', rectHeight)
                   .attr('x', -rectWidth / 2)
-                  .attr('y', -(rectHeight / 2) -2) // Adjust y for dy of text
-                  // .attr('rx', rectHeight / 2)  // Already styled in CSS
-                  // .attr('ry', rectHeight / 2)
-                  // .attr('fill', 'rgba(44, 62, 80, 0.8)'); // Already styled in CSS
+                  .attr('y', -(rectHeight / 2) - 2) // Slight y adjustment for dy of text
             }
         }
       });
 
     simulation.nodes(data.nodes).on('tick', () => {
       allNodes.attr('transform', d => `translate(${d.x || 0},${d.y || 0})`);
-      // Link ticking removed
+      // No link ticking
     });
 
-    // simulation.force('link').links(data.links); // Links force removed
-    simulation.alpha(0.6).restart(); // Slightly less alpha if no links
+    // simulation.force('link').links(data.links); // LINK FORCE IS REMOVED
+    simulation.alpha(0.6).restart(); 
   }
 
 
@@ -1017,7 +992,6 @@
   }
   function dragEnd(event, d) {
     if (!event.active) simulation.alphaTarget(0);
-    // Keep fx and fy so nodes stay where dragged
   }
 
   document.getElementById('flowchartNameInput').addEventListener('input', function() {
