@@ -1,4 +1,284 @@
-<!DOCTYPE html>
+  document.addEventListener('DOMContentLoaded', () => {
+    initD3(); 
+
+    // AI Assistant button
+    document.getElementById('aiAssistantBtn').onclick = openAIAssistant;
+
+    // Rearrange button
+    document.getElementById('arrangeBtn').onclick = cycleLayout;
+
+    // Color swatches
+    document.querySelectorAll('.color-swatch').forEach(swatch => {
+      swatch.addEventListener('click', () => {
+        document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected-swatch'));
+        swatch.classList.add('selected-swatch');
+        document.getElementById('nodeColor').value = swatch.dataset.color;
+      });
+    });
+
+    // Template button
+    document.getElementById('templateBtn').onclick = () => {
+      document.getElementById('templateModal').style.display = 'block';
+    };
+    
+    // Template selection
+    document.querySelectorAll('.template-btn').forEach(btn => {
+      btn.onclick = (e) => {
+        loadTemplate(e.target.dataset.template);
+        document.getElementById('templateModal').style.display = 'none';
+      };
+    });
+
+    // Add new node
+    document.getElementById('addNodeBtn').onclick = (e) => {
+      e.preventDefault();
+      const newNode = createNode(selectedNode); 
+      if (newNode) {
+        selectedNode = newNode; 
+        nodeClick({ stopPropagation: () => {} }, newNode); 
+      }
+    };
+
+    // Export button
+    document.getElementById('exportBtn').onclick = saveToFile;
+
+    // Upload button
+    const uploadButton = document.getElementById('uploadBtn');
+    const fileInput = document.getElementById('fileInput');
+    uploadButton.onclick = () => fileInput.click(); 
+    fileInput.onchange = (e) => {
+      if (e.target.files.length > 0) {
+        loadFromFile(e.target.files[0]);
+      }
+    };
+
+    // Modal close buttons
+    document.querySelectorAll('.close-button').forEach(btn => {
+      btn.onclick = (e) => {
+        e.stopPropagation();
+        btn.closest('.modal').style.display = 'none';
+      };
+    });
+    
+    // Click outside to close modals
+    window.onclick = (e) => {
+        if (e.target.classList.contains('modal')) {
+            e.target.style.display = 'none';
+        }
+    };
+    
+    // Form submission
+    document.getElementById('taskForm').onsubmit = (e) => {
+      e.preventDefault();
+      if (selectedNode) {
+        let taskRows = document.querySelectorAll('#taskTable tbody tr');
+        let tasks = [];
+        taskRows.forEach(row => {
+          let checkbox = row.querySelector('input[type="checkbox"]');
+          let taskInput = row.querySelector('textarea'); 
+          if (taskInput && taskInput.value.trim() !== "") {
+            tasks.push({
+              completed: checkbox.checked,
+              task: taskInput.value.trim()
+            });
+          }
+        });
+        Object.assign(selectedNode, {
+          name: document.getElementById('taskName').value,
+          responsible: document.getElementById('responsible').value,
+          status: document.getElementById('status').value,
+          deadline: document.getElementById('deadline').value,
+          priority: document.getElementById('priority').value,
+          actionDescription: JSON.stringify(tasks),
+          color: document.getElementById('nodeColor').value || null 
+        });
+        selectedNode.fx = selectedNode.x; 
+        selectedNode.fy = selectedNode.y;
+        update(); 
+      }
+      document.getElementById('modal').style.display = 'none';
+    };
+
+    // Add task row button
+    document.getElementById('addTaskRowBtn').addEventListener('click', () => addTaskRow({}));
+
+    // Delete task button
+    document.getElementById('deleteTaskBtn').addEventListener('click', function() {
+      let selectedRow = document.querySelector('#taskTable tbody tr.selectedTaskRow');
+      if (selectedRow) {
+          selectedRow.remove();
+      }
+      document.getElementById('taskTextPopup').style.display = 'none';
+    });
+
+    // Delete node button
+    document.getElementById('deleteNodeBtn').addEventListener('click', function() {
+      if (selectedNode && confirm("Are you sure you want to delete this node? This action cannot be undone.")) {
+        // Remove links connected to this node
+        data.links = data.links.filter(link => 
+          (link.source.id || link.source) !== selectedNode.id && 
+          (link.target.id || link.target) !== selectedNode.id
+        );
+        
+        // Remove the node
+        data.nodes = data.nodes.filter(n => n.id !== selectedNode.id);
+        
+        selectedNode = null;
+        update();
+        document.getElementById('modal').style.display = 'none';
+      }
+    });
+    
+    // Flowchart name input
+    document.getElementById('flowchartNameInput').addEventListener('input', function() {
+      data.flowchartName = this.value || "Untitled Flowchart"; 
+    });
+    
+    // Try to load SWN flowchart if available, otherwise load prototype template
+    try {
+      const swnFlowchart = {
+        "nodes": [
+          {
+            "id": "1",
+            "name": "1. Core Design & User Journey Finalization",
+            "status": "In Progress",
+            "x": 200,
+            "y": 200,
+            "responsible": "Shakoure",
+            "deadline": "2025-05-21",
+            "priority": "High",
+            "actionDescription": "Finalize all aspects of user journey, including onboarding, form layouts, and interaction design."
+          },
+          {
+            "id": "2",
+            "name": "2. Core Platform Development",
+            "status": "Completed",
+            "x": 400,
+            "y": 200,
+            "responsible": "Shakoure",
+            "deadline": "2025-02-20",
+            "priority": "High",
+            "actionDescription": "Complete dashboard and AI chat module with Supabase auth and form logic."
+          },
+          {
+            "id": "3",
+            "name": "3. Marketing Strategy & Asset Development",
+            "status": "In Progress",
+            "x": 600,
+            "y": 200,
+            "responsible": "Shakoure",
+            "deadline": "2025-03-01",
+            "priority": "Normal",
+            "actionDescription": "Develop marketing assets, email drip campaigns, SEO blog on Wix, and social strategy."
+          },
+          {
+            "id": "4",
+            "name": "4. Influencer Program Development - Phase 1: Flowchart Creation",
+            "status": "Not Started",
+            "x": 800,
+            "y": 300,
+            "responsible": "Shakoure",
+            "deadline": "2025-05-26",
+            "priority": "High",
+            "actionDescription": "Create detailed flowchart for influencer partnerships including onboarding, in-app content, and agreements."
+          },
+          {
+            "id": "5",
+            "name": "5. Jotform AI Onboarding Assistant",
+            "status": "Not Started",
+            "x": 1000,
+            "y": 300,
+            "responsible": "Shakoure",
+            "deadline": "2025-03-10",
+            "priority": "High",
+            "actionDescription": "Train and configure Jotform AI agent to explain profile fields and guide onboarding."
+          },
+          {
+            "id": "6",
+            "name": "6. Technical Improvements from Codebase Review",
+            "status": "Not Started",
+            "x": 1200,
+            "y": 200,
+            "responsible": "Shakoure",
+            "deadline": "2025-06-15",
+            "priority": "Normal",
+            "actionDescription": "Implement 10 improvement areas from codebase review covering UX, backend, and performance."
+          },
+          {
+            "id": "7",
+            "name": "7. Chat UX Consistency",
+            "status": "Not Started",
+            "x": 1400,
+            "y": 200,
+            "responsible": "Shakoure",
+            "deadline": "2025-05-20",
+            "priority": "High",
+            "actionDescription": "Unify Dashboard's ChatGPT UI with Jotform AI Assistant UI using a consistent iframe/modal design."
+          }
+        ],
+        "links": [
+          {
+            "source": "1",
+            "target": "2"
+          },
+          {
+            "source": "2",
+            "target": "3"
+          },
+          {
+            "source": "3",
+            "target": "4"
+          },
+          {
+            "source": "4",
+            "target": "5"
+          },
+          {
+            "source": "2",
+            "target": "6"
+          },
+          {
+            "source": "2",
+            "target": "7"
+          }
+        ]
+      };
+      
+      data.flowchartName = "SWN Development";
+      document.getElementById('flowchartNameInput').value = data.flowchartName;
+      
+      // Process nodes to ensure correct format
+      data.nodes = swnFlowchart.nodes.map(n => {
+        // Convert string action descriptions to proper JSON arrays
+        let actionDesc = n.actionDescription || '';
+        if (typeof actionDesc === 'string' && !actionDesc.startsWith('[')) {
+          actionDesc = JSON.stringify([{
+            completed: false,
+            task: actionDesc
+          }]);
+        }
+        
+        return {
+          ...n,
+          actionDescription: actionDesc,
+          x: n.x || null,
+          y: n.y || null,
+          fx: n.x || null,
+          fy: n.y || null
+        };
+      });
+      
+      // Process links
+      data.links = swnFlowchart.links.map(link => ({
+        source: link.source,
+        target: link.target
+      }));
+      
+      update();
+    } catch (e) {
+      console.log("SWN flowchart not loaded, using prototype template:", e);
+      loadTemplate('prototype');
+    }<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -63,10 +343,9 @@
       background: #27ae60;
       display: inline-block;
     }
-    nav .ai-assistant-btn { /* Retained for when you want to re-add it */
+    nav .ai-assistant-btn {
       background: #8e44ad; 
     }
-    /* Removed .node-size-btn for this version */
     #fileNameDisplay {
         margin-left: 0.5rem;
         font-size: 0.9em;
@@ -156,12 +435,17 @@
     }
     .node text.node-name { 
       fill: white;
-      font-size: 14px; /* Restored original font size */
+      font-size: 14px;
       text-anchor: middle;
       dominant-baseline: central; 
       pointer-events: none; 
     }
-
+    .link {
+      stroke: #aaa;
+      stroke-width: 2px;
+      stroke-opacity: 0.6;
+      marker-end: url(#arrowhead);
+    }
     .action-buttons {
       display: flex;
       gap: 10px;
@@ -219,14 +503,18 @@
     }
     .taskCountGroup text { 
         fill: white;
-        font-size: 10px; /* Original task count font size */
+        font-size: 10px;
         text-anchor: middle;
         dy: 0.35em; 
     }
     .taskCountGroup rect { 
-        fill: #2c3e50; /* Original task count background */
+        fill: #2c3e50;
         rx: 9; 
         ry: 9; 
+    }
+    .arrange-btn {
+      background: #f39c12;
+      display: inline-block;
     }
 
     @media (max-width: 768px) {
@@ -273,6 +561,7 @@
     <button id="exportBtn">Export</button>
     <input type="file" id="fileInput" accept=".json">
     <button id="uploadBtn" class="upload-btn">Upload</button>
+    <button id="arrangeBtn" class="arrange-btn">Rearrange</button>
     <div id="fileNameDisplay">No file loaded</div>
   </nav>
 </header>
@@ -280,7 +569,6 @@
 <div id="flowchartContainer">
     <svg id="flowchart"></svg>
 </div>
-
 
 <div id="modal" class="modal">
   <div class="modal-content">
@@ -349,6 +637,7 @@
     <button class="template-btn" data-template="prototype">Prototype Development</button>
     <button class="template-btn" data-template="vendor">Vendor Outreach</button>
     <button class="template-btn" data-template="marketing">Marketing Campaign</button>
+    <button class="template-btn" data-template="swn">SWN Development</button>
   </div>
 </div>
 
@@ -361,7 +650,15 @@
 </div>
 
 <script>
-  // --- AI Assistant Button Function (Kept as it's unrelated to D3 issues) ---
+  // --- Global D3 Variables ---
+  let selectedNode = null;
+  let data = { flowchartName: "Untitled Flowchart", nodes: [], links: [] }; 
+  let simulation, svg, nodeGroup, linkGroup, mainZoomGroup;
+  let currentLayout = 'force'; // Default layout
+  
+  const nodeRadius = 60;
+  
+  // --- AI Assistant Button Function ---
   function openAIAssistant() {
     const assistantUrl = 'https://chatgpt.com/g/g-678c450b02988191b07d47c7a5bd9d4a-flow-chart-assistant';
     const screenWidth = window.screen.availWidth;
@@ -375,8 +672,8 @@
     window.open(assistantUrl, 'FlowchartAIAssistant', features);
   }
 
-  // --- Text Wrapping Function (Restored to a known good state) ---
-  function wrapText(textElement, width) { // baseFontSize removed as it's fixed now
+  // --- Text Wrapping Function ---
+  function wrapText(textElement, width) {
     textElement.each(function() {
         const textNode = d3.select(this);
         const words = textNode.text().split(/\s+/).reverse();
@@ -384,12 +681,11 @@
         let line = [];
         let lineNumber = 0;
         const lineHeight = 1.1; // ems
-        const x = textNode.attr("x") || 0; // Should be 0 for centered text
-        // const y = textNode.attr("y") || 0; // Not needed if using dominant-baseline
+        const x = textNode.attr("x") || 0;
         
         textNode.text(null); 
 
-        let tspan = textNode.append("tspan").attr("x", x)/*.attr("y", y)*/; // y is inherited
+        let tspan = textNode.append("tspan").attr("x", x);
         let tspans = [tspan];
 
         while (word = words.pop()) {
@@ -401,26 +697,15 @@
                 line = [word]; 
                 tspan = textNode.append("tspan").attr("x", x).attr("dy", `${lineHeight}em`).text(word);
                 tspans.push(tspan);
-                lineNumber++; // This correctly counts additional lines after the first.
+                lineNumber++;
             }
         }
-        // Vertical centering for dominant-baseline: central
-        // The first line needs to be shifted up by half the height of the subsequent lines.
-        const initialDyOffset = - (lineNumber * lineHeight / 2) ; // lineNumber = totalLines - 1
         
+        // Vertical centering
+        const initialDyOffset = - (lineNumber * lineHeight / 2);
         tspans[0].attr("dy", `${initialDyOffset}em`); 
     });
   }
-
-  // --- Global D3 Variables ---
-  let selectedNode = null;
-  let data = { flowchartName: "Untitled Flowchart", nodes: [], links: [] }; 
-  let simulation, svg, nodeGroup, mainZoomGroup;
-  
-  const nodeRadius = 60; // Original fixed radius
-  // Removed currentNodeSizeFactor and related constants
-
-  // Removed Arrangement state variables
 
   // --- D3 Initialization ---
   function initD3() {
@@ -447,6 +732,7 @@
     });
     svg.call(zoom).on("dblclick.zoom", null);
 
+    // Define Arrow Marker for links
     mainZoomGroup.append('defs').html(`
       <filter id="nodeShadow" x="-20%" y="-20%" width="140%" height="140%">
         <feGaussianBlur in="SourceAlpha" stdDeviation="2.5" result="blur" />
@@ -456,14 +742,20 @@
           <feMergeNode in="SourceGraphic"/>
         </feMerge>
       </filter>
+      <marker id="arrowhead" viewBox="0 -5 10 10" refX="23" refY="0" 
+              markerWidth="6" markerHeight="6" orient="auto">
+        <path d="M0,-5L10,0L0,5" fill="#aaa"/>
+      </marker>
     `);
 
-    simulation = d3.forceSimulation()
-      .force('charge', d3.forceManyBody().strength(-1000)) // Adjusted strength slightly
-      .force('collide', d3.forceCollide().radius(nodeRadius + 15).strength(0.8)) // Adjusted based on fixed nodeRadius
-      .force('center', d3.forceCenter(virtualWidth / 2, virtualHeight / 2)); 
-
+    linkGroup = mainZoomGroup.append('g').attr("class", "links");
     nodeGroup = mainZoomGroup.append('g').attr("class", "nodes");
+
+    simulation = d3.forceSimulation()
+      .force('link', d3.forceLink().id(d => d.id).distance(150))
+      .force('charge', d3.forceManyBody().strength(-1000))
+      .force('collide', d3.forceCollide().radius(nodeRadius + 15).strength(0.8))
+      .force('center', d3.forceCenter(virtualWidth / 2, virtualHeight / 2)); 
 
     window.addEventListener('resize', () => {
         const newContainerWidth = flowchartContainer.clientWidth;
@@ -475,32 +767,69 @@
     });
   }
 
-  // --- Arrangement functions removed for stability ---
-
-  function placeNodesDiagonally() {
-    const initialX = (svg && mainZoomGroup.node() ? parseFloat(svg.attr('viewBox').split(' ')[2]) / 2 : 1000) ;
-    const initialY = 150; 
-    const horizontalSpacing = nodeRadius * 3.5; 
-    const verticalSpacing = nodeRadius * 2.5;   
-
-    data.nodes.forEach((node, i) => {
-      if (node.fx === null || node.fx === undefined) { 
-        node.x = initialX + (i % 3 - 1) * horizontalSpacing + (Math.random() * 50 - 25); 
-        node.fx = node.x; 
-      } else if (node.x === null || node.x === undefined ) { 
-        node.x = node.fx;
-      }
-      if (node.fy === null || node.fy === undefined) {
-        node.y = initialY + Math.floor(i / 3) * verticalSpacing + (Math.random() * 50 - 25); 
-        node.fy = node.y; 
-      } else if (node.y === null || node.y === undefined) {
-        node.y = node.fy;
-      }
+  // Layout functions
+  function applyForceLayout() {
+    data.nodes.forEach(node => {
+      node.fx = null;
+      node.fy = null;
     });
+    
+    simulation.alpha(0.3).restart();
+    currentLayout = 'force';
   }
 
-  // --- Other existing utility functions (addTaskRow, populateTaskTable, etc.) ---
-  // These should be fine as they mainly interact with the modal.
+  function applyHorizontalLayout() {
+    const xSpace = nodeRadius * 3.5;
+    const ySpace = nodeRadius * 4;
+    const startX = 200;
+    const startY = svg.attr('viewBox').split(' ')[3] / 2;
+    
+    const rows = Math.ceil(Math.sqrt(data.nodes.length));
+    const cols = Math.ceil(data.nodes.length / rows);
+    
+    data.nodes.forEach((node, i) => {
+      const row = Math.floor(i / cols);
+      const col = i % cols;
+      
+      node.x = startX + col * xSpace;
+      node.y = startY + (row - rows/2) * ySpace;
+      node.fx = node.x;
+      node.fy = node.y;
+    });
+    
+    simulation.alpha(0.1).restart();
+    currentLayout = 'horizontal';
+  }
+
+  function applyCircularLayout() {
+    const viewBox = svg.attr('viewBox').split(' ');
+    const centerX = parseFloat(viewBox[2]) / 2;
+    const centerY = parseFloat(viewBox[3]) / 2;
+    const radius = Math.min(centerX, centerY) * 0.7;
+    
+    data.nodes.forEach((node, i) => {
+      const angle = (i / data.nodes.length) * 2 * Math.PI;
+      node.x = centerX + radius * Math.cos(angle);
+      node.y = centerY + radius * Math.sin(angle);
+      node.fx = node.x;
+      node.fy = node.y;
+    });
+    
+    simulation.alpha(0.1).restart();
+    currentLayout = 'circular';
+  }
+
+  function cycleLayout() {
+    if (currentLayout === 'force') {
+      applyHorizontalLayout();
+    } else if (currentLayout === 'horizontal') {
+      applyCircularLayout();
+    } else {
+      applyForceLayout();
+    }
+  }
+
+  // --- Task Table Functions ---
   function addTaskRow(task) {
     const tbody = document.querySelector('#taskTable tbody');
     const tr = document.createElement('tr');
@@ -527,7 +856,6 @@
         this.style.height = (this.scrollHeight) + 'px';
     });
 
-
     taskInput.addEventListener('dblclick', function(e) {
       e.stopPropagation(); 
       tr.classList.add('selectedTaskRow');
@@ -549,12 +877,14 @@
     tr.appendChild(tdTask);
     tbody.appendChild(tr);
     taskInput.dispatchEvent(new Event('input')); 
+    return tr;
   }
 
   function populateTaskTable(taskDataString) {
     const tbody = document.querySelector('#taskTable tbody');
     tbody.innerHTML = ''; 
     let tasksArray = [];
+    
     if (taskDataString && typeof taskDataString === 'string') {
         try {
             tasksArray = JSON.parse(taskDataString);
@@ -598,6 +928,7 @@
     document.getElementById('modal').style.display = 'block';
   }
 
+  // --- File Functions ---
   function saveToFile() {
     try {
       const flowchartNameValue = document.getElementById('flowchartNameInput').value;
@@ -606,14 +937,25 @@
       const exportData = {
         flowchartName: data.flowchartName,
         nodes: data.nodes.map(n => ({
-          id: n.id, name: n.name, status: n.status, responsible: n.responsible,
-          deadline: n.deadline, priority: n.priority, actionDescription: n.actionDescription,
+          id: n.id, 
+          name: n.name, 
+          status: n.status, 
+          responsible: n.responsible,
+          deadline: n.deadline, 
+          priority: n.priority, 
+          actionDescription: n.actionDescription,
           color: n.color, 
-          x: n.x, y: n.y, 
-          fx: n.fx, fy: n.fy 
+          x: n.x, 
+          y: n.y, 
+          fx: n.fx, 
+          fy: n.fy 
         })),
-        links: data.links 
+        links: data.links.map(l => ({
+          source: typeof l.source === 'object' ? l.source.id : l.source,
+          target: typeof l.target === 'object' ? l.target.id : l.target
+        }))
       };
+      
       const dataStr = JSON.stringify(exportData, null, 2);
       const blob = new Blob([dataStr], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
@@ -637,54 +979,62 @@
     }
   }
 
-    function loadFromFile(file) {
-      if (!file) {
-        alert('No file selected.');
-        return;
-      }
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        try {
-          const fileData = JSON.parse(e.target.result);
-          if (fileData && typeof fileData === 'object' && Array.isArray(fileData.nodes) ) { 
-            data.flowchartName = fileData.flowchartName || "Untitled Flowchart";
-            document.getElementById('flowchartNameInput').value = data.flowchartName;
-            
-            data.nodes = fileData.nodes.map(n => ({ 
-                ...n,
-                x: n.x, 
-                y: n.y, 
-                fx: n.fx !== undefined ? n.fx : null, 
-                fy: n.fy !== undefined ? n.fy : null
-            }));
-            data.links = Array.isArray(fileData.links) ? fileData.links : []; 
-            
-            document.getElementById('fileNameDisplay').innerText = `Loaded: ${file.name}`;
-            document.getElementById('fileNameDisplay').title = `Loaded: ${file.name}`;
-            
-            if (data.nodes.every(n => n.fx === null && n.fy === null)) {
-                 resetToSimulationLayout(); 
-            } else {
-                 update(); 
-            }
-
-          } else {
-            alert('Invalid file format. Must contain a "nodes" array.');
-          }
-        } catch (error) {
-          alert('Error reading or parsing the file. Check console for details.');
-          console.error("Error in loadFromFile:", error);
-        }
-      };
-      reader.onerror = () => alert('Error reading file.');
-      reader.readAsText(file);
+  function loadFromFile(file) {
+    if (!file) {
+      alert('No file selected.');
+      return;
     }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const fileData = JSON.parse(e.target.result);
+        if (fileData && typeof fileData === 'object' && Array.isArray(fileData.nodes)) { 
+          data.flowchartName = fileData.flowchartName || "Untitled Flowchart";
+          document.getElementById('flowchartNameInput').value = data.flowchartName;
+          
+          data.nodes = fileData.nodes.map(n => ({ 
+              ...n,
+              x: n.x !== undefined ? n.x : null, 
+              y: n.y !== undefined ? n.y : null, 
+              fx: n.fx !== undefined ? n.fx : null, 
+              fy: n.fy !== undefined ? n.fy : null
+          }));
+          
+          // Process links array - ensure source and target are strings
+          if (Array.isArray(fileData.links)) {
+            data.links = fileData.links.map(link => ({
+              source: typeof link.source === 'object' ? link.source.id : link.source,
+              target: typeof link.target === 'object' ? link.target.id : link.target
+            }));
+          } else {
+            data.links = [];
+          }
+          
+          document.getElementById('fileNameDisplay').innerText = `Loaded: ${file.name}`;
+          document.getElementById('fileNameDisplay').title = `Loaded: ${file.name}`;
+          
+          // Check if nodes have fixed positions
+          if (data.nodes.every(n => n.fx === null && n.fy === null)) {
+            applyForceLayout();
+          } else {
+            update();
+          }
+        } else {
+          alert('Invalid file format. Must contain a "nodes" array.');
+        }
+      } catch (error) {
+        alert('Error reading or parsing the file. Check console for details.');
+        console.error("Error in loadFromFile:", error);
+      }
+    };
+    reader.onerror = () => alert('Error reading file.');
+    reader.readAsText(file);
+  }
 
-
+  // --- Template and Node Functions ---
   function loadTemplate(template) {
     data.flowchartName = template.charAt(0).toUpperCase() + template.slice(1) + " Template";
     document.getElementById('flowchartNameInput').value = data.flowchartName;
-    data.links = []; 
 
     switch (template) {
       case 'prototype':
@@ -693,12 +1043,20 @@
           { id: '2', name: 'Development', status: 'In Progress', actionDescription: '[{"completed":false,"task":"Setup environment"},{"completed":false,"task":"Build core features"}]', color: '#f1c40f' },
           { id: '3', name: 'Testing', status: 'Not Started', actionDescription: '[{"completed":false,"task":"Write test cases"},{"completed":false,"task":"Perform QA"}]', color: '#e74c3c' }
         ];
+        data.links = [
+          { source: '1', target: '2' },
+          { source: '2', target: '3' }
+        ];
         break;
       case 'vendor':
         data.nodes = [
           { id: '1', name: 'Identify Vendors', status: 'Completed', actionDescription: '[{"completed":false,"task":"Research options"},{"completed":false,"task":"Shortlist 5 vendors"}]', color: '#2ecc71' },
           { id: '2', name: 'Outreach & Demo', status: 'In Progress', actionDescription: '[{"completed":false,"task":"Send RFPs"},{"completed":false,"task":"Schedule demos"}]', color: '#f1c40f' },
           { id: '3', name: 'Negotiate & Select', status: 'Not Started', actionDescription: '[{"completed":false,"task":"Compare proposals"},{"completed":false,"task":"Finalize contract"}]', color: '#e74c3c' }
+        ];
+        data.links = [
+          { source: '1', target: '2' },
+          { source: '2', target: '3' }
         ];
         break;
       case 'marketing':
@@ -707,313 +1065,33 @@
           { id: '2', name: 'Campaign Planning', status: 'In Progress', actionDescription: '[{"completed":false,"task":"Set goals & KPIs"},{"completed":false,"task":"Develop content strategy"}]', color: '#f1c40f' },
           { id: '3', name: 'Execution & Launch', status: 'Not Started', actionDescription: '[{"completed":false,"task":"Create assets"},{"completed":false,"task":"Launch campaign"}]', color: '#e74c3c' }
         ];
+        data.links = [
+          { source: '1', target: '2' },
+          { source: '2', target: '3' }
+        ];
+        break;
+      case 'swn':
+        data.nodes = [
+          { id: '1', name: '1. Core Design & User Journey Finalization', status: 'In Progress', actionDescription: '[{"completed":false,"task":"Finalize all aspects of user journey, including onboarding, form layouts, and interaction design."}]', responsible: 'Shakoure', deadline: '2025-05-21', priority: 'High' },
+          { id: '2', name: '2. Core Platform Development', status: 'Completed', actionDescription: '[{"completed":true,"task":"Complete dashboard and AI chat module with Supabase auth and form logic."}]', responsible: 'Shakoure', deadline: '2025-02-20', priority: 'High' },
+          { id: '3', name: '3. Marketing Strategy & Asset Development', status: 'In Progress', actionDescription: '[{"completed":false,"task":"Develop marketing assets, email drip campaigns, SEO blog on Wix, and social strategy."}]', responsible: 'Shakoure', deadline: '2025-03-01', priority: 'Normal' },
+          { id: '4', name: '4. Influencer Program Development - Phase 1: Flowchart Creation', status: 'Not Started', actionDescription: '[{"completed":false,"task":"Create detailed flowchart for influencer partnerships including onboarding, in-app content, and agreements."}]', responsible: 'Shakoure', deadline: '2025-05-26', priority: 'High' },
+          { id: '5', name: '5. Jotform AI Onboarding Assistant', status: 'Not Started', actionDescription: '[{"completed":false,"task":"Train and configure Jotform AI agent to explain profile fields and guide onboarding."}]', responsible: 'Shakoure', deadline: '2025-03-10', priority: 'High' },
+          { id: '6', name: '6. Technical Improvements from Codebase Review', status: 'Not Started', actionDescription: '[{"completed":false,"task":"Implement 10 improvement areas from codebase review covering UX, backend, and performance."}]', responsible: 'Shakoure', deadline: '2025-06-15', priority: 'Normal' },
+          { id: '7', name: '7. Chat UX Consistency', status: 'Not Started', actionDescription: '[{"completed":false,"task":"Unify Dashboard\'s ChatGPT UI with Jotform AI Assistant UI using a consistent iframe/modal design."}]', responsible: 'Shakoure', deadline: '2025-05-20', priority: 'High' }
+        ];
+        data.links = [
+          { source: '1', target: '2' },
+          { source: '2', target: '3' },
+          { source: '3', target: '4' },
+          { source: '4', target: '5' },
+          { source: '2', target: '6' },
+          { source: '2', target: '7' }
+        ];
         break;
         default:
             data.nodes = [{id: 'root-1', name: 'Start Here', status: 'Not Started', actionDescription: '[]', color: '#3498db' }];
             data.flowchartName = "New Flowchart";
             document.getElementById('flowchartNameInput').value = data.flowchartName;
+            data.links = [];
     }
-    data.nodes.forEach(n => { 
-        n.fx = null;
-        n.fy = null;
-    });
-    resetToSimulationLayout(); // Use this to let simulation arrange template nodes
-  }
-
-  document.getElementById('taskForm').onsubmit = (e) => {
-    e.preventDefault();
-    if (selectedNode) {
-      let taskRows = document.querySelectorAll('#taskTable tbody tr');
-      let tasks = [];
-      taskRows.forEach(row => {
-        let checkbox = row.querySelector('input[type="checkbox"]');
-        let taskInput = row.querySelector('textarea'); 
-        if (taskInput && taskInput.value.trim() !== "") {
-          tasks.push({
-            completed: checkbox.checked,
-            task: taskInput.value.trim()
-          });
-        }
-      });
-      Object.assign(selectedNode, {
-        name: document.getElementById('taskName').value,
-        responsible: document.getElementById('responsible').value,
-        status: document.getElementById('status').value,
-        deadline: document.getElementById('deadline').value,
-        priority: document.getElementById('priority').value,
-        actionDescription: JSON.stringify(tasks),
-        color: document.getElementById('nodeColor').value || null 
-      });
-      selectedNode.fx = selectedNode.x; 
-      selectedNode.fy = selectedNode.y;
-      update(); 
-    }
-    document.getElementById('modal').style.display = 'none';
-  };
-
-  document.getElementById('addTaskRowBtn').addEventListener('click', () => addTaskRow({}));
-
-  document.getElementById('deleteTaskBtn').addEventListener('click', function() {
-    let selectedRow = document.querySelector('#taskTable tbody tr.selectedTaskRow');
-    if (selectedRow) {
-        selectedRow.remove();
-    }
-    document.getElementById('taskTextPopup').style.display = 'none';
-  });
-
-  document.getElementById('deleteNodeBtn').addEventListener('click', function() {
-    if (selectedNode && confirm("Are you sure you want to delete this node? This action cannot be undone.")) {
-      data.nodes = data.nodes.filter(n => n.id !== selectedNode.id);
-      data.links = data.links.filter(link =>  // Keep this for data integrity, though links aren't drawn
-        (link.source.id || link.source) !== selectedNode.id && 
-        (link.target.id || link.target) !== selectedNode.id
-      );
-      selectedNode = null;
-      update();
-      document.getElementById('modal').style.display = 'none';
-    }
-  });
-
-  document.addEventListener('DOMContentLoaded', () => {
-    initD3(); 
-
-    const aiAssistantButton = document.getElementById('aiAssistantBtn');
-    if (aiAssistantButton) {
-        aiAssistantButton.onclick = openAIAssistant;
-    }
-
-    // Node Sizing and Rearrange buttons are removed for this stable version
-    // Their JS logic is also removed below to prevent errors.
-
-    document.querySelectorAll('.color-swatch').forEach(swatch => {
-      swatch.addEventListener('click', () => {
-        document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected-swatch'));
-        swatch.classList.add('selected-swatch');
-        document.getElementById('nodeColor').value = swatch.dataset.color;
-      });
-    });
-
-    document.getElementById('templateBtn').onclick = () => {
-      document.getElementById('templateModal').style.display = 'block';
-    };
-    document.querySelectorAll('.template-btn').forEach(btn => {
-      btn.onclick = (e) => {
-        loadTemplate(e.target.dataset.template);
-        document.getElementById('templateModal').style.display = 'none';
-      };
-    });
-
-    document.getElementById('addNodeBtn').onclick = (e) => {
-      e.preventDefault();
-      const newNode = createNode(selectedNode); 
-      if (newNode) {
-        selectedNode = newNode; 
-        nodeClick({ stopPropagation: () => {} }, newNode); 
-      }
-    };
-
-    document.getElementById('exportBtn').onclick = saveToFile;
-
-    const uploadButton = document.getElementById('uploadBtn');
-    const fileInput = document.getElementById('fileInput');
-    uploadButton.onclick = () => fileInput.click(); 
-    fileInput.onchange = (e) => {
-      if (e.target.files.length > 0) {
-        loadFromFile(e.target.files[0]);
-      }
-    };
-
-    document.querySelectorAll('.close-button').forEach(btn => {
-      btn.onclick = (e) => {
-        e.stopPropagation();
-        btn.closest('.modal').style.display = 'none';
-      };
-    });
-    window.onclick = (e) => {
-        if (e.target.classList.contains('modal')) {
-            e.target.style.display = 'none';
-        }
-    };
-    
-    if (data.nodes.length === 0) {
-        loadTemplate('prototype'); 
-    } else {
-        update(); 
-    }
-  });
-
-  function createNode(parentNode) { 
-    const newNodeId = `node-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
-    
-    let initialX, initialY;
-    const svgViewBox = svg.attr('viewBox').split(' ');
-    const viewBoxWidth = parseFloat(svgViewBox[2]);
-    const viewBoxHeight = parseFloat(svgViewBox[3]);
-
-    if (parentNode && typeof parentNode.x === 'number' && typeof parentNode.y === 'number') {
-        initialX = parentNode.x + (Math.random() * 100 - 50); 
-        initialY = parentNode.y + (nodeRadius * 2.5) + (Math.random() * 20 - 10); 
-    } else {
-        initialX = viewBoxWidth / 2 + (Math.random() * 200 - 100); 
-        initialY = viewBoxHeight / 3 + (Math.random() * 100 - 50);
-    }
-    
-    initialX = Math.max(nodeRadius, Math.min(initialX, viewBoxWidth - nodeRadius));
-    initialY = Math.max(nodeRadius, Math.min(initialY, viewBoxHeight - nodeRadius));
-
-    const newNode = {
-      id: newNodeId,
-      name: 'New Task',
-      status: 'Not Started',
-      responsible: '',
-      deadline: '',
-      priority: 'Normal',
-      actionDescription: '[]', 
-      color: null,
-      x: initialX,
-      y: initialY,
-      fx: initialX, 
-      fy: initialY  
-    };
-    data.nodes.push(newNode);
-    update();
-    return newNode;
-  }
-  
-  // updateNodeSizes function REMOVED as dynamic sizing is deferred
-
-  function update() {
-    if (!svg || !simulation || !nodeGroup || !mainZoomGroup) { 
-        console.error("D3 elements not fully initialized for update");
-        return;
-    }
-
-    // --- LINK RENDERING CODE & linkGroup references FULLY REMOVED ---
-    const linksContainer = mainZoomGroup.select(".links"); 
-    if (linksContainer && !linksContainer.empty()) {
-        linksContainer.selectAll('*').remove(); 
-    }
-    if(simulation.force("link")) { 
-        simulation.force("link", null);
-    }
-    // --- END LINK REMOVAL ---
-
-
-    const nodes = nodeGroup.selectAll('.node')
-      .data(data.nodes, d => d.id);
-
-    nodes.exit().remove();
-
-    const nodesEnter = nodes.enter()
-      .append('g')
-      .attr('class', 'node')
-      .call(d3.drag().on('start', dragStart).on('drag', dragging).on('end', dragEnd))
-      .on('click', nodeClick);
-
-    nodesEnter.append('circle')
-      .attr('r', nodeRadius) // Use fixed nodeRadius
-      .attr('filter', 'url(#nodeShadow)');
-
-    nodesEnter.append('text')
-      .attr('class', 'node-name') 
-      .attr('text-anchor', 'middle')
-      .attr('dominant-baseline', 'central');
-
-    // --- TASK COUNTER GROUP CREATION ---
-    nodesEnter.append('g')
-      .attr('class', 'taskCountGroup')
-      .attr('transform', `translate(0, -${nodeRadius + 12})`); // Position based on fixed radius
-
-
-    const allNodes = nodesEnter.merge(nodes);
-
-    allNodes.select('circle')
-      .attr('r', nodeRadius) // Use fixed nodeRadius
-      .attr('fill', d => d.color ? d.color : getStatusColor(d.status));
-
-    allNodes.select('text.node-name')
-      .style('font-size', `14px`) // Fixed font size
-      .text(d => d.name)
-      .call(wrapText, nodeRadius * 1.5); // Wrap width based on fixed radius
-
-
-    // --- TASK COUNTER UPDATE LOGIC ---
-    allNodes.select('.taskCountGroup')
-      .attr('transform', `translate(0, -${nodeRadius + 12})`) // Ensure position is correct
-      .each(function(d) {
-        const group = d3.select(this);
-        group.selectAll('*').remove(); 
-        let tasks = [];
-        if (d.actionDescription) {
-          try { 
-            const parsed = JSON.parse(d.actionDescription);
-            if (Array.isArray(parsed)) tasks = parsed;
-          } catch (e) { /* ignore if not valid JSON array */ }
-        }
-        
-        const completedCount = tasks.filter(t => t.completed).length;
-        const totalCount = tasks.length;
-        
-        if (totalCount > 0) { 
-            const textString = `✅ ${completedCount}/${totalCount}`;
-            const textEl = group.append('text')
-              // .style('font-size', `10px`) // Styling via CSS .taskCountGroup text
-              .text(textString); 
-            
-            const textNode = textEl.node();
-            if (textNode) { 
-                const bbox = textNode.getBBox();
-                const rectPaddingHorizontal = 6; 
-                const rectPaddingVertical = 3;   
-                const rectWidth = bbox.width + rectPaddingHorizontal * 2; 
-                const rectHeight = bbox.height + rectPaddingVertical * 2;  
-                group.insert('rect', 'text') 
-                  .attr('width', rectWidth)
-                  .attr('height', rectHeight)
-                  .attr('x', -rectWidth / 2)
-                  .attr('y', -(rectHeight / 2) - 2 ) 
-                  // .attr('rx', rectHeight / 2)  // Styling via CSS
-                  // .attr('ry', rectHeight / 2)
-            }
-        }
-      });
-
-    simulation.nodes(data.nodes).on('tick', () => {
-      allNodes.attr('transform', d => `translate(${d.x || 0},${d.y || 0})`);
-    });
-
-    simulation.alpha(0.3).restart(); 
-  }
-
-
-  function getStatusColor(status) {
-    switch (status) {
-      case 'Not Started': return '#e74c3c'; 
-      case 'In Progress': return '#f1c40f'; 
-      case 'Completed':   return '#2ecc71'; 
-      default:            return '#3498db'; 
-    }
-  }
-
-  function dragStart(event, d) {
-    if (!event.active) simulation.alphaTarget(0.3).restart();
-    d.fx = d.x; 
-    d.fy = d.y;
-  }
-  function dragging(event, d) {
-    d.fx = event.x;
-    d.fy = event.y;
-  }
-  function dragEnd(event, d) {
-    if (!event.active) simulation.alphaTarget(0);
-    // Keep nodes fixed where dragged by default
-    // d.fx = null; // Uncomment to allow simulation to move after drag
-    // d.fy = null; // Uncomment to allow simulation to move after drag
-  }
-
-  document.getElementById('flowchartNameInput').addEventListener('input', function() {
-    data.flowchartName = this.value || "Untitled Flowchart"; 
-  });
-</script>
-</body>
-</html>
