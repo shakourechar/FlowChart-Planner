@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>FlowChart Manager</title>
   <link rel="icon" type="image/png" href="https://static.wixstatic.com/media/c3283f_a3e1ec47496f42f7be617a2cd7a7bc9e~mv2.png">
   <style>
@@ -54,9 +54,10 @@
       height: 80vh;
       border: 1px solid #ccc;
       background: white;
-      overflow: hidden;
+      overflow: auto;
     }
   </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
 </head>
 <body>
   <header>
@@ -72,7 +73,6 @@
 
   <div id="flowchart"></div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
   <script>
     document.getElementById('aiAssistantBtn').addEventListener('click', () => {
       const width = screen.width / 3;
@@ -85,6 +85,27 @@
         'FlowChartGPT',
         `width=${width},height=${height},top=${top},left=${left},resizable=yes,scrollbars=yes`
       );
+    });
+
+    document.getElementById('uploadBtn').addEventListener('click', () => {
+      document.getElementById('fileInput').click();
+    });
+
+    document.getElementById('fileInput').addEventListener('change', (event) => {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          try {
+            const data = JSON.parse(e.target.result);
+            console.log("Loaded file:", data);
+            alert("Successfully loaded flowchart file: " + file.name);
+          } catch (err) {
+            alert("Invalid JSON file.");
+          }
+        };
+        reader.readAsText(file);
+      }
     });
   </script>
 </body>
