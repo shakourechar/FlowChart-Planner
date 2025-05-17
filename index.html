@@ -66,6 +66,10 @@
     nav .ai-assistant-btn {
       background: #8e44ad; 
     }
+    nav .node-size-btn { /* Style for new size buttons */
+        background: #f39c12; /* Orange color for example */
+        padding: 0.5rem 0.75rem;
+    }
     #fileNameDisplay {
         margin-left: 0.5rem;
         font-size: 0.9em;
@@ -151,15 +155,14 @@
     }
     .node circle {
       stroke: white;
-      stroke-width: 2px; /* Original stroke-width */
+      stroke-width: 2px; 
     }
-    .node text.node-name { /* Specific class for node name */
+    .node text.node-name { 
       fill: white;
-      font-size: 14px; /* Original font size */
+      /* font-size will be set dynamically by JS */
       text-anchor: middle;
       pointer-events: none; 
     }
-    /* NO .link STYLES NEEDED */
 
     .action-buttons {
       display: flex;
@@ -218,7 +221,7 @@
     }
     .taskCountGroup text { 
         fill: white;
-        font-size: 10px; 
+        /* font-size will be set dynamically by JS */
         text-anchor: middle;
         dy: 0.35em; 
     }
@@ -243,7 +246,7 @@
         }
         nav button {
             flex-grow: 1; 
-            min-width: 120px; 
+            min-width: 100px; /* Adjusted min-width */
         }
         #fileNameDisplay {
             width: 100%;
@@ -267,7 +270,7 @@
   <h1>FlowChart Manager</h1>
   <input type="text" id="flowchartNameInput" placeholder="Enter Flowchart Name...">
   <nav>
-    <button id="aiAssistantBtn" class="ai-assistant-btn">Flowchart AI Assistant</button>
+    <button id="nodeSizeIncreaseBtn" class="node-size-btn">Node Size +</button> <button id="nodeSizeDecreaseBtn" class="node-size-btn">Node Size -</button> <button id="aiAssistantBtn" class="ai-assistant-btn">Flowchart AI Assistant</button>
     <button id="templateBtn">Templates</button>
     <button id="exportBtn">Export</button>
     <input type="file" id="fileInput" accept=".json">
@@ -377,20 +380,20 @@
     window.open(assistantUrl, 'FlowchartAIAssistant', features);
   }
 
- function wrapText(textElement, width) {
+  function wrapText(textElement, width, baseFontSize) { // Added baseFontSize
     textElement.each(function() {
         const textNode = d3.select(this);
         const words = textNode.text().split(/\s+/).reverse();
         let word;
         let line = [];
         let lineNumber = 0;
-        const lineHeight = 1.1; // ems
+        const lineHeight = 1.1; // ems, relative to current font size
         const x = textNode.attr("x") || 0; 
         const y = textNode.attr("y") || 0; 
         
         textNode.text(null); 
 
-        let tspan = textNode.append("tspan").attr("x", x).attr("y", y); // Initial tspan dy will be adjusted
+        let tspan = textNode.append("tspan").attr("x", x).attr("y", y);
         let tspans = [tspan];
 
         while (word = words.pop()) {
@@ -400,26 +403,34 @@
                 line.pop(); 
                 tspan.text(line.join(" ")); 
                 line = [word]; 
-                // Subsequent tspans are positioned relative to the previous one using dy
                 tspan = textNode.append("tspan").attr("x", x).attr("dy", `${lineHeight}em`).text(word);
                 tspans.push(tspan);
-                lineNumber++; // Only count additional lines
+                lineNumber++;
             }
         }
-        // Vertical centering: shift the entire block of text up
-        const totalHeight = (lineNumber) * lineHeight; // Height of additional lines
-        const initialDyOffset = -(totalHeight / 2);
+        const totalLines = tspans.length;
+        // Adjusted vertical centering calculation:
+        // Each line is 'lineHeight' ems. First line starts at 0 relative to text y.
+        // Shift needed is -( (totalLines -1) * lineHeight / 2 ) ems for the first tspan.
+        // But also consider the text's own dominant-baseline could be 'central', so dy is from there.
+        // For dominant-baseline: central, dy of 0.35em (from original CSS) roughly centers a single line.
+        // For multi-line, we adjust the first tspan relative to this.
+        const initialDyOffset = 0.35 - ((totalLines -1) * lineHeight / 2) ; 
         
-        tspans[0].attr("dy", `${initialDyOffset}em`); // Apply offset only to the first tspan
-                                                    // Other tspans are already relative via their dy
+        tspans[0].attr("dy", `${initialDyOffset}em`); 
     });
 }
 
 
   let selectedNode = null;
-  let data = { flowchartName: "Untitled Flowchart", nodes: [], links: [] }; // Links array kept for data structure compatibility
+  let data = { flowchartName: "Untitled Flowchart", nodes: [], links: [] }; 
   let simulation, svg, nodeGroup, mainZoomGroup;
-  const nodeRadius = 60; // Restored original node radius
+  
+  const BASE_NODE_RADIUS = 60; // Base radius for default size
+  let currentNodeSizeFactor = 1.0; // Initial size factor
+  const MIN_NODE_SIZE_FACTOR = 0.5;
+  const MAX_NODE_SIZE_FACTOR = 1.5;
+  const NODE_SIZE_STEP = 0.1;
 
 
   function initD3() {
@@ -462,12 +473,10 @@
     `);
 
     simulation = d3.forceSimulation()
-      // LINK FORCE REMOVED
-      .force('charge', d3.forceManyBody().strength(-1200)) 
-      .force('collide', d3.forceCollide().radius(nodeRadius + 20).strength(0.9)) 
+      .force('charge', d3.forceManyBody().strength(-1200 * (BASE_NODE_RADIUS * currentNodeSizeFactor / 60) )) // Scale charge with size
+      .force('collide', d3.forceCollide().radius( (BASE_NODE_RADIUS * currentNodeSizeFactor) + 20).strength(0.9)) 
       .force('center', d3.forceCenter(virtualWidth / 2, virtualHeight / 2)); 
 
-    // LINK GROUP INITIALIZATION REMOVED
     nodeGroup = mainZoomGroup.append('g').attr("class", "nodes");
 
     window.addEventListener('resize', () => {
@@ -485,8 +494,8 @@
   function placeNodesDiagonally() {
     const initialX = (mainZoomGroup.node() ? parseFloat(svg.attr('viewBox').split(' ')[2]) / 2 : 1000) ;
     const initialY = 150; 
-    const horizontalSpacing = 250; 
-    const verticalSpacing = 200;   
+    const horizontalSpacing = (BASE_NODE_RADIUS * currentNodeSizeFactor) * 3.5; 
+    const verticalSpacing = (BASE_NODE_RADIUS * currentNodeSizeFactor) * 2.5;   
 
 
     data.nodes.forEach((node, i) => {
@@ -612,7 +621,7 @@
           x: n.x, y: n.y, 
           fx: n.fx, fy: n.fy 
         })),
-        links: data.links // Keep links in the exported JSON even if not rendered
+        links: data.links 
       };
       const dataStr = JSON.stringify(exportData, null, 2);
       const blob = new Blob([dataStr], { type: 'application/json' });
@@ -657,7 +666,7 @@
                 fx: n.fx !== undefined ? n.fx : n.x, 
                 fy: n.fy !== undefined ? n.fy : n.y
             }));
-            data.links = Array.isArray(fileData.links) ? fileData.links : []; // Load links if present, for data integrity
+            data.links = Array.isArray(fileData.links) ? fileData.links : []; 
             
             document.getElementById('fileNameDisplay').innerText = `Loaded: ${file.name}`;
             document.getElementById('fileNameDisplay').title = `Loaded: ${file.name}`;
@@ -678,7 +687,7 @@
   function loadTemplate(template) {
     data.flowchartName = template.charAt(0).toUpperCase() + template.slice(1) + " Template";
     document.getElementById('flowchartNameInput').value = data.flowchartName;
-    data.links = []; // Templates will not have links by default now
+    data.links = []; 
 
     switch (template) {
       case 'prototype':
@@ -759,11 +768,10 @@
   document.getElementById('deleteNodeBtn').addEventListener('click', function() {
     if (selectedNode && confirm("Are you sure you want to delete this node? This action cannot be undone.")) {
       data.nodes = data.nodes.filter(n => n.id !== selectedNode.id);
-      // Links are already not being rendered, but if they were, this would be where to filter them:
-      // data.links = data.links.filter(link => 
-      //   (link.source.id || link.source) !== selectedNode.id && 
-      //   (link.target.id || link.target) !== selectedNode.id
-      // );
+      data.links = data.links.filter(link => 
+        (link.source.id || link.source) !== selectedNode.id && 
+        (link.target.id || link.target) !== selectedNode.id
+      );
       selectedNode = null;
       update();
       document.getElementById('modal').style.display = 'none';
@@ -777,6 +785,21 @@
     if (aiAssistantButton) {
         aiAssistantButton.onclick = openAIAssistant;
     }
+
+    // Node Size Control Button Listeners
+    document.getElementById('nodeSizeIncreaseBtn').onclick = () => {
+        if (currentNodeSizeFactor < MAX_NODE_SIZE_FACTOR) {
+            currentNodeSizeFactor += NODE_SIZE_STEP;
+            updateNodeSizes();
+        }
+    };
+    document.getElementById('nodeSizeDecreaseBtn').onclick = () => {
+        if (currentNodeSizeFactor > MIN_NODE_SIZE_FACTOR) {
+            currentNodeSizeFactor -= NODE_SIZE_STEP;
+            updateNodeSizes();
+        }
+    };
+
 
     document.querySelectorAll('.color-swatch').forEach(swatch => {
       swatch.addEventListener('click', () => {
@@ -843,17 +866,19 @@
     const viewBoxWidth = parseFloat(svgViewBox[2]);
     const viewBoxHeight = parseFloat(svgViewBox[3]);
 
+    const currentRadius = BASE_NODE_RADIUS * currentNodeSizeFactor;
+
 
     if (parentNode && typeof parentNode.x === 'number' && typeof parentNode.y === 'number') {
         initialX = parentNode.x + (Math.random() * 100 - 50); 
-        initialY = parentNode.y + 150 + (Math.random() * 20 - 10); 
+        initialY = parentNode.y + (currentRadius * 2.5) + (Math.random() * 20 - 10); 
     } else {
         initialX = viewBoxWidth / 2 + (Math.random() * 200 - 100); 
         initialY = viewBoxHeight / 3 + (Math.random() * 100 - 50);
     }
     
-    initialX = Math.max(nodeRadius, Math.min(initialX, viewBoxWidth - nodeRadius));
-    initialY = Math.max(nodeRadius, Math.min(initialY, viewBoxHeight - nodeRadius));
+    initialX = Math.max(currentRadius, Math.min(initialX, viewBoxWidth - currentRadius));
+    initialY = Math.max(currentRadius, Math.min(initialY, viewBoxHeight - currentRadius));
 
 
     const newNode = {
@@ -871,10 +896,23 @@
       fy: initialY  
     };
     data.nodes.push(newNode);
-    // Link creation logic removed
     update();
     return newNode;
   }
+  
+  // New function to update node sizes and restart simulation
+  function updateNodeSizes() {
+    if (!simulation) return;
+    // Update collision force
+    simulation.force('collide').radius((BASE_NODE_RADIUS * currentNodeSizeFactor) + 20);
+    simulation.force('charge').strength(-1200 * (BASE_NODE_RADIUS * currentNodeSizeFactor / 60) );
+
+
+    // Call update to redraw nodes with new sizes
+    update();
+    simulation.alpha(0.3).restart(); // Reheat simulation
+  }
+
 
   function update() {
     if (!svg || !simulation) { 
@@ -882,13 +920,17 @@
         return;
     }
 
-    // --- ALL LINK RENDERING CODE IS REMOVED ---
-    // Ensure linkGroup is not referenced. If it was defined globally, it's now removed.
-    // The simulation also no longer has a link force.
-    // data.links can still exist in the `data` object for file I/O.
-    const currentLinksSelection = mainZoomGroup.select(".links").selectAll('.link');
-    currentLinksSelection.remove(); // Explicitly remove any link elements that might exist from previous renders
-    // --- END OF LINK REMOVAL ---
+    // --- Remove all link drawing logic ---
+    mainZoomGroup.select(".links").selectAll('*').remove(); 
+    if(simulation.force("link")) { // Check if link force exists before trying to remove
+        simulation.force("link", null);
+    }
+    // --- End Link Removal ---
+
+
+    const currentDisplayRadius = BASE_NODE_RADIUS * currentNodeSizeFactor;
+    const currentFontSize = 14 * currentNodeSizeFactor;
+    const taskCounterFontSize = 10 * currentNodeSizeFactor;
 
 
     const nodes = nodeGroup.selectAll('.node')
@@ -903,33 +945,31 @@
       .on('click', nodeClick);
 
     nodesEnter.append('circle')
-      .attr('r', nodeRadius) 
       .attr('filter', 'url(#nodeShadow)');
 
     nodesEnter.append('text')
       .attr('class', 'node-name') 
-      .attr('text-anchor', 'middle');
-      // dy for vertical centering is handled by wrapText
+      .attr('text-anchor', 'middle')
+      .attr('dominant-baseline', 'central'); // For simpler dy calculation in wrapText
 
-    // Task Counter Group - Appended for new nodes
     nodesEnter.append('g')
-      .attr('class', 'taskCountGroup')
-      .attr('transform', `translate(0, -${nodeRadius + 12})`);
+      .attr('class', 'taskCountGroup'); 
 
 
     const allNodes = nodesEnter.merge(nodes);
 
     allNodes.select('circle')
-      .attr('r', nodeRadius) 
+      .attr('r', currentDisplayRadius) 
       .attr('fill', d => d.color ? d.color : getStatusColor(d.status));
 
     allNodes.select('text.node-name')
+      .style('font-size', `${currentFontSize}px`) // Apply dynamic font size
       .text(d => d.name)
-      .call(wrapText, nodeRadius * 1.6); 
+      .call(wrapText, currentDisplayRadius * 1.5, currentFontSize); // Pass base font size to wrapText
 
 
-    // Task Counter Update - RESTORED and VERIFIED
     allNodes.select('.taskCountGroup')
+      .attr('transform', `translate(0, -${currentDisplayRadius + (12 * currentNodeSizeFactor)})`) // Scale position
       .each(function(d) {
         d3.select(this).selectAll('*').remove(); 
         let tasks = [];
@@ -946,29 +986,30 @@
         if (totalCount > 0) { 
             const textString = `✅ ${completedCount}/${totalCount}`;
             const textEl = d3.select(this).append('text')
-              .text(textString); // Styling is now in CSS
+              .style('font-size', `${taskCounterFontSize}px`) // Dynamic font size for counter
+              .text(textString); 
             
             const textNode = textEl.node();
-            if (textNode) { // Check if textNode is available
+            if (textNode) { 
                 const bbox = textNode.getBBox();
-                const rectWidth = bbox.width + 10; 
-                const rectHeight = bbox.height + 6;  
-                d3.select(this).insert('rect', 'text') // Insert rect behind text
+                const rectWidth = bbox.width + (10 * currentNodeSizeFactor); 
+                const rectHeight = bbox.height + (4 * currentNodeSizeFactor);  
+                d3.select(this).insert('rect', 'text') 
                   .attr('width', rectWidth)
                   .attr('height', rectHeight)
                   .attr('x', -rectWidth / 2)
-                  .attr('y', -(rectHeight / 2) - 2) // Slight y adjustment for dy of text
+                  .attr('y', -(rectHeight / 2) - (2 * currentNodeSizeFactor) ) 
+                  .attr('rx', rectHeight / 2)  
+                  .attr('ry', rectHeight / 2)
             }
         }
       });
 
     simulation.nodes(data.nodes).on('tick', () => {
       allNodes.attr('transform', d => `translate(${d.x || 0},${d.y || 0})`);
-      // No link ticking
     });
 
-    // simulation.force('link').links(data.links); // LINK FORCE IS REMOVED
-    simulation.alpha(0.6).restart(); 
+    simulation.alpha(0.3).restart(); // Use a smaller alpha if no links to settle faster
   }
 
 
