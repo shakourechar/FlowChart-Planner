@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FlowChart Manager</title>
   <link rel="icon" type="image/png" href="https://static.wixstatic.com/media/c3283f_a3e1ec47496f42f7be617a2cd7a7bc9e~mv2.png">
   <style>
@@ -74,6 +74,110 @@
   <div id="flowchart"></div>
 
   <script>
+    let data = { nodes: [], links: [] };
+    let svg, simulation, linkGroup, nodeGroup;
+
+    function initD3() {
+      const flowchart = document.getElementById('flowchart');
+      const width = flowchart.clientWidth;
+      const height = flowchart.clientHeight;
+      flowchart.innerHTML = '';
+
+      svg = d3.select('#flowchart').append('svg')
+        .attr('width', width)
+        .attr('height', height);
+
+      simulation = d3.forceSimulation()
+        .force('link', d3.forceLink().id(d => d.id).distance(150))
+        .force('charge', d3.forceManyBody().strength(-300))
+        .force('center', d3.forceCenter(width / 2, height / 2));
+
+      linkGroup = svg.append('g');
+      nodeGroup = svg.append('g');
+    }
+
+    function update() {
+      const links = linkGroup.selectAll('.link').data(data.links);
+      links.exit().remove();
+      links.enter().append('line').attr('class', 'link')
+        .attr('stroke', '#999').attr('stroke-opacity', 0.6).attr('stroke-width', 2);
+
+      const nodes = nodeGroup.selectAll('.node').data(data.nodes);
+      nodes.exit().remove();
+
+      const enterNodes = nodes.enter().append('g')
+        .attr('class', 'node')
+        .call(d3.drag()
+          .on('start', dragStart)
+          .on('drag', dragging)
+          .on('end', dragEnd));
+
+      enterNodes.append('circle')
+        .attr('r', 40)
+        .attr('fill', d => getStatusColor(d.status));
+
+      enterNodes.append('text')
+        .attr('text-anchor', 'middle')
+        .attr('dy', '0.35em')
+        .text(d => d.name);
+
+      const allNodes = enterNodes.merge(nodes);
+      simulation.nodes(data.nodes).on('tick', () => {
+        allNodes.attr('transform', d => `translate(${d.x},${d.y})`);
+        linkGroup.selectAll('.link')
+          .attr('x1', d => d.source.x)
+          .attr('y1', d => d.source.y)
+          .attr('x2', d => d.target.x)
+          .attr('y2', d => d.target.y);
+      });
+      simulation.force('link').links(data.links);
+      simulation.alpha(1).restart();
+    }
+
+    function getStatusColor(status) {
+      switch (status) {
+        case 'Not Started': return '#e74c3c';
+        case 'In Progress': return '#f1c40f';
+        case 'Completed': return '#2ecc71';
+        default: return '#3498db';
+      }
+    }
+
+    function dragStart(event) {
+      if (!event.active) simulation.alphaTarget(0.3).restart();
+      event.subject.fx = event.subject.x;
+      event.subject.fy = event.subject.y;
+    }
+
+    function dragging(event) {
+      event.subject.fx = event.x;
+      event.subject.fy = event.y;
+    }
+
+    function dragEnd(event) {
+      if (!event.active) simulation.alphaTarget(0);
+      event.subject.fx = null;
+      event.subject.fy = null;
+    }
+
+    function loadFromFile(file) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const fileData = JSON.parse(e.target.result);
+          if (fileData.nodes && fileData.links) {
+            data = fileData;
+            update();
+          } else {
+            alert("Invalid file format");
+          }
+        } catch (err) {
+          alert("Invalid JSON content");
+        }
+      };
+      reader.readAsText(file);
+    }
+
     document.getElementById('aiAssistantBtn').addEventListener('click', () => {
       const width = screen.width / 3;
       const height = screen.height / 1.5;
@@ -93,20 +197,10 @@
 
     document.getElementById('fileInput').addEventListener('change', (event) => {
       const file = event.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          try {
-            const data = JSON.parse(e.target.result);
-            console.log("Loaded file:", data);
-            alert("Successfully loaded flowchart file: " + file.name);
-          } catch (err) {
-            alert("Invalid JSON file.");
-          }
-        };
-        reader.readAsText(file);
-      }
+      if (file) loadFromFile(file);
     });
+
+    document.addEventListener('DOMContentLoaded', initD3);
   </script>
 </body>
 </html>
