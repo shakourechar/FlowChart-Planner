@@ -17,8 +17,8 @@
       --input-bg: #fff;
       --input-text: #333;
       --input-border: #ccc;
-      --input-light-border: #eee; /* For specific textareas like in task table */
-      --button-bg: #2980b9; /* Default button */
+      --input-light-border: #eee;
+      --button-bg: #2980b9;
       --button-text: white;
       --button-upload-bg: #27ae60;
       --button-ai-bg: #8e44ad;
@@ -34,8 +34,8 @@
       --close-button-hover-color: #333;
       --flowchart-container-bg: white;
       --flowchart-container-border: #ccc;
-      --node-text-fill: white; /* Text on colored nodes */
-      --node-circle-stroke: white;
+      --node-text-fill: white;
+      /* --node-circle-stroke: white; /* Replaced by glass style */
       --task-count-rect-bg: #2c3e50;
       --task-count-text-fill: white;
       --selected-swatch-outline: #2c3e50;
@@ -43,6 +43,14 @@
       --selected-row-border: #3498db;
       --table-header-separator: #ddd;
       --th-text-color: #333;
+
+      /* New variables for Glass Node Style */
+      --node-fill-opacity: 0.9;
+      --node-stroke-glass: rgba(255, 255, 255, 0.6);
+      --node-stroke-width-glass: 1.5px;
+      --node-glow-color-light: #4dabf7; /* Brighter blue for light theme glow */
+      --node-glow-filter-stdDeviation: 4;
+      --current-node-glow-color: var(--node-glow-color-light);
     }
 
     body.dark-mode {
@@ -57,7 +65,6 @@
       --input-border: #555;
       --input-light-border: #4a4a4a;
       --button-bg: #3498db;
-      --button-text: white; /* Most buttons have light text on dark bg */
       --button-upload-bg: #2ecc71;
       --button-ai-bg: #9b59b6;
       --button-nodesize-bg: #f39c12;
@@ -73,7 +80,7 @@
       --flowchart-container-bg: #252525;
       --flowchart-container-border: #444;
       --node-text-fill: #e0e0e0;
-      --node-circle-stroke: var(--bg-secondary);
+      /* --node-circle-stroke: var(--bg-secondary); /* Replaced by glass style */
       --task-count-rect-bg: #bbbbbb;
       --task-count-text-fill: #1a1a1a;
       --selected-swatch-outline: #e0e0e0;
@@ -81,6 +88,13 @@
       --selected-row-border: #5dade2;
       --table-header-separator: #444;
       --th-text-color: #e0e0e0;
+
+      /* Glass Node Style for Dark Mode */
+      --node-fill-opacity: 0.87;
+      --node-stroke-glass: rgba(255, 255, 255, 0.35);
+      --node-stroke-width-glass: 1.5px;
+      --node-glow-color-dark: #74c0fc; /* Light blue for dark theme glow */
+      --current-node-glow-color: var(--node-glow-color-dark);
     }
 
     * {
@@ -125,9 +139,8 @@
       align-items: center;
       gap: 0.5rem;
     }
-    /* General style for buttons in nav, including theme toggle */
     nav button, #themeToggleBtn {
-      background: var(--button-bg); /* Default nav button background */
+      background: var(--button-bg);
       border: none;
       color: var(--button-text);
       padding: 0.5rem 1rem;
@@ -137,7 +150,7 @@
       font-family: 'Segoe UI', sans-serif;
       font-size: 0.9em;
     }
-     #themeToggleBtn { /* Specific tweaks for the theme toggle icon button */
+     #themeToggleBtn {
         padding: 0.5rem 0.75rem;
         font-size: 1.1em;
         line-height: 1;
@@ -153,7 +166,7 @@
     }
     nav .node-size-btn {
       background: var(--button-nodesize-bg);
-      padding: 0.5rem 0.75rem; /* Original padding */
+      padding: 0.5rem 0.75rem;
     }
     #fileNameDisplay {
         margin-left: 0.5rem;
@@ -230,42 +243,41 @@
         resize: vertical;
         min-height: 60px;
     }
-    #taskName { /* This is a textarea */
+    #taskName {
       width: 100%;
     }
-    /* Default button styles for buttons not specifically classed in nav */
     button {
         padding: 8px 12px;
         border: 1px solid var(--input-border);
         border-radius: 4px;
         font-size: 1em;
-        background-color: var(--button-bg); /* A general default */
+        background-color: var(--button-bg);
         color: var(--button-text);
         cursor: pointer;
         font-family: 'Segoe UI', sans-serif;
     }
-    /* Override for specifically styled buttons */
     nav button, #themeToggleBtn, .template-btn, .action-buttons button, #deleteNodeBtn, .confirm-action-btn, #deleteTaskBtn {
-      /* These buttons have more specific background/color, so reset general button border if not desired */
-      border: none; /* Common for these styled buttons */
+      border: none;
     }
-    #deleteTaskBtn { /* Special case from inline that needs vars */
+    #deleteTaskBtn {
         background-color: var(--button-danger-bg);
         color: var(--button-text);
-        margin-top: 10px; /* from original inline */
-        padding: 10px 16px; /* from original deleteNodeBtn, for consistency */
-        font-weight: 500; /* from original deleteNodeBtn */
+        margin-top: 10px;
+        padding: 10px 16px;
+        font-weight: 500;
     }
 
     .template-btn {
       background: var(--button-template-bg);
       color: var(--button-text);
       padding: 10px;
-      margin: 5px 0; /* from original */
+      margin: 5px 0;
     }
     .node circle {
-      stroke: var(--node-circle-stroke);
-      stroke-width: 2px;
+      stroke: var(--node-stroke-glass);
+      stroke-width: var(--node-stroke-width-glass);
+      fill-opacity: var(--node-fill-opacity);
+      filter: url(#nodeAppearance);
     }
     .node text.node-name {
       fill: var(--node-text-fill);
@@ -278,9 +290,9 @@
       margin-top: 15px;
     }
     .action-buttons button {
-        padding: 10px 16px; /* from original */
-        flex: 1; /* from original */
-        font-weight: 500; /* from original */
+        padding: 10px 16px;
+        flex: 1;
+        font-weight: 500;
     }
     .add-node-btn {
       background: var(--button-action-add-bg);
@@ -290,11 +302,11 @@
       background: var(--button-action-save-bg);
       color: var(--button-text);
     }
-     .confirm-action-btn { /* For Add Task Row button */
+     .confirm-action-btn {
         background: var(--button-confirm-bg);
         color: var(--button-text);
-        align-self: flex-start; /* From original inline style */
-        padding: 8px 12px; /* Match general button padding */
+        align-self: flex-start;
+        padding: 8px 12px;
     }
     .color-panel {
       display: flex;
@@ -325,8 +337,8 @@
     #deleteNodeBtn {
         background-color: var(--button-danger-bg);
         color: var(--button-text);
-        padding: 10px 16px; /* from original */
-        font-weight: 500; /* from original */
+        padding: 10px 16px;
+        font-weight: 500;
     }
      #taskTable {
         width:100%;
@@ -356,12 +368,13 @@
     .taskCountGroup text {
       fill: var(--task-count-text-fill);
       text-anchor: middle;
-      dy: 0.35em;
+      dy: 0.35em; /* Vertical centering */
+      font-weight: 500; /* Make text a bit bolder */
     }
     .taskCountGroup rect {
       fill: var(--task-count-rect-bg);
-      rx: 9;
-      ry: 9;
+      rx: 12px; /* More rounded pill shape */
+      ry: 12px; /* More rounded pill shape */
     }
 
     @media (max-width: 768px) {
@@ -520,12 +533,9 @@
 </div>
 
 <script>
-  // --- Start of Theme Toggle Script ---
-  // This part should be self-contained and robust.
-  // Ensure it runs after the 'themeToggleBtn' is in the DOM, which it is as script is at end of body.
   try {
     const themeToggleBtn = document.getElementById('themeToggleBtn');
-    const currentDocumentBody = document.body; // Renamed to avoid any theoretical conflict, though unlikely
+    const currentDocumentBody = document.body;
     const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
 
     function applyTheme(theme) {
@@ -543,7 +553,7 @@
       } else if (prefersDarkScheme.matches) {
         applyTheme('dark');
       } else {
-        applyTheme('light'); // Default light
+        applyTheme('light');
       }
 
       themeToggleBtn.addEventListener('click', () => {
@@ -568,24 +578,17 @@
   } catch (themeError) {
     console.error("Error in theme toggle script:", themeError);
   }
-  // --- End of Theme Toggle Script ---
 
-
-  // --- Start of Original Script (with minor safe modifications) ---
   function openAIAssistant() {
     const assistantUrl = 'https://chatgpt.com/g/g-678c450b02988191b07d47c7a5bd9d4a-flow-chart-assistant';
     const screenWidth = window.screen.availWidth;
     const screenHeight = window.screen.availHeight;
-
     const baseSize = Math.min(screenWidth, screenHeight);
     const popupWidth = Math.floor(baseSize * 0.45);
     const popupHeight = Math.floor(baseSize * 0.55);
-
     const left = Math.floor((screenWidth - popupWidth) / 2);
     const top = Math.floor((screenHeight - popupHeight) / 2);
-
     const features = `width=${popupWidth},height=${popupHeight},left=${left},top=${top},resizable=yes,scrollbars=yes,status=no,location=no,menubar=no,toolbar=no`;
-
     window.open(assistantUrl, 'FlowchartAIAssistant', features);
   }
 
@@ -595,16 +598,12 @@
         const words = textNode.text().split(/\s+/).reverse();
         let word;
         let line = [];
-        let lineNumber = 0;
         const lineHeight = 1.1;
         const x = textNode.attr("x") || 0;
         const y = textNode.attr("y") || 0;
-
         textNode.text(null);
-
         let tspan = textNode.append("tspan").attr("x", x).attr("y", y);
         let tspans = [tspan];
-
         while (word = words.pop()) {
             line.push(word);
             tspan.text(line.join(" "));
@@ -614,12 +613,10 @@
                 line = [word];
                 tspan = textNode.append("tspan").attr("x", x).attr("dy", `${lineHeight}em`).text(word);
                 tspans.push(tspan);
-                lineNumber++;
             }
         }
         const totalLines = tspans.length;
         const initialDyOffset =  - ( (totalLines -1) * lineHeight / 2) ;
-
         tspans.forEach((s, i) => {
             if (i === 0) {
                 s.attr("dy", `${initialDyOffset + 0.35}em`);
@@ -630,28 +627,23 @@
     });
 }
 
-
   let selectedNode = null;
   let data = { flowchartName: "Untitled Flowchart", nodes: [], links: [] };
   let simulation, svg, nodeGroup, mainZoomGroup;
 
-  const BASE_NODE_RADIUS = 60;
+  const BASE_NODE_RADIUS = 80; // Increased for larger nodes
   let currentNodeSizeFactor = 1.0;
   const MIN_NODE_SIZE_FACTOR = 0.5;
   const MAX_NODE_SIZE_FACTOR = 1.5;
   const NODE_SIZE_STEP = 0.1;
 
-
   function initD3() {
     const flowchartContainer = document.getElementById('flowchartContainer');
     d3.select(flowchartContainer).select("svg").remove();
-
     const containerWidth = flowchartContainer.clientWidth;
     const containerHeight = flowchartContainer.clientHeight;
-
     const virtualWidth = Math.max(containerWidth * 1.5, 2000);
     const virtualHeight = Math.max(containerHeight * 1.5, 1500);
-
 
     svg = d3.select(flowchartContainer)
       .append('svg')
@@ -662,21 +654,29 @@
       .attr('preserveAspectRatio', 'xMidYMid meet');
 
     mainZoomGroup = svg.append('g');
+    const zoom = d3.zoom().on("zoom", (event) => mainZoomGroup.attr("transform", event.transform));
+    svg.call(zoom).on("dblclick.zoom", null);
 
-    const zoom = d3.zoom().on("zoom", function (event) {
-        mainZoomGroup.attr("transform", event.transform);
-    });
-    svg.call(zoom)
-        .on("dblclick.zoom", null);
-
-
+    // Define the new SVG filter for node appearance
     mainZoomGroup.append('defs').html(`
-      <filter id="nodeShadow" x="-20%" y="-20%" width="140%" height="140%">
-        <feGaussianBlur in="SourceAlpha" stdDeviation="2.5" result="blur" />
-        <feOffset in="blur" dx="3" dy="3" result="offsetBlur" />
+      <filter id="nodeAppearance" x="-50%" y="-50%" width="200%" height="200%">
+        <feMorphology operator="dilate" radius="4" in="SourceAlpha" result="dilatedAlpha"/>
+        <feGaussianBlur in="dilatedAlpha" stdDeviation="var(--node-glow-filter-stdDeviation, 4)" result="glowAlpha"/>
+        <feFlood flood-color="var(--current-node-glow-color)" result="flood"/>
+        <feComposite in="flood" in2="glowAlpha" operator="in" result="coloredGlow"/>
+
+        <feMorphology operator="erode" radius="1.5" in="SourceAlpha" result="erodedAlpha"/>
+        <feGaussianBlur in="erodedAlpha" stdDeviation="1" result="blurredErodedAlpha"/>
+        <feOffset dx="-1.5" dy="-1.5" in="blurredErodedAlpha" result="offsetBlurredErodedAlpha"/>
+        <feFlood flood-color="rgba(255,255,255,0.25)" result="highlightFlood"/>
+        <feComposite in="highlightFlood" in2="offsetBlurredErodedAlpha" operator="in" result="innerHighlightAttempt"/>
+        <feComposite in="SourceGraphic" in2="innerHighlightAttempt" operator="atop" result="innerHighlight"/>
+
+
         <feMerge>
-          <feMergeNode in="offsetBlur"/>
-          <feMergeNode in="SourceGraphic"/>
+            <feMergeNode in="coloredGlow"/>
+            <feMergeNode in="SourceGraphic"/>
+            <feMergeNode in="innerHighlight"/>
         </feMerge>
       </filter>
     `);
@@ -693,12 +693,10 @@
         const newContainerHeight = flowchartContainer.clientHeight;
         const newVirtualWidth = Math.max(newContainerWidth * 1.5, virtualWidth);
         const newVirtualHeight = Math.max(newContainerHeight* 1.5, virtualHeight);
-
         simulation.force('center', d3.forceCenter(newVirtualWidth / 2, newVirtualHeight / 2));
         simulation.alpha(0.3).restart();
     });
   }
-
 
   function placeNodesDiagonally() {
     const initialX = (mainZoomGroup.node() ? parseFloat(svg.attr('viewBox').split(' ')[2]) / 2 : 1000) ;
@@ -706,8 +704,6 @@
     const currentScaledRadius = BASE_NODE_RADIUS * currentNodeSizeFactor;
     const horizontalSpacing = currentScaledRadius * 3.5;
     const verticalSpacing = currentScaledRadius * 2.5;
-
-
     data.nodes.forEach((node, i) => {
       if (node.x == null || node.fx == null) {
         node.x = initialX + (i % 3 - 1) * horizontalSpacing + (Math.random() * 50 - 25);
@@ -732,18 +728,15 @@
     checkbox.type = 'checkbox';
     checkbox.checked = task && task.completed ? true : false;
     tdCheckbox.appendChild(checkbox);
-
     const tdTask = document.createElement('td');
     const taskInput = document.createElement('textarea');
-    taskInput.classList.add('task-detail-textarea'); // Using class for styling
+    taskInput.classList.add('task-detail-textarea');
     taskInput.value = task && task.task ? task.task : '';
     taskInput.rows = 1;
-
-    taskInput.addEventListener('input', function() { // Auto-resize
+    taskInput.addEventListener('input', function() {
         this.style.height = 'auto';
         this.style.height = (this.scrollHeight) + 'px';
     });
-
     taskInput.addEventListener('dblclick', function(e) {
       e.stopPropagation();
       tr.classList.add('selectedTaskRow');
@@ -759,7 +752,6 @@
     });
     taskInput.addEventListener('touchend', function() { clearTimeout(pressTimer); });
     taskInput.addEventListener('touchmove', function() { clearTimeout(pressTimer); });
-
     tdTask.appendChild(taskInput);
     tr.appendChild(tdCheckbox);
     tr.appendChild(tdTask);
@@ -774,21 +766,11 @@
     if (taskDataString && typeof taskDataString === 'string') {
         try {
             tasksArray = JSON.parse(taskDataString);
-            if (!Array.isArray(tasksArray)) {
-                tasksArray = taskDataString.trim() ? [{ completed: false, task: taskDataString }] : [];
-            }
-        } catch (e) {
-             tasksArray = taskDataString.trim() ? [{ completed: false, task: taskDataString }] : [];
-        }
-    } else if (Array.isArray(taskDataString)) {
-        tasksArray = taskDataString;
-    }
-
-    if (tasksArray.length > 0) {
-        tasksArray.forEach(task => addTaskRow(task));
-    } else {
-        addTaskRow({});
-    }
+            if (!Array.isArray(tasksArray)) tasksArray = taskDataString.trim() ? [{ completed: false, task: taskDataString }] : [];
+        } catch (e) { tasksArray = taskDataString.trim() ? [{ completed: false, task: taskDataString }] : []; }
+    } else if (Array.isArray(taskDataString)) tasksArray = taskDataString;
+    if (tasksArray.length > 0) tasksArray.forEach(task => addTaskRow(task));
+    else addTaskRow({});
   }
 
   function showTaskPopup(text) {
@@ -816,48 +798,29 @@
 
   function saveToFile() {
     try {
-      const flowchartNameValue = document.getElementById('flowchartNameInput').value;
-      data.flowchartName = flowchartNameValue || "Untitled Flowchart";
-
+      data.flowchartName = document.getElementById('flowchartNameInput').value || "Untitled Flowchart";
       const exportData = {
         flowchartName: data.flowchartName,
-        nodes: data.nodes.map(n => ({
-          id: n.id, name: n.name, status: n.status, responsible: n.responsible,
-          deadline: n.deadline, priority: n.priority, actionDescription: n.actionDescription,
-          color: n.color,
-          x: n.x, y: n.y,
-          fx: n.fx, fy: n.fy
-        })),
+        nodes: data.nodes.map(n => ({ id: n.id, name: n.name, status: n.status, responsible: n.responsible, deadline: n.deadline, priority: n.priority, actionDescription: n.actionDescription, color: n.color, x: n.x, y: n.y, fx: n.fx, fy: n.fy })),
         links: data.links
       };
       const dataStr = JSON.stringify(exportData, null, 2);
       const blob = new Blob([dataStr], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      const safeFileName = (exportData.flowchartName.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'flowchart') + '.json';
       a.href = url;
-      a.download = safeFileName;
+      a.download = (exportData.flowchartName.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'flowchart') + '.json';
       document.body.appendChild(a);
       a.click();
       setTimeout(() => {
-        try {
-          document.body.removeChild(a);
-          URL.revokeObjectURL(url);
-        } catch (removeError) {
-          console.error("Error removing link or revoking URL:", removeError);
-        }
+        try { document.body.removeChild(a); URL.revokeObjectURL(url); }
+        catch (removeError) { console.error("Error removing link or revoking URL:", removeError); }
       }, 100);
-    } catch (error) {
-      console.error("Error during file export process:", error);
-      alert("An error occurred while trying to export the file. Please check the console for details.");
-    }
+    } catch (error) { console.error("Error during file export:", error); alert("Error exporting file."); }
   }
 
-    function loadFromFile(file) {
-      if (!file) {
-        alert('No file selected.');
-        return;
-      }
+  function loadFromFile(file) {
+      if (!file) { alert('No file selected.'); return; }
       const reader = new FileReader();
       reader.onload = (e) => {
         try {
@@ -865,268 +828,80 @@
           if (fileData && typeof fileData === 'object' && Array.isArray(fileData.nodes) ) {
             data.flowchartName = fileData.flowchartName || "Untitled Flowchart";
             document.getElementById('flowchartNameInput').value = data.flowchartName;
-
-            data.nodes = fileData.nodes.map(n => ({
-                ...n,
-                x: n.x,
-                y: n.y,
-                fx: n.fx !== undefined ? n.fx : n.x,
-                fy: n.fy !== undefined ? n.fy : n.y
-            }));
+            data.nodes = fileData.nodes.map(n => ({ ...n, x: n.x, y: n.y, fx: n.fx !== undefined ? n.fx : n.x, fy: n.fy !== undefined ? n.fy : n.y }));
             data.links = Array.isArray(fileData.links) ? fileData.links : [];
-
             document.getElementById('fileNameDisplay').innerText = `Loaded: ${file.name}`;
             document.getElementById('fileNameDisplay').title = `Loaded: ${file.name}`;
             update();
-          } else {
-            alert('Invalid file format. Must contain a "nodes" array.');
-          }
-        } catch (error) {
-          alert('Error reading or parsing the file. Check console for details.');
-          console.error("Error in loadFromFile:", error);
-        }
+          } else alert('Invalid file format.');
+        } catch (error) { alert('Error reading/parsing file.'); console.error("Error in loadFromFile:", error); }
       };
       reader.onerror = () => alert('Error reading file.');
       reader.readAsText(file);
     }
 
-
   function loadTemplate(template) {
     data.flowchartName = template.charAt(0).toUpperCase() + template.slice(1) + " Template";
     document.getElementById('flowchartNameInput').value = data.flowchartName;
     data.links = [];
-
     switch (template) {
-      case 'prototype':
-        data.nodes = [
-          { id: '1', name: 'Design', status: 'Completed', actionDescription: '[{"completed":false,"task":"Define user stories"},{"completed":false,"task":"Create wireframes"}]', color: '#2ecc71' },
-          { id: '2', name: 'Development', status: 'In Progress', actionDescription: '[{"completed":false,"task":"Setup environment"},{"completed":false,"task":"Build core features"}]', color: '#f1c40f' },
-          { id: '3', name: 'Testing', status: 'Not Started', actionDescription: '[{"completed":false,"task":"Write test cases"},{"completed":false,"task":"Perform QA"}]', color: '#e74c3c' }
-        ];
-        break;
-      case 'vendor':
-        data.nodes = [
-          { id: '1', name: 'Identify Vendors', status: 'Completed', actionDescription: '[{"completed":false,"task":"Research options"},{"completed":false,"task":"Shortlist 5 vendors"}]', color: '#2ecc71' },
-          { id: '2', name: 'Outreach & Demo', status: 'In Progress', actionDescription: '[{"completed":false,"task":"Send RFPs"},{"completed":false,"task":"Schedule demos"}]', color: '#f1c40f' },
-          { id: '3', name: 'Negotiate & Select', status: 'Not Started', actionDescription: '[{"completed":false,"task":"Compare proposals"},{"completed":false,"task":"Finalize contract"}]', color: '#e74c3c' }
-        ];
-        break;
-      case 'marketing':
-        data.nodes = [
-          { id: '1', name: 'Market Research', status: 'Completed', actionDescription: '[{"completed":false,"task":"Analyze competitors"},{"completed":false,"task":"Define target audience"}]', color: '#2ecc71' },
-          { id: '2', name: 'Campaign Planning', status: 'In Progress', actionDescription: '[{"completed":false,"task":"Set goals & KPIs"},{"completed":false,"task":"Develop content strategy"}]', color: '#f1c40f' },
-          { id: '3', name: 'Execution & Launch', status: 'Not Started', actionDescription: '[{"completed":false,"task":"Create assets"},{"completed":false,"task":"Launch campaign"}]', color: '#e74c3c' }
-        ];
-        break;
-        default:
-            data.nodes = [{id: 'root-1', name: 'Start Here', status: 'Not Started', actionDescription: '[]', color: '#3498db', x: 300, y: 150, fx:300, fy:150 }];
-            data.flowchartName = "New Flowchart";
-            document.getElementById('flowchartNameInput').value = data.flowchartName;
+      case 'prototype': data.nodes = [ { id: '1', name: 'Design', status: 'Completed', actionDescription: '[{"completed":false,"task":"Define user stories"},{"completed":false,"task":"Create wireframes"}]', color: '#2ecc71' }, { id: '2', name: 'Development', status: 'In Progress', actionDescription: '[{"completed":false,"task":"Setup environment"},{"completed":false,"task":"Build core features"}]', color: '#f1c40f' }, { id: '3', name: 'Testing', status: 'Not Started', actionDescription: '[{"completed":false,"task":"Write test cases"},{"completed":false,"task":"Perform QA"}]', color: '#e74c3c' } ]; break;
+      case 'vendor': data.nodes = [ { id: '1', name: 'Identify Vendors', status: 'Completed', actionDescription: '[{"completed":false,"task":"Research options"},{"completed":false,"task":"Shortlist 5 vendors"}]', color: '#2ecc71' }, { id: '2', name: 'Outreach & Demo', status: 'In Progress', actionDescription: '[{"completed":false,"task":"Send RFPs"},{"completed":false,"task":"Schedule demos"}]', color: '#f1c40f' }, { id: '3', name: 'Negotiate & Select', status: 'Not Started', actionDescription: '[{"completed":false,"task":"Compare proposals"},{"completed":false,"task":"Finalize contract"}]', color: '#e74c3c' } ]; break;
+      case 'marketing': data.nodes = [ { id: '1', name: 'Market Research', status: 'Completed', actionDescription: '[{"completed":false,"task":"Analyze competitors"},{"completed":false,"task":"Define target audience"}]', color: '#2ecc71' }, { id: '2', name: 'Campaign Planning', status: 'In Progress', actionDescription: '[{"completed":false,"task":"Set goals & KPIs"},{"completed":false,"task":"Develop content strategy"}]', color: '#f1c40f' }, { id: '3', name: 'Execution & Launch', status: 'Not Started', actionDescription: '[{"completed":false,"task":"Create assets"},{"completed":false,"task":"Launch campaign"}]', color: '#e74c3c' } ]; break;
+      default: data.nodes = [{id: 'root-1', name: 'Start Here', status: 'Not Started', actionDescription: '[]', color: '#3498db', x: 300, y: 150, fx:300, fy:150 }]; data.flowchartName = "New Flowchart"; document.getElementById('flowchartNameInput').value = data.flowchartName;
     }
-    data.nodes.forEach(n => {
-        n.fx = null;
-        n.fy = null;
-    });
-    placeNodesDiagonally();
-    update();
+    data.nodes.forEach(n => { n.fx = null; n.fy = null; });
+    placeNodesDiagonally(); update();
   }
 
   document.addEventListener('DOMContentLoaded', () => {
-    try { // Wrap DOMContentLoaded logic in a try-catch for better debugging
+    try {
         initD3();
+        const get = (id) => document.getElementById(id); // Helper
 
-        const aiAssistantButton = document.getElementById('aiAssistantBtn');
-        if (aiAssistantButton) {
-            aiAssistantButton.onclick = openAIAssistant;
-        } else { console.error("Button not found: aiAssistantBtn"); }
-
-        const nodeSizeIncreaseBtn = document.getElementById('nodeSizeIncreaseBtn');
-        if (nodeSizeIncreaseBtn) {
-            nodeSizeIncreaseBtn.onclick = () => {
-                if (currentNodeSizeFactor < MAX_NODE_SIZE_FACTOR) {
-                    currentNodeSizeFactor = parseFloat((currentNodeSizeFactor + NODE_SIZE_STEP).toFixed(2));
-                    updateNodeSizes();
-                }
-            };
-        } else { console.error("Button not found: nodeSizeIncreaseBtn"); }
-
-        const nodeSizeDecreaseBtn = document.getElementById('nodeSizeDecreaseBtn');
-        if (nodeSizeDecreaseBtn) {
-            nodeSizeDecreaseBtn.onclick = () => {
-                if (currentNodeSizeFactor > MIN_NODE_SIZE_FACTOR) {
-                    currentNodeSizeFactor = parseFloat((currentNodeSizeFactor - NODE_SIZE_STEP).toFixed(2));
-                    updateNodeSizes();
-                }
-            };
-        } else { console.error("Button not found: nodeSizeDecreaseBtn"); }
-
-
-        document.querySelectorAll('.color-swatch').forEach(swatch => {
-          swatch.addEventListener('click', () => {
-            document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected-swatch'));
-            swatch.classList.add('selected-swatch');
-            document.getElementById('nodeColor').value = swatch.dataset.color;
-          });
-        });
-
-        const templateBtn = document.getElementById('templateBtn');
-        if (templateBtn) {
-            templateBtn.onclick = () => {
-              document.getElementById('templateModal').style.display = 'block';
-            };
-        } else { console.error("Button not found: templateBtn"); }
-
-        document.querySelectorAll('.template-btn').forEach(btn => {
-          btn.onclick = (e) => {
-            loadTemplate(e.target.dataset.template);
-            document.getElementById('templateModal').style.display = 'none';
-          };
-        });
-
-        const addNodeBtnModal = document.getElementById('addNodeBtn'); // This is inside the modal
-        if (addNodeBtnModal) {
-            addNodeBtnModal.onclick = (e) => {
-              e.preventDefault();
-              const newNode = createNode(selectedNode);
-              if (newNode) {
-                selectedNode = newNode;
-                // Manually call nodeClick, ensuring event object is properly simulated if needed
-                nodeClick({ stopPropagation: () => {} }, newNode);
-              }
-            };
-        } else { console.error("Button not found: addNodeBtn (in modal)"); }
-
-
-        const exportBtn = document.getElementById('exportBtn');
-        if (exportBtn) {
-            exportBtn.onclick = saveToFile;
-        } else { console.error("Button not found: exportBtn"); }
-
-
-        const uploadButton = document.getElementById('uploadBtn');
-        const fileInput = document.getElementById('fileInput');
-        if (uploadButton && fileInput) {
-            uploadButton.onclick = () => fileInput.click();
-            fileInput.onchange = (e) => {
-              if (e.target.files.length > 0) {
-                loadFromFile(e.target.files[0]);
-              }
-            };
-        } else { console.error("Button/Input not found: uploadBtn or fileInput"); }
-
-
-        document.querySelectorAll('.close-button').forEach(btn => {
-          btn.onclick = (e) => {
-            e.stopPropagation();
-            btn.closest('.modal').style.display = 'none';
-          };
-        });
-        window.onclick = (e) => {
-            if (e.target.classList.contains('modal')) {
-                e.target.style.display = 'none';
-            }
-        };
-
-        const taskForm = document.getElementById('taskForm');
-        if (taskForm) {
-            taskForm.onsubmit = (e) => {
-              e.preventDefault();
-              if (selectedNode) {
-                let taskRows = document.querySelectorAll('#taskTable tbody tr');
+        if (get('aiAssistantBtn')) get('aiAssistantBtn').onclick = openAIAssistant;
+        if (get('nodeSizeIncreaseBtn')) get('nodeSizeIncreaseBtn').onclick = () => { if (currentNodeSizeFactor < MAX_NODE_SIZE_FACTOR) { currentNodeSizeFactor = parseFloat((currentNodeSizeFactor + NODE_SIZE_STEP).toFixed(2)); updateNodeSizes(); } };
+        if (get('nodeSizeDecreaseBtn')) get('nodeSizeDecreaseBtn').onclick = () => { if (currentNodeSizeFactor > MIN_NODE_SIZE_FACTOR) { currentNodeSizeFactor = parseFloat((currentNodeSizeFactor - NODE_SIZE_STEP).toFixed(2)); updateNodeSizes(); } };
+        
+        document.querySelectorAll('.color-swatch').forEach(s => s.addEventListener('click', () => { document.querySelectorAll('.color-swatch').forEach(x => x.classList.remove('selected-swatch')); s.classList.add('selected-swatch'); get('nodeColor').value = s.dataset.color; }));
+        if (get('templateBtn')) get('templateBtn').onclick = () => get('templateModal').style.display = 'block';
+        document.querySelectorAll('.template-btn').forEach(btn => btn.onclick = (e) => { loadTemplate(e.target.dataset.template); get('templateModal').style.display = 'none'; });
+        if (get('addNodeBtn')) get('addNodeBtn').onclick = (e) => { e.preventDefault(); const n = createNode(selectedNode); if (n) { selectedNode = n; nodeClick({ stopPropagation: () => {} }, n); } };
+        if (get('exportBtn')) get('exportBtn').onclick = saveToFile;
+        if (get('uploadBtn') && get('fileInput')) { get('uploadBtn').onclick = () => get('fileInput').click(); get('fileInput').onchange = (e) => { if (e.target.files.length > 0) loadFromFile(e.target.files[0]); }; }
+        
+        document.querySelectorAll('.close-button').forEach(btn => btn.onclick = (e) => { e.stopPropagation(); btn.closest('.modal').style.display = 'none'; });
+        window.onclick = (e) => { if (e.target.classList.contains('modal')) e.target.style.display = 'none'; };
+        
+        if (get('taskForm')) get('taskForm').onsubmit = (e) => {
+            e.preventDefault();
+            if (selectedNode) {
                 let tasks = [];
-                taskRows.forEach(row => {
-                  let checkbox = row.querySelector('input[type="checkbox"]');
-                  let taskInput = row.querySelector('textarea.task-detail-textarea'); // Selector specific to class
-                  if (taskInput && taskInput.value.trim() !== "") { // Check taskInput is not null
-                    tasks.push({
-                      completed: checkbox.checked,
-                      task: taskInput.value.trim()
-                    });
-                  } else if (!taskInput) {
-                      console.warn("Textarea with class .task-detail-textarea not found in a task row during save.");
-                  }
+                document.querySelectorAll('#taskTable tbody tr').forEach(row => {
+                    let chk = row.querySelector('input[type="checkbox"]');
+                    let txt = row.querySelector('textarea.task-detail-textarea');
+                    if (txt && txt.value.trim() !== "") tasks.push({ completed: chk.checked, task: txt.value.trim() });
                 });
-                Object.assign(selectedNode, {
-                  name: document.getElementById('taskName').value,
-                  responsible: document.getElementById('responsible').value,
-                  status: document.getElementById('status').value,
-                  deadline: document.getElementById('deadline').value,
-                  priority: document.getElementById('priority').value,
-                  actionDescription: JSON.stringify(tasks),
-                  color: document.getElementById('nodeColor').value || null
-                });
-                selectedNode.fx = selectedNode.x;
-                selectedNode.fy = selectedNode.y;
-                update();
-              }
-              document.getElementById('modal').style.display = 'none';
-            };
-        } else { console.error("Form not found: taskForm"); }
+                Object.assign(selectedNode, { name: get('taskName').value, responsible: get('responsible').value, status: get('status').value, deadline: get('deadline').value, priority: get('priority').value, actionDescription: JSON.stringify(tasks), color: get('nodeColor').value || null });
+                selectedNode.fx = selectedNode.x; selectedNode.fy = selectedNode.y; update();
+            }
+            get('modal').style.display = 'none';
+        };
+        if (get('addTaskRowBtn')) get('addTaskRowBtn').addEventListener('click', () => addTaskRow({}));
+        if (get('deleteTaskBtn')) get('deleteTaskBtn').addEventListener('click', () => { let sr = document.querySelector('#taskTable tbody tr.selectedTaskRow'); if (sr) sr.remove(); get('taskTextPopup').style.display = 'none'; });
+        if (get('deleteNodeBtn')) get('deleteNodeBtn').addEventListener('click', () => { if (selectedNode && confirm("Delete node?")) { data.nodes = data.nodes.filter(n=>n.id!==selectedNode.id); data.links = data.links.filter(l=>(l.source.id||l.source)!==selectedNode.id && (l.target.id||l.target)!==selectedNode.id); selectedNode = null; update(); get('modal').style.display = 'none'; } });
+        if (get('flowchartNameInput')) get('flowchartNameInput').addEventListener('input', function() { data.flowchartName = this.value || "Untitled Flowchart"; });
 
-
-        const addTaskRowBtn = document.getElementById('addTaskRowBtn');
-        if (addTaskRowBtn) {
-            addTaskRowBtn.addEventListener('click', () => addTaskRow({}));
-        } else { console.error("Button not found: addTaskRowBtn"); }
-
-        const deleteTaskBtnModal = document.getElementById('deleteTaskBtn'); // In taskTextPopup
-        if (deleteTaskBtnModal) {
-            deleteTaskBtnModal.addEventListener('click', function() {
-              let selectedRow = document.querySelector('#taskTable tbody tr.selectedTaskRow');
-              if (selectedRow) {
-                  selectedRow.remove();
-              }
-              document.getElementById('taskTextPopup').style.display = 'none';
-            });
-        } else { console.error("Button not found: deleteTaskBtn (in taskTextPopup)"); }
-
-
-        const deleteNodeBtnModal = document.getElementById('deleteNodeBtn'); // In main modal
-        if (deleteNodeBtnModal) {
-            deleteNodeBtnModal.addEventListener('click', function() {
-              if (selectedNode && confirm("Are you sure you want to delete this node? This action cannot be undone.")) {
-                data.nodes = data.nodes.filter(n => n.id !== selectedNode.id);
-                data.links = data.links.filter(link =>
-                  (link.source.id || link.source) !== selectedNode.id &&
-                  (link.target.id || link.target) !== selectedNode.id
-                );
-                selectedNode = null;
-                update();
-                document.getElementById('modal').style.display = 'none';
-              }
-            });
-        } else { console.error("Button not found: deleteNodeBtn (in modal)"); }
-
-
-        const flowchartNameInputEl = document.getElementById('flowchartNameInput');
-        if (flowchartNameInputEl) {
-            flowchartNameInputEl.addEventListener('input', function() {
-              data.flowchartName = this.value || "Untitled Flowchart";
-            });
-        } else { console.error("Input not found: flowchartNameInput"); }
-
-
-        if (data.nodes.length === 0) {
-            loadTemplate('prototype');
-        } else {
-            update();
-        }
-    } catch (domError) {
-        console.error("Error during DOMContentLoaded initialization:", domError);
-    }
-  }); // End of DOMContentLoaded
+        if (data.nodes.length === 0) loadTemplate('prototype'); else update();
+    } catch (domError) { console.error("Error during DOMContentLoaded:", domError); }
+  });
 
   function createNode(parentNode) {
     const newNodeId = `node-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
-
     let initialX, initialY;
     const svgViewBox = svg.attr('viewBox').split(' ');
-    const viewBoxWidth = parseFloat(svgViewBox[2]);
-    const viewBoxHeight = parseFloat(svgViewBox[3]);
-
+    const viewBoxWidth = parseFloat(svgViewBox[2]), viewBoxHeight = parseFloat(svgViewBox[3]);
     const currentScaledRadius = BASE_NODE_RADIUS * currentNodeSizeFactor;
-
-
     if (parentNode && typeof parentNode.x === 'number' && typeof parentNode.y === 'number') {
         initialX = parentNode.x + (Math.random() * 100 - 50);
         initialY = parentNode.y + (currentScaledRadius * 2.5) + (Math.random() * 20 - 10);
@@ -1134,165 +909,79 @@
         initialX = viewBoxWidth / 2 + (Math.random() * 200 - 100);
         initialY = viewBoxHeight / 3 + (Math.random() * 100 - 50);
     }
-
     initialX = Math.max(currentScaledRadius, Math.min(initialX, viewBoxWidth - currentScaledRadius));
     initialY = Math.max(currentScaledRadius, Math.min(initialY, viewBoxHeight - currentScaledRadius));
-
-
-    const newNode = {
-      id: newNodeId,
-      name: 'New Task',
-      status: 'Not Started',
-      responsible: '',
-      deadline: '',
-      priority: 'Normal',
-      actionDescription: '[]',
-      color: null,
-      x: initialX,
-      y: initialY,
-      fx: initialX,
-      fy: initialY
-    };
-    data.nodes.push(newNode);
-    update();
-    return newNode;
+    const newNode = { id: newNodeId, name: 'New Task', status: 'Not Started', responsible: '', deadline: '', priority: 'Normal', actionDescription: '[]', color: null, x: initialX, y: initialY, fx: initialX, fy: initialY };
+    data.nodes.push(newNode); update(); return newNode;
   }
 
   function updateNodeSizes() {
     if (!simulation) return;
     const scaledRadius = BASE_NODE_RADIUS * currentNodeSizeFactor;
     simulation.force('collide').radius(scaledRadius + 20);
-    simulation.force('charge').strength(-1200 * (scaledRadius / BASE_NODE_RADIUS) );
-
-    update();
-    simulation.alpha(0.3).restart();
+    simulation.force('charge').strength(-1200 * (scaledRadius / 60) ); // Adjusted base for charge scaling
+    update(); simulation.alpha(0.3).restart();
   }
 
-
   function update() {
-    if (!svg || !simulation) {
-        console.error("D3 not initialized for update");
-        return;
-    }
-
-    if (mainZoomGroup) {
-        const linksGroup = mainZoomGroup.select(".links");
-        if (linksGroup && !linksGroup.empty()) {
-            linksGroup.selectAll('*').remove();
-        }
-    }
-    if(simulation.force("link")) {
-        simulation.force("link", null);
-    }
+    if (!svg || !simulation) { console.error("D3 not initialized for update"); return; }
+    if (mainZoomGroup) { const lg = mainZoomGroup.select(".links"); if (lg && !lg.empty()) lg.selectAll('*').remove(); }
+    if(simulation.force("link")) simulation.force("link", null);
 
     const currentDisplayRadius = BASE_NODE_RADIUS * currentNodeSizeFactor;
-    const currentMainFontSize = 14 * currentNodeSizeFactor;
-    const currentTaskCountFontSize = 10 * currentNodeSizeFactor;
+    const currentMainFontSize = 14 * currentNodeSizeFactor; // Base main font size
+    const currentTaskCountFontSize = 13 * currentNodeSizeFactor; // Increased base task count font size
 
-
-    const nodes = nodeGroup.selectAll('.node')
-      .data(data.nodes, d => d.id);
-
+    const nodes = nodeGroup.selectAll('.node').data(data.nodes, d => d.id);
     nodes.exit().remove();
-
-    const nodesEnter = nodes.enter()
-      .append('g')
-      .attr('class', 'node')
+    const nodesEnter = nodes.enter().append('g').attr('class', 'node')
       .call(d3.drag().on('start', dragStart).on('drag', dragging).on('end', dragEnd))
       .on('click', nodeClick);
-
-    nodesEnter.append('circle')
-      .attr('filter', 'url(#nodeShadow)');
-
-    nodesEnter.append('text')
-      .attr('class', 'node-name')
-      .attr('text-anchor', 'middle')
-      .attr('dominant-baseline', 'central');
-
-    nodesEnter.append('g')
-      .attr('class', 'taskCountGroup');
-
+    nodesEnter.append('circle'); // Filter applied via CSS
+    nodesEnter.append('text').attr('class', 'node-name').attr('text-anchor', 'middle').attr('dominant-baseline', 'central');
+    nodesEnter.append('g').attr('class', 'taskCountGroup');
 
     const allNodes = nodesEnter.merge(nodes);
-
-    allNodes.select('circle')
-      .attr('r', currentDisplayRadius)
-      .attr('fill', d => d.color ? d.color : getStatusColor(d.status));
-
-    allNodes.select('text.node-name')
-      .style('font-size', `${currentMainFontSize}px`)
-      .text(d => d.name)
-      .call(wrapText, currentDisplayRadius * 1.5, currentMainFontSize);
-
+    allNodes.select('circle').attr('r', currentDisplayRadius).attr('fill', d => d.color ? d.color : getStatusColor(d.status));
+    allNodes.select('text.node-name').style('font-size', `${currentMainFontSize}px`).text(d => d.name)
+      .call(wrapText, currentDisplayRadius * 1.6, currentMainFontSize); // Slightly increased wrap width factor
 
     allNodes.select('.taskCountGroup')
-      .attr('transform', `translate(0, -${currentDisplayRadius + (12 * currentNodeSizeFactor)})`)
+      .attr('transform', `translate(0, -${currentDisplayRadius + (18 * currentNodeSizeFactor)})`) // Adjusted pill position
       .each(function(d) {
         const group = d3.select(this);
         group.selectAll('*').remove();
         let tasks = [];
-        if (d.actionDescription) {
-          try {
-            const parsed = JSON.parse(d.actionDescription);
-            if (Array.isArray(parsed)) tasks = parsed;
-          } catch (e) { /* ignore */ }
-        }
-
+        if (d.actionDescription) { try { const p = JSON.parse(d.actionDescription); if (Array.isArray(p)) tasks = p; } catch (e) {} }
         const completedCount = tasks.filter(t => t.completed).length;
         const totalCount = tasks.length;
-
         if (totalCount > 0) {
-            const textString = `✅ ${completedCount}/${totalCount}`;
-            const textEl = group.append('text')
-              .style('font-size', `${currentTaskCountFontSize}px`)
-              .text(textString);
-
+            const textString = `✓ ${completedCount}/${totalCount}`; // Updated emoji
+            const textEl = group.append('text').style('font-size', `${currentTaskCountFontSize}px`).text(textString);
             const textNode = textEl.node();
             if (textNode) {
                 const bbox = textNode.getBBox();
-                const rectWidth = bbox.width + (10 * currentNodeSizeFactor);
-                const rectHeight = bbox.height + (4 * currentNodeSizeFactor);
-                group.insert('rect', 'text')
-                  .attr('width', rectWidth)
-                  .attr('height', rectHeight)
-                  .attr('x', -rectWidth / 2)
-                  .attr('y', -(rectHeight / 2) - (2 * currentNodeSizeFactor) )
-                  .attr('rx', rectHeight / 2)
-                  .attr('ry', rectHeight / 2);
+                const rectWidth = bbox.width + (14 * currentNodeSizeFactor); // Increased padding
+                const rectHeight = bbox.height + (8 * currentNodeSizeFactor); // Increased padding
+                group.insert('rect', 'text').attr('width', rectWidth).attr('height', rectHeight)
+                  .attr('x', -rectWidth / 2).attr('y', -(bbox.height / 2) - (4 * currentNodeSizeFactor) ) // Adjusted y for better text centering in pill
+                  .attr('rx', rectHeight / 2).attr('ry', rectHeight / 2); // Make it very round
             }
         }
       });
-
-    simulation.nodes(data.nodes).on('tick', () => {
-      allNodes.attr('transform', d => `translate(${d.x || 0},${d.y || 0})`);
-    });
-
+    simulation.nodes(data.nodes).on('tick', () => allNodes.attr('transform', d => `translate(${d.x||0},${d.y||0})`));
     simulation.alpha(0.3).restart();
   }
 
-
   function getStatusColor(status) {
     switch (status) {
-      case 'Not Started': return '#e74c3c';
-      case 'In Progress': return '#f1c40f';
-      case 'Completed':   return '#2ecc71';
-      default:            return '#3498db';
+      case 'Not Started': return '#e74c3c'; case 'In Progress': return '#f1c40f';
+      case 'Completed': return '#2ecc71'; default: return '#3498db';
     }
   }
-
-  function dragStart(event, d) {
-    if (!event.active) simulation.alphaTarget(0.3).restart();
-    d.fx = d.x;
-    d.fy = d.y;
-  }
-  function dragging(event, d) {
-    d.fx = event.x;
-    d.fy = event.y;
-  }
-  function dragEnd(event, d) {
-    if (!event.active) simulation.alphaTarget(0);
-  }
-  // --- End of Original Script ---
+  function dragStart(event, d) { if (!event.active) simulation.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; }
+  function dragging(event, d) { d.fx = event.x; d.fy = event.y; }
+  function dragEnd(event, d) { if (!event.active) simulation.alphaTarget(0); }
 </script>
 </body>
 </html>
