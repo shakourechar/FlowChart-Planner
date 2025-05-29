@@ -7,88 +7,172 @@
   <link rel="icon" type="image/png" href="https://static.wixstatic.com/media/c3283f_a3e1ec47496f42f7be617a2cd7a7bc9e~mv2.png">
 
   <style>
+    :root {
+      --bg-primary: #f4f4f4;
+      --bg-secondary: white;
+      --bg-header: #2c3e50;
+      --text-primary: #333;
+      --text-on-header: white;
+      --text-filename: #ecf0f1;
+      --input-bg: #fff;
+      --input-text: #333;
+      --input-border: #ccc;
+      --input-light-border: #eee; /* For specific textareas like in task table */
+      --button-bg: #2980b9; /* Default button */
+      --button-text: white;
+      --button-upload-bg: #27ae60;
+      --button-ai-bg: #8e44ad;
+      --button-nodesize-bg: #f39c12;
+      --button-template-bg: #8e44ad;
+      --button-action-add-bg: #27ae60;
+      --button-action-save-bg: #2980b9;
+      --button-danger-bg: #e74c3c;
+      --button-confirm-bg: #5cb85c;
+      --modal-bg: white;
+      --modal-text: #333;
+      --close-button-color: #777;
+      --close-button-hover-color: #333;
+      --flowchart-container-bg: white;
+      --flowchart-container-border: #ccc;
+      --node-text-fill: white; /* Text on colored nodes */
+      --node-circle-stroke: white;
+      --task-count-rect-bg: #2c3e50;
+      --task-count-text-fill: white;
+      --selected-swatch-outline: #2c3e50;
+      --selected-row-bg: #ecf0f1;
+      --selected-row-border: #3498db;
+      --table-header-separator: #ddd;
+      --th-text-color: #333;
+    }
+
+    body.dark-mode {
+      --bg-primary: #1e1e1e;
+      --bg-secondary: #2d2d2d;
+      --bg-header: #1a2430;
+      --text-primary: #e0e0e0;
+      --text-on-header: #e0e0e0;
+      --text-filename: #bdc3c7;
+      --input-bg: #3a3a3a;
+      --input-text: #e0e0e0;
+      --input-border: #555;
+      --input-light-border: #4a4a4a;
+      --button-bg: #3498db;
+      /* --button-text: white; */ /* Already white, or can be #e0e0e0 for consistency */
+      --button-upload-bg: #2ecc71;
+      --button-ai-bg: #9b59b6;
+      --button-nodesize-bg: #f39c12; /* Orange can stay, text needs to be light */
+      --button-template-bg: #9b59b6;
+      --button-action-add-bg: #2ecc71;
+      --button-action-save-bg: #3498db;
+      --button-danger-bg: #c0392b;
+      --button-confirm-bg: #58b358;
+      --modal-bg: #2d2d2d;
+      --modal-text: #e0e0e0;
+      --close-button-color: #aaa;
+      --close-button-hover-color: #e0e0e0;
+      --flowchart-container-bg: #252525;
+      --flowchart-container-border: #444;
+      --node-text-fill: #e0e0e0;
+      --node-circle-stroke: var(--bg-secondary);
+      --task-count-rect-bg: #bbbbbb; /* Light grey for badge background */
+      --task-count-text-fill: #1a1a1a; /* Dark text for badge */
+      --selected-swatch-outline: #e0e0e0;
+      --selected-row-bg: #3a3a3a;
+      --selected-row-border: #5dade2;
+      --table-header-separator: #444;
+      --th-text-color: #e0e0e0;
+    }
+
     * {
       box-sizing: border-box;
     }
     body {
       margin: 0;
       font-family: 'Segoe UI', sans-serif;
-      background: #f4f4f4;
-      display: flex; 
-      flex-direction: column; 
-      min-height: 100vh; 
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      transition: background-color 0.3s ease, color 0.3s ease;
     }
     header {
-      background: #2c3e50;
-      color: white;
+      background: var(--bg-header);
+      color: var(--text-on-header);
       padding: 1rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      flex-shrink: 0; 
+      flex-shrink: 0;
     }
     header h1 {
       margin: 0;
       display: flex;
       align-items: center;
-      font-size: 1.5em; 
+      font-size: 1.5em;
     }
     header h1 input#flowchartNameInput {
       margin-left: 10px;
-      font-size: 0.9em; 
+      font-size: 0.9em;
       padding: 4px 8px;
-      border: none;
+      border: 1px solid var(--input-border);
       border-radius: 4px;
-      background-color: #fff;
-      color: #333;
+      background-color: var(--input-bg);
+      color: var(--input-text);
     }
     nav {
       display: flex;
       align-items: center;
-      gap: 0.5rem; 
+      gap: 0.5rem;
     }
-    nav button {
-      background: #2980b9;
+    nav button, #themeToggleBtn { /* Apply to theme toggle too */
+      background: var(--button-bg);
       border: none;
-      color: white;
+      color: var(--button-text);
       padding: 0.5rem 1rem;
       cursor: pointer;
       border-radius: 4px;
-      white-space: nowrap; 
+      white-space: nowrap;
+      font-family: 'Segoe UI', sans-serif; /* Ensure font consistency */
+      font-size: 0.9em; /* Match other nav buttons */
     }
+     #themeToggleBtn {
+        padding: 0.5rem 0.75rem; /* Slightly adjusted for icon */
+        font-size: 1.1em; /* Make icon a bit larger */
+        line-height: 1; /* Align icon nicely */
+     }
     nav input[type="file"] {
       display: none;
     }
     nav .upload-btn {
-      background: #27ae60;
-      display: inline-block;
+      background: var(--button-upload-bg);
     }
     nav .ai-assistant-btn {
-      background: #8e44ad; 
+      background: var(--button-ai-bg);
     }
-    nav .node-size-btn { 
-        background: #f39c12; 
-        padding: 0.5rem 0.75rem;
+    nav .node-size-btn {
+      background: var(--button-nodesize-bg);
+      padding: 0.5rem 0.75rem;
     }
     #fileNameDisplay {
         margin-left: 0.5rem;
         font-size: 0.9em;
-        color: #ecf0f1;
+        color: var(--text-filename);
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        max-width: 150px; 
+        max-width: 150px;
     }
-    #flowchartContainer { 
+    #flowchartContainer {
         width: 100%;
-        flex-grow: 1; 
-        border: 1px solid #ccc;
-        background: white;
-        overflow: auto; 
-        position: relative; 
+        flex-grow: 1;
+        border: 1px solid var(--flowchart-container-border);
+        background: var(--flowchart-container-bg);
+        overflow: auto;
+        position: relative;
     }
-    #flowchart { 
-        display: block; 
+    #flowchart {
+        display: block;
     }
     .modal {
       display: none;
@@ -98,19 +182,21 @@
       top: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0,0,0,0.5);
+      background: rgba(0,0,0,0.6); /* Slightly darker overlay for better perceived depth */
       padding-top: 50px;
-      overflow-y: auto; 
+      overflow-y: auto;
     }
     .modal-content {
-      background: white;
-      margin: 20px auto; 
+      background: var(--modal-bg);
+      color: var(--modal-text);
+      margin: 20px auto;
       padding: 20px;
       width: 90%;
       max-width: 500px;
-      overflow-y: visible; 
+      overflow-y: visible;
       border-radius: 8px;
       position: relative;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
     }
     .close-button {
       position: absolute;
@@ -118,10 +204,10 @@
       top: 10px;
       font-size: 24px;
       cursor: pointer;
-      color: #777; 
+      color: var(--close-button-color);
     }
     .close-button:hover {
-        color: #333;
+        color: var(--close-button-hover-color);
     }
     form {
       display: flex;
@@ -130,23 +216,25 @@
     }
     input,
     select,
-    button, 
-    textarea {
-      padding: 8px 12px; 
-      border: 1px solid #ccc;
+    textarea { /* General input styling */
+      padding: 8px 12px;
+      border: 1px solid var(--input-border);
       border-radius: 4px;
-      font-size: 1em; 
+      font-size: 1em;
+      background-color: var(--input-bg);
+      color: var(--input-text);
+      font-family: 'Segoe UI', sans-serif;
     }
     textarea {
         resize: vertical;
         min-height: 60px;
     }
-    #taskName {
+    #taskName { /* This is a textarea */
       width: 100%;
     }
     .template-btn {
-      background: #8e44ad;
-      color: white;
+      background: var(--button-template-bg);
+      color: var(--button-text); /* Ensure consistent button text color */
       border: none;
       padding: 10px;
       margin: 5px 0;
@@ -154,46 +242,53 @@
       border-radius: 4px;
     }
     .node circle {
-      stroke: white;
-      stroke-width: 2px; 
+      stroke: var(--node-circle-stroke);
+      stroke-width: 2px;
     }
-    .node text.node-name { 
-      fill: white;
-      /* font-size is dynamic */
+    .node text.node-name {
+      fill: var(--node-text-fill);
       text-anchor: middle;
-      pointer-events: none; 
+      pointer-events: none;
     }
     .action-buttons {
       display: flex;
       gap: 10px;
-      margin-top: 15px; 
+      margin-top: 15px;
     }
-    .action-buttons button { 
-        color: white;
+    .action-buttons button {
+        /* color will be var(--button-text) from specific bg classes */
         border: none;
-        padding: 10px 16px; 
+        padding: 10px 16px;
         border-radius: 4px;
         cursor: pointer;
         flex: 1;
         font-weight: 500;
     }
-    .add-node-btn {
-      background: #27ae60;
+    .add-node-btn { /* Specific button in modal */
+      background: var(--button-action-add-bg);
+      color: var(--button-text);
     }
-    .save-btn {
-      background: #2980b9;
+    .save-btn { /* Specific button in modal */
+      background: var(--button-action-save-bg);
+      color: var(--button-text);
+    }
+     .confirm-action-btn { /* For Add Task Row button */
+        background: var(--button-confirm-bg);
+        color: var(--button-text);
+        border: none; /* Already covered by general button but explicit */
+        align-self: flex-start; /* From original inline style */
     }
     .color-panel {
       display: flex;
       flex-wrap: wrap;
       gap: 6px;
       margin-top: 8px;
-      margin-bottom: 8px; 
+      margin-bottom: 8px;
     }
     .color-swatch {
       width: 24px;
       height: 24px;
-      border: 1px solid #ddd; 
+      border: 1px solid var(--input-border); /* Use a common border color */
       border-radius: 4px;
       cursor: pointer;
       transition: transform 0.1s ease;
@@ -202,32 +297,56 @@
         transform: scale(1.1);
     }
     .selected-swatch {
-      outline: 2px solid #2c3e50; 
-      outline-offset: 2px; 
+      outline: 2px solid var(--selected-swatch-outline);
+      outline-offset: 2px;
     }
     .selectedTaskRow {
-      border: 2px solid #3498db;
-      background-color: #ecf0f1; 
+      border: 2px solid var(--selected-row-border);
+      background-color: var(--selected-row-bg);
     }
-    #deleteNodeBtn { 
-        background-color: #e74c3c;
-        color: white;
+    #deleteNodeBtn {
+        background-color: var(--button-danger-bg);
+        color: var(--button-text); /* Ensure text color is set */
         padding: 10px 16px;
         border: none;
         border-radius: 4px;
         cursor: pointer;
         font-weight: 500;
     }
-    .taskCountGroup text { 
-        fill: white;
-        /* font-size will be dynamic */
-        text-anchor: middle;
-        dy: 0.35em; 
+     #taskTable {
+        width:100%;
+        margin-bottom:10px;
+        border-collapse: collapse; /* Optional: for cleaner look */
     }
-    .taskCountGroup rect { 
-        fill: #2c3e50; /* Original color */
-        rx: 9; /* Original rounding */
-        ry: 9; /* Original rounding */
+    #taskTable th {
+        text-align: left;
+        padding-bottom: 5px;
+        border-bottom: 1px solid var(--table-header-separator);
+        color: var(--th-text-color);
+    }
+    #taskTable td {
+        padding-top: 5px;
+    }
+    .task-detail-textarea { /* Styling for textarea within task table */
+        width: 100%;
+        resize: vertical;
+        border: 1px solid var(--input-light-border);
+        padding: 4px;
+        background-color: var(--input-bg);
+        color: var(--input-text);
+        border-radius: 3px;
+        font-size: 0.9em; /* Slightly smaller for table context */
+        min-height: 2.5em; /* Auto-adjusts from JS but provide a min */
+    }
+    .taskCountGroup text {
+      fill: var(--task-count-text-fill);
+      text-anchor: middle;
+      dy: 0.35em;
+    }
+    .taskCountGroup rect {
+      fill: var(--task-count-rect-bg);
+      rx: 9;
+      ry: 9;
     }
 
     @media (max-width: 768px) {
@@ -238,26 +357,45 @@
         }
         header h1 {
             font-size: 1.25em;
+            width: 100%; /* Allow h1 (and input) to take full width */
+            justify-content: space-between; /* Space out title and input */
         }
         nav {
             width: 100%;
-            flex-wrap: wrap; 
+            flex-wrap: wrap;
         }
-        nav button {
-            flex-grow: 1; 
-            min-width: 100px; 
+        nav button, #themeToggleBtn { /* Ensure toggle button wraps too */
+            flex-grow: 1;
+            min-width: 100px;
         }
         #fileNameDisplay {
             width: 100%;
-            text-align: center;
+            text-align: center; /* Or left, depending on preference */
             margin-top: 0.5rem;
+            margin-left: 0; /* Reset margin */
+            max-width: none; /* Allow full width */
         }
         .modal-content {
             width: 95%;
             padding: 15px;
         }
          #flowchartContainer {
-            height: 70vh; 
+            height: 70vh;
+        }
+    }
+    @media (max-width: 480px) { /* Further adjustments for very small screens */
+        header h1 {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+        header h1 input#flowchartNameInput {
+            margin-left: 0;
+            width: 100%; /* Make input full width on smallest screens */
+        }
+        nav button, #themeToggleBtn {
+            font-size: 0.85em; /* Slightly smaller buttons if needed */
+            padding: 0.4rem 0.8rem;
         }
     }
   </style>
@@ -266,17 +404,18 @@
 </head>
 <body>
 <header>
-  <h1>FlowChart Manager</h1>
-  <input type="text" id="flowchartNameInput" placeholder="Enter Flowchart Name...">
+  <h1>
+    FlowChart Manager
+    <input type="text" id="flowchartNameInput" placeholder="Enter Flowchart Name...">
+  </h1>
   <nav>
     <button id="nodeSizeIncreaseBtn" class="node-size-btn">Node Size +</button>
     <button id="nodeSizeDecreaseBtn" class="node-size-btn">Node Size -</button>
     <button id="aiAssistantBtn" class="ai-assistant-btn">Flowchart AI Assistant</button>
-    <button id="templateBtn">Templates</button>
-    <button id="exportBtn">Export</button>
-    <input type="file" id="fileInput" accept=".json">
+    <button id="templateBtn">Templates</button> <button id="exportBtn">Export</button> <input type="file" id="fileInput" accept=".json">
     <button id="uploadBtn" class="upload-btn">Upload</button>
     <div id="fileNameDisplay">No file loaded</div>
+    <button id="themeToggleBtn" title="Toggle theme">🌓</button>
   </nav>
 </header>
 
@@ -314,7 +453,7 @@
         </select>
       </label>
       <label>Action Description (Sub-tasks):</label>
-      <table id="taskTable" style="width:100%; margin-bottom:10px;">
+      <table id="taskTable">
         <thead>
           <tr>
             <th style="width: 30px;">✓</th>
@@ -323,7 +462,7 @@
         </thead>
         <tbody></tbody>
       </table>
-      <button type="button" id="addTaskRowBtn" style="align-self: flex-start; background-color: #5cb85c;">Add Task</button>
+      <button type="button" id="addTaskRowBtn" class="confirm-action-btn">Add Task</button>
       <label>Node Color:</label>
       <input type="hidden" id="nodeColor" />
       <div class="color-panel">
@@ -359,696 +498,69 @@
   <div class="modal-content">
     <span class="close-button" id="closeTaskPopup">×</span>
     <p id="taskFullText" style="white-space: pre-wrap; max-height: 60vh; overflow-y: auto;"></p>
-    <button id="deleteTaskBtn" style="margin-top: 10px; background-color: #e74c3c; color: white;">Delete Task</button>
+    <button id="deleteTaskBtn" style="margin-top: 10px; background-color: var(--button-danger-bg); color: var(--button-text);">Delete Task</button>
   </div>
 </div>
 
 <script>
+  // Theme toggle script should be one of the first scripts if it affects rendering,
+  // or placed within DOMContentLoaded if it manipulates DOM elements that need to exist first.
+  // Since it's mostly class toggling, it can be early.
+  const themeToggleBtn = document.getElementById('themeToggleBtn');
+  const body = document.body;
+  const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+
+  function applyTheme(theme) {
+    if (theme === 'dark') {
+      body.classList.add('dark-mode');
+      // themeToggleBtn.textContent = '☀️'; // Optional: change icon/text
+    } else {
+      body.classList.remove('dark-mode');
+      // themeToggleBtn.textContent = '🌙'; // Optional: change icon/text
+    }
+  }
+
+  const savedTheme = localStorage.getItem('theme');
+  if (savedTheme) {
+    applyTheme(savedTheme);
+  } else if (prefersDarkScheme.matches) {
+    applyTheme('dark');
+  } else {
+    applyTheme('light'); // Default light
+  }
+
+  themeToggleBtn.addEventListener('click', () => {
+    const currentTheme = body.classList.contains('dark-mode') ? 'dark' : 'light';
+    if (currentTheme === 'dark') {
+      applyTheme('light');
+      localStorage.setItem('theme', 'light');
+    } else {
+      applyTheme('dark');
+      localStorage.setItem('theme', 'dark');
+    }
+    // If D3 elements need explicit re-styling based on theme beyond CSS variables:
+    // if (typeof update === 'function') update(); // Example: re-run D3 update if needed
+  });
+
+  prefersDarkScheme.addEventListener('change', (e) => {
+    if (!localStorage.getItem('theme')) { // Only change if no user override
+      applyTheme(e.matches ? 'dark' : 'light');
+    }
+  });
+
+
   function openAIAssistant() {
     const assistantUrl = 'https://chatgpt.com/g/g-678c450b02988191b07d47c7a5bd9d4a-flow-chart-assistant';
     const screenWidth = window.screen.availWidth;
     const screenHeight = window.screen.availHeight;
-    
+
     const baseSize = Math.min(screenWidth, screenHeight);
-    const popupWidth = Math.floor(baseSize * 0.45); 
-    const popupHeight = Math.floor(baseSize * 0.55); 
+    const popupWidth = Math.floor(baseSize * 0.45);
+    const popupHeight = Math.floor(baseSize * 0.55);
 
     const left = Math.floor((screenWidth - popupWidth) / 2);
     const top = Math.floor((screenHeight - popupHeight) / 2);
 
-    const features = `width=${popupWidth},height=${popupHeight},left=${left},top=${top},resizable=yes,scrollbars=yes,status=no,location=no,menubar=no,toolbar=no`;
-    
-    window.open(assistantUrl, 'FlowchartAIAssistant', features);
-  }
+    const features = `width=<span class="math-inline">\{popupWidth\},height\=</span>{popupHeight},left=<span class="math-inline">\{left\},top\=</span>{top},resizable=yes,scrollbars=yes,status=no,location=no,menubar=no,toolbar=no`;
 
-  function wrapText(textElement, width, baseFontSize) { 
-    textElement.each(function() {
-        const textNode = d3.select(this);
-        const words = textNode.text().split(/\s+/).reverse();
-        let word;
-        let line = [];
-        let lineNumber = 0;
-        const lineHeight = 1.1; 
-        const x = textNode.attr("x") || 0; 
-        const y = textNode.attr("y") || 0; 
-        
-        textNode.text(null); 
-
-        let tspan = textNode.append("tspan").attr("x", x).attr("y", y); 
-        let tspans = [tspan];
-
-        while (word = words.pop()) {
-            line.push(word);
-            tspan.text(line.join(" "));
-            if (tspan.node().getComputedTextLength() > width && line.length > 1) {
-                line.pop(); 
-                tspan.text(line.join(" ")); 
-                line = [word]; 
-                tspan = textNode.append("tspan").attr("x", x).attr("dy", `${lineHeight}em`).text(word);
-                tspans.push(tspan);
-                lineNumber++;
-            }
-        }
-        const totalLines = tspans.length;
-        // For dominant-baseline: central, the first line's dy should be adjusted to pull it up
-        // by half of the total height of the subsequent lines.
-        // If dominant-baseline is not central or not reliably set, this might need further tweaking.
-        // Let's assume dominant-baseline: central is set or its effect is handled by the default dy:0.35em for text
-        const initialDyOffset =  - ( (totalLines -1) * lineHeight / 2) ; // Shift up by half the height of other lines
-        
-        tspans.forEach((s, i) => {
-            if (i === 0) {
-                s.attr("dy", `${initialDyOffset + 0.35}em`); // Combine with original single-line centering
-            } else {
-                 s.attr("dy", `${lineHeight}em`); // Subsequent lines are relative
-            }
-        });
-    });
-}
-
-
-  let selectedNode = null;
-  let data = { flowchartName: "Untitled Flowchart", nodes: [], links: [] }; 
-  let simulation, svg, nodeGroup, mainZoomGroup;
-  
-  const BASE_NODE_RADIUS = 60; 
-  let currentNodeSizeFactor = 1.0; 
-  const MIN_NODE_SIZE_FACTOR = 0.5;
-  const MAX_NODE_SIZE_FACTOR = 1.5;
-  const NODE_SIZE_STEP = 0.1;
-
-
-  function initD3() {
-    const flowchartContainer = document.getElementById('flowchartContainer');
-    d3.select(flowchartContainer).select("svg").remove();
-
-    const containerWidth = flowchartContainer.clientWidth;
-    const containerHeight = flowchartContainer.clientHeight;
-
-    const virtualWidth = Math.max(containerWidth * 1.5, 2000); 
-    const virtualHeight = Math.max(containerHeight * 1.5, 1500);
-
-
-    svg = d3.select(flowchartContainer)
-      .append('svg')
-      .attr('id', 'flowchart')
-      .attr('width', "100%") 
-      .attr('height', "100%")
-      .attr('viewBox', `0 0 ${virtualWidth} ${virtualHeight}`) 
-      .attr('preserveAspectRatio', 'xMidYMid meet');
-      
-    mainZoomGroup = svg.append('g'); 
-
-    const zoom = d3.zoom().on("zoom", function (event) {
-       mainZoomGroup.attr("transform", event.transform);
-    });
-    svg.call(zoom)
-       .on("dblclick.zoom", null);
-
-
-    mainZoomGroup.append('defs').html(`
-      <filter id="nodeShadow" x="-20%" y="-20%" width="140%" height="140%">
-        <feGaussianBlur in="SourceAlpha" stdDeviation="2.5" result="blur" />
-        <feOffset in="blur" dx="3" dy="3" result="offsetBlur" />
-        <feMerge>
-          <feMergeNode in="offsetBlur"/>
-          <feMergeNode in="SourceGraphic"/>
-        </feMerge>
-      </filter>
-    `);
-
-    simulation = d3.forceSimulation()
-      .force('charge', d3.forceManyBody().strength(-1200 * (BASE_NODE_RADIUS * currentNodeSizeFactor / 60) )) 
-      .force('collide', d3.forceCollide().radius( (BASE_NODE_RADIUS * currentNodeSizeFactor) + 20).strength(0.9)) 
-      .force('center', d3.forceCenter(virtualWidth / 2, virtualHeight / 2)); 
-
-    nodeGroup = mainZoomGroup.append('g').attr("class", "nodes");
-
-    window.addEventListener('resize', () => {
-        const newContainerWidth = flowchartContainer.clientWidth;
-        const newContainerHeight = flowchartContainer.clientHeight;
-        const newVirtualWidth = Math.max(newContainerWidth * 1.5, virtualWidth);
-        const newVirtualHeight = Math.max(newContainerHeight* 1.5, virtualHeight);
-        
-        simulation.force('center', d3.forceCenter(newVirtualWidth / 2, newVirtualHeight / 2));
-        simulation.alpha(0.3).restart(); 
-    });
-  }
-
-
-  function placeNodesDiagonally() {
-    const initialX = (mainZoomGroup.node() ? parseFloat(svg.attr('viewBox').split(' ')[2]) / 2 : 1000) ;
-    const initialY = 150; 
-    const currentScaledRadius = BASE_NODE_RADIUS * currentNodeSizeFactor;
-    const horizontalSpacing = currentScaledRadius * 3.5; 
-    const verticalSpacing = currentScaledRadius * 2.5;   
-
-
-    data.nodes.forEach((node, i) => {
-      if (node.x == null || node.fx == null) { 
-        node.x = initialX + (i % 3 - 1) * horizontalSpacing + (Math.random() * 50 - 25); 
-        node.fx = node.x; 
-      }
-      if (node.y == null || node.fy == null) {
-        node.y = initialY + Math.floor(i / 3) * verticalSpacing + (Math.random() * 50 - 25); 
-        node.fy = node.y; 
-      }
-    });
-  }
-
-  function addTaskRow(task) {
-    const tbody = document.querySelector('#taskTable tbody');
-    const tr = document.createElement('tr');
-    tr.addEventListener('click', function() {
-      document.querySelectorAll('#taskTable tbody tr').forEach(row => row.classList.remove('selectedTaskRow'));
-      this.classList.add('selectedTaskRow');
-    });
-    const tdCheckbox = document.createElement('td');
-    const checkbox = document.createElement('input');
-    checkbox.type = 'checkbox';
-    checkbox.checked = task && task.completed ? true : false;
-    tdCheckbox.appendChild(checkbox);
-
-    const tdTask = document.createElement('td');
-    const taskInput = document.createElement('textarea'); 
-    taskInput.value = task && task.task ? task.task : '';
-    taskInput.rows = 1; 
-    taskInput.style.width = '100%';
-    taskInput.style.resize = 'vertical';
-    taskInput.style.border = '1px solid #eee'; 
-    taskInput.style.padding = '4px';
-    taskInput.addEventListener('input', function() { 
-        this.style.height = 'auto';
-        this.style.height = (this.scrollHeight) + 'px';
-    });
-
-
-    taskInput.addEventListener('dblclick', function(e) {
-      e.stopPropagation(); 
-      tr.classList.add('selectedTaskRow');
-      showTaskPopup(this.value);
-    });
-    let pressTimer;
-    taskInput.addEventListener('touchstart', function(e) {
-      e.stopPropagation();
-      pressTimer = window.setTimeout(() => {
-        tr.classList.add('selectedTaskRow');
-        showTaskPopup(this.value);
-      }, 800);
-    });
-    taskInput.addEventListener('touchend', function() { clearTimeout(pressTimer); });
-    taskInput.addEventListener('touchmove', function() { clearTimeout(pressTimer); });
-
-    tdTask.appendChild(taskInput);
-    tr.appendChild(tdCheckbox);
-    tr.appendChild(tdTask);
-    tbody.appendChild(tr);
-    taskInput.dispatchEvent(new Event('input')); 
-  }
-
-  function populateTaskTable(taskDataString) {
-    const tbody = document.querySelector('#taskTable tbody');
-    tbody.innerHTML = ''; 
-    let tasksArray = [];
-    if (taskDataString && typeof taskDataString === 'string') {
-        try {
-            tasksArray = JSON.parse(taskDataString);
-            if (!Array.isArray(tasksArray)) { 
-                tasksArray = taskDataString.trim() ? [{ completed: false, task: taskDataString }] : [];
-            }
-        } catch (e) {
-             tasksArray = taskDataString.trim() ? [{ completed: false, task: taskDataString }] : [];
-        }
-    } else if (Array.isArray(taskDataString)) { 
-        tasksArray = taskDataString;
-    }
-
-    if (tasksArray.length > 0) {
-        tasksArray.forEach(task => addTaskRow(task));
-    } else {
-        addTaskRow({}); 
-    }
-  }
-
-  function showTaskPopup(text) {
-    document.getElementById('taskFullText').textContent = text;
-    document.getElementById('taskTextPopup').style.display = 'block';
-  }
-
-  function nodeClick(event, d) {
-    event.stopPropagation();
-    selectedNode = d;
-    document.getElementById('taskName').value = d.name || '';
-    document.getElementById('responsible').value = d.responsible || '';
-    document.getElementById('status').value = d.status || 'Not Started';
-    document.getElementById('deadline').value = d.deadline || '';
-    document.getElementById('priority').value = d.priority || 'Normal';
-    populateTaskTable(d.actionDescription || ''); 
-    document.getElementById('nodeColor').value = d.color || '';
-    document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected-swatch'));
-    if (d.color) {
-      const swatchToSelect = document.querySelector(`.color-swatch[data-color='${d.color}']`);
-      if (swatchToSelect) swatchToSelect.classList.add('selected-swatch');
-    }
-    document.getElementById('modal').style.display = 'block';
-  }
-
-  function saveToFile() {
-    try {
-      const flowchartNameValue = document.getElementById('flowchartNameInput').value;
-      data.flowchartName = flowchartNameValue || "Untitled Flowchart"; 
-      
-      const exportData = {
-        flowchartName: data.flowchartName,
-        nodes: data.nodes.map(n => ({
-          id: n.id, name: n.name, status: n.status, responsible: n.responsible,
-          deadline: n.deadline, priority: n.priority, actionDescription: n.actionDescription,
-          color: n.color, 
-          x: n.x, y: n.y, 
-          fx: n.fx, fy: n.fy 
-        })),
-        links: data.links 
-      };
-      const dataStr = JSON.stringify(exportData, null, 2);
-      const blob = new Blob([dataStr], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      const safeFileName = (exportData.flowchartName.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'flowchart') + '.json';
-      a.href = url; 
-      a.download = safeFileName;
-      document.body.appendChild(a);
-      a.click();
-      setTimeout(() => {
-        try {
-          document.body.removeChild(a);
-          URL.revokeObjectURL(url);
-        } catch (removeError) {
-          console.error("Error removing link or revoking URL:", removeError);
-        }
-      }, 100);
-    } catch (error) {
-      console.error("Error during file export process:", error);
-      alert("An error occurred while trying to export the file. Please check the console for details.");
-    }
-  }
-
-    function loadFromFile(file) {
-      if (!file) {
-        alert('No file selected.');
-        return;
-      }
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        try {
-          const fileData = JSON.parse(e.target.result);
-          if (fileData && typeof fileData === 'object' && Array.isArray(fileData.nodes) ) { 
-            data.flowchartName = fileData.flowchartName || "Untitled Flowchart";
-            document.getElementById('flowchartNameInput').value = data.flowchartName;
-            
-            data.nodes = fileData.nodes.map(n => ({ 
-                ...n,
-                x: n.x, 
-                y: n.y, 
-                fx: n.fx !== undefined ? n.fx : n.x, 
-                fy: n.fy !== undefined ? n.fy : n.y
-            }));
-            data.links = Array.isArray(fileData.links) ? fileData.links : []; 
-            
-            document.getElementById('fileNameDisplay').innerText = `Loaded: ${file.name}`;
-            document.getElementById('fileNameDisplay').title = `Loaded: ${file.name}`;
-            update();
-          } else {
-            alert('Invalid file format. Must contain a "nodes" array.');
-          }
-        } catch (error) {
-          alert('Error reading or parsing the file. Check console for details.');
-          console.error("Error in loadFromFile:", error);
-        }
-      };
-      reader.onerror = () => alert('Error reading file.');
-      reader.readAsText(file);
-    }
-
-
-  function loadTemplate(template) {
-    data.flowchartName = template.charAt(0).toUpperCase() + template.slice(1) + " Template";
-    document.getElementById('flowchartNameInput').value = data.flowchartName;
-    data.links = []; 
-
-    switch (template) {
-      case 'prototype':
-        data.nodes = [
-          { id: '1', name: 'Design', status: 'Completed', actionDescription: '[{"completed":false,"task":"Define user stories"},{"completed":false,"task":"Create wireframes"}]', color: '#2ecc71' },
-          { id: '2', name: 'Development', status: 'In Progress', actionDescription: '[{"completed":false,"task":"Setup environment"},{"completed":false,"task":"Build core features"}]', color: '#f1c40f' },
-          { id: '3', name: 'Testing', status: 'Not Started', actionDescription: '[{"completed":false,"task":"Write test cases"},{"completed":false,"task":"Perform QA"}]', color: '#e74c3c' }
-        ];
-        break;
-      case 'vendor':
-        data.nodes = [
-          { id: '1', name: 'Identify Vendors', status: 'Completed', actionDescription: '[{"completed":false,"task":"Research options"},{"completed":false,"task":"Shortlist 5 vendors"}]', color: '#2ecc71' },
-          { id: '2', name: 'Outreach & Demo', status: 'In Progress', actionDescription: '[{"completed":false,"task":"Send RFPs"},{"completed":false,"task":"Schedule demos"}]', color: '#f1c40f' },
-          { id: '3', name: 'Negotiate & Select', status: 'Not Started', actionDescription: '[{"completed":false,"task":"Compare proposals"},{"completed":false,"task":"Finalize contract"}]', color: '#e74c3c' }
-        ];
-        break;
-      case 'marketing':
-        data.nodes = [
-          { id: '1', name: 'Market Research', status: 'Completed', actionDescription: '[{"completed":false,"task":"Analyze competitors"},{"completed":false,"task":"Define target audience"}]', color: '#2ecc71' },
-          { id: '2', name: 'Campaign Planning', status: 'In Progress', actionDescription: '[{"completed":false,"task":"Set goals & KPIs"},{"completed":false,"task":"Develop content strategy"}]', color: '#f1c40f' },
-          { id: '3', name: 'Execution & Launch', status: 'Not Started', actionDescription: '[{"completed":false,"task":"Create assets"},{"completed":false,"task":"Launch campaign"}]', color: '#e74c3c' }
-        ];
-        break;
-        default:
-            data.nodes = [{id: 'root-1', name: 'Start Here', status: 'Not Started', actionDescription: '[]', color: '#3498db', x: 300, y: 150, fx:300, fy:150 }];
-            data.flowchartName = "New Flowchart";
-            document.getElementById('flowchartNameInput').value = data.flowchartName;
-    }
-    data.nodes.forEach(n => {
-        n.fx = null;
-        n.fy = null;
-    });
-    placeNodesDiagonally(); 
-    update();
-  }
-
-  document.getElementById('taskForm').onsubmit = (e) => {
-    e.preventDefault();
-    if (selectedNode) {
-      let taskRows = document.querySelectorAll('#taskTable tbody tr');
-      let tasks = [];
-      taskRows.forEach(row => {
-        let checkbox = row.querySelector('input[type="checkbox"]');
-        let taskInput = row.querySelector('textarea'); 
-        if (taskInput && taskInput.value.trim() !== "") {
-          tasks.push({
-            completed: checkbox.checked,
-            task: taskInput.value.trim()
-          });
-        }
-      });
-      Object.assign(selectedNode, {
-        name: document.getElementById('taskName').value,
-        responsible: document.getElementById('responsible').value,
-        status: document.getElementById('status').value,
-        deadline: document.getElementById('deadline').value,
-        priority: document.getElementById('priority').value,
-        actionDescription: JSON.stringify(tasks),
-        color: document.getElementById('nodeColor').value || null 
-      });
-      selectedNode.fx = selectedNode.x;
-      selectedNode.fy = selectedNode.y;
-      update(); 
-    }
-    document.getElementById('modal').style.display = 'none';
-  };
-
-  document.getElementById('addTaskRowBtn').addEventListener('click', () => addTaskRow({}));
-
-  document.getElementById('deleteTaskBtn').addEventListener('click', function() {
-    let selectedRow = document.querySelector('#taskTable tbody tr.selectedTaskRow');
-    if (selectedRow) {
-        selectedRow.remove();
-    }
-    document.getElementById('taskTextPopup').style.display = 'none';
-  });
-
-  document.getElementById('deleteNodeBtn').addEventListener('click', function() {
-    if (selectedNode && confirm("Are you sure you want to delete this node? This action cannot be undone.")) {
-      data.nodes = data.nodes.filter(n => n.id !== selectedNode.id);
-      data.links = data.links.filter(link => 
-        (link.source.id || link.source) !== selectedNode.id && 
-        (link.target.id || link.target) !== selectedNode.id
-      );
-      selectedNode = null;
-      update();
-      document.getElementById('modal').style.display = 'none';
-    }
-  });
-
-  document.addEventListener('DOMContentLoaded', () => {
-    initD3(); 
-
-    const aiAssistantButton = document.getElementById('aiAssistantBtn');
-    if (aiAssistantButton) {
-        aiAssistantButton.onclick = openAIAssistant;
-    }
-
-    document.getElementById('nodeSizeIncreaseBtn').onclick = () => {
-        if (currentNodeSizeFactor < MAX_NODE_SIZE_FACTOR) {
-            currentNodeSizeFactor = parseFloat((currentNodeSizeFactor + NODE_SIZE_STEP).toFixed(2));
-            updateNodeSizes();
-        }
-    };
-    document.getElementById('nodeSizeDecreaseBtn').onclick = () => {
-        if (currentNodeSizeFactor > MIN_NODE_SIZE_FACTOR) {
-            currentNodeSizeFactor = parseFloat((currentNodeSizeFactor - NODE_SIZE_STEP).toFixed(2));
-            updateNodeSizes();
-        }
-    };
-
-
-    document.querySelectorAll('.color-swatch').forEach(swatch => {
-      swatch.addEventListener('click', () => {
-        document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected-swatch'));
-        swatch.classList.add('selected-swatch');
-        document.getElementById('nodeColor').value = swatch.dataset.color;
-      });
-    });
-
-    document.getElementById('templateBtn').onclick = () => {
-      document.getElementById('templateModal').style.display = 'block';
-    };
-    document.querySelectorAll('.template-btn').forEach(btn => {
-      btn.onclick = (e) => {
-        loadTemplate(e.target.dataset.template);
-        document.getElementById('templateModal').style.display = 'none';
-      };
-    });
-
-    document.getElementById('addNodeBtn').onclick = (e) => {
-      e.preventDefault();
-      const newNode = createNode(selectedNode); 
-      if (newNode) {
-        selectedNode = newNode; 
-        nodeClick({ stopPropagation: () => {} }, newNode); 
-      }
-    };
-
-    document.getElementById('exportBtn').onclick = saveToFile;
-
-    const uploadButton = document.getElementById('uploadBtn');
-    const fileInput = document.getElementById('fileInput');
-    uploadButton.onclick = () => fileInput.click(); 
-    fileInput.onchange = (e) => {
-      if (e.target.files.length > 0) {
-        loadFromFile(e.target.files[0]);
-      }
-    };
-
-    document.querySelectorAll('.close-button').forEach(btn => {
-      btn.onclick = (e) => {
-        e.stopPropagation();
-        btn.closest('.modal').style.display = 'none';
-      };
-    });
-    window.onclick = (e) => {
-        if (e.target.classList.contains('modal')) {
-            e.target.style.display = 'none';
-        }
-    };
-    
-    if (data.nodes.length === 0) {
-        loadTemplate('prototype'); 
-    } else {
-        update(); 
-    }
-  });
-
-  function createNode(parentNode) { 
-    const newNodeId = `node-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
-    
-    let initialX, initialY;
-    const svgViewBox = svg.attr('viewBox').split(' ');
-    const viewBoxWidth = parseFloat(svgViewBox[2]);
-    const viewBoxHeight = parseFloat(svgViewBox[3]);
-
-    const currentScaledRadius = BASE_NODE_RADIUS * currentNodeSizeFactor;
-
-
-    if (parentNode && typeof parentNode.x === 'number' && typeof parentNode.y === 'number') {
-        initialX = parentNode.x + (Math.random() * 100 - 50); 
-        initialY = parentNode.y + (currentScaledRadius * 2.5) + (Math.random() * 20 - 10); 
-    } else {
-        initialX = viewBoxWidth / 2 + (Math.random() * 200 - 100); 
-        initialY = viewBoxHeight / 3 + (Math.random() * 100 - 50);
-    }
-    
-    initialX = Math.max(currentScaledRadius, Math.min(initialX, viewBoxWidth - currentScaledRadius));
-    initialY = Math.max(currentScaledRadius, Math.min(initialY, viewBoxHeight - currentScaledRadius));
-
-
-    const newNode = {
-      id: newNodeId,
-      name: 'New Task',
-      status: 'Not Started',
-      responsible: '',
-      deadline: '',
-      priority: 'Normal',
-      actionDescription: '[]', 
-      color: null,
-      x: initialX,
-      y: initialY,
-      fx: initialX, 
-      fy: initialY  
-    };
-    data.nodes.push(newNode);
-    update();
-    return newNode;
-  }
-  
-  function updateNodeSizes() {
-    if (!simulation) return;
-    const scaledRadius = BASE_NODE_RADIUS * currentNodeSizeFactor;
-    simulation.force('collide').radius(scaledRadius + 20);
-    simulation.force('charge').strength(-1200 * (scaledRadius / BASE_NODE_RADIUS) ); // Scale charge relative to base size
-    
-    // Update spacing for placeNodesDiagonally if needed, or let simulation adjust
-    // placeNodesDiagonally(); // Could be called if you want to reset initial fixed positions on resize
-
-    update();
-    simulation.alpha(0.3).restart(); 
-  }
-
-
-  function update() {
-    if (!svg || !simulation) { 
-        console.error("D3 not initialized for update");
-        return;
-    }
-
-    // --- LINK RENDERING COMPLETELY REMOVED ---
-    if (mainZoomGroup) { // Ensure mainZoomGroup is defined
-        const linksGroup = mainZoomGroup.select(".links");
-        if (linksGroup && !linksGroup.empty()) {
-            linksGroup.selectAll('*').remove(); // Clear any children if .links group exists
-        }
-    }
-    if(simulation.force("link")) { 
-        simulation.force("link", null);
-    }
-    // data.links is still maintained for save/load but not rendered.
-    // --- END LINK REMOVAL ---
-
-    const currentDisplayRadius = BASE_NODE_RADIUS * currentNodeSizeFactor;
-    const currentMainFontSize = 14 * currentNodeSizeFactor;
-    const currentTaskCountFontSize = 10 * currentNodeSizeFactor;
-
-
-    const nodes = nodeGroup.selectAll('.node')
-      .data(data.nodes, d => d.id);
-
-    nodes.exit().remove();
-
-    const nodesEnter = nodes.enter()
-      .append('g')
-      .attr('class', 'node')
-      .call(d3.drag().on('start', dragStart).on('drag', dragging).on('end', dragEnd))
-      .on('click', nodeClick);
-
-    nodesEnter.append('circle')
-      .attr('filter', 'url(#nodeShadow)');
-
-    nodesEnter.append('text')
-      .attr('class', 'node-name') 
-      .attr('text-anchor', 'middle')
-      .attr('dominant-baseline', 'central');
-
-    nodesEnter.append('g')
-      .attr('class', 'taskCountGroup');
-
-
-    const allNodes = nodesEnter.merge(nodes);
-
-    allNodes.select('circle')
-      .attr('r', currentDisplayRadius) 
-      .attr('fill', d => d.color ? d.color : getStatusColor(d.status));
-
-    allNodes.select('text.node-name')
-      .style('font-size', `${currentMainFontSize}px`) 
-      .text(d => d.name)
-      .call(wrapText, currentDisplayRadius * 1.5, currentMainFontSize); // Pass current font size
-
-
-    allNodes.select('.taskCountGroup')
-      .attr('transform', `translate(0, -${currentDisplayRadius + (12 * currentNodeSizeFactor)})`) 
-      .each(function(d) {
-        const group = d3.select(this);
-        group.selectAll('*').remove(); 
-        let tasks = [];
-        if (d.actionDescription) {
-          try { 
-            const parsed = JSON.parse(d.actionDescription);
-            if (Array.isArray(parsed)) tasks = parsed;
-          } catch (e) { /* ignore */ }
-        }
-        
-        const completedCount = tasks.filter(t => t.completed).length;
-        const totalCount = tasks.length;
-        
-        if (totalCount > 0) { 
-            const textString = `✅ ${completedCount}/${totalCount}`;
-            const textEl = group.append('text')
-              .style('font-size', `${currentTaskCountFontSize}px`) // Apply scaled font size
-              .text(textString); 
-            
-            const textNode = textEl.node();
-            if (textNode) { 
-                const bbox = textNode.getBBox();
-                const rectWidth = bbox.width + (10 * currentNodeSizeFactor); 
-                const rectHeight = bbox.height + (4 * currentNodeSizeFactor);  
-                group.insert('rect', 'text') 
-                  .attr('width', rectWidth)
-                  .attr('height', rectHeight)
-                  .attr('x', -rectWidth / 2)
-                  .attr('y', -(rectHeight / 2) - (2 * currentNodeSizeFactor) ) // Adjust y based on scaled factor
-                  .attr('rx', rectHeight / 2)  
-                  .attr('ry', rectHeight / 2);
-            }
-        }
-      });
-
-    simulation.nodes(data.nodes).on('tick', () => {
-      allNodes.attr('transform', d => `translate(${d.x || 0},${d.y || 0})`);
-    });
-
-    simulation.alpha(0.3).restart(); 
-  }
-
-
-  function getStatusColor(status) {
-    switch (status) {
-      case 'Not Started': return '#e74c3c'; 
-      case 'In Progress': return '#f1c40f'; 
-      case 'Completed':   return '#2ecc71'; 
-      default:            return '#3498db'; 
-    }
-  }
-
-  function dragStart(event, d) {
-    if (!event.active) simulation.alphaTarget(0.3).restart();
-    d.fx = d.x;
-    d.fy = d.y;
-  }
-  function dragging(event, d) {
-    d.fx = event.x;
-    d.fy = event.y;
-  }
-  function dragEnd(event, d) {
-    if (!event.active) simulation.alphaTarget(0);
-  }
-
-  document.getElementById('flowchartNameInput').addEventListener('input', function() {
-    data.flowchartName = this.value || "Untitled Flowchart"; 
-  });
-</script>
-</body>
-</html>
+    window.open(assistantUrl, 'FlowchartAIAssistant',
