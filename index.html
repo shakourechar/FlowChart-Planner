@@ -7,30 +7,40 @@
   <link rel="icon" type="image/png" href="https://static.wixstatic.com/media/c3283f_a3e1ec47496f42f7be617a2cd7a7bc9e~mv2.png">
   <style>
     :root {
-      --bg-primary: linear-gradient(135deg, #939ef5 0%, #9e76d6 100%);
+      /* Light theme: Made much lighter (faint blue/pale gray) */
+      --bg-primary: linear-gradient(135deg, #edf2fb 0%, #dde8f5 100%);
       --bg-secondary: rgba(255, 255, 255, 0.1);
-      --bg-header: rgba(255, 255, 255, 0.15);
+      
+      /* Header: Fixed dark grey background */
+      --header-fixed-bg: #20232a; /* Very dark grey */
+      --header-glass-border: rgba(255, 255, 255, 0.1); /* Lighter border for dark header */
+
       --text-primary: #333;
       --text-on-glass-light-bg: #1c1c1e;
-      --text-on-header: white;
-      --text-filename: rgba(255, 255, 255, 0.9);
+      --text-on-header: white; /* Text on the fixed dark header */
+      --text-filename: rgba(255, 255, 255, 0.9); /* Assuming this is on the header */
+      
       --input-bg: rgba(255, 255, 255, 0.2);
       --input-text: #1c1c1e;
-      --input-border: rgba(255, 255, 255, 0.3);
-      --input-light-border: rgba(255, 255, 255, 0.2);
-      --button-bg: rgba(255, 255, 255, 0.2);
-      --button-text: white;
-      --button-hover-bg: rgba(255, 255, 255, 0.3);
-      --button-upload-bg: rgba(46, 204, 113, 0.8);
-      --button-ai-bg: rgba(142, 68, 173, 0.8);
-      --button-userguide-bg: rgba(82, 108, 232, 0.8); /* New color for User Guide button */
-      --button-nodesize-bg: rgba(243, 156, 18, 0.8);
-      --button-template-bg: rgba(142, 68, 173, 0.8);
-      --button-action-add-bg: rgba(46, 204, 113, 0.8);
-      --button-action-save-bg: rgba(52, 152, 219, 0.8);
-      --button-danger-bg: rgba(231, 76, 60, 0.8);
-      --button-confirm-bg: rgba(92, 184, 92, 0.8);
+      --input-border: rgba(200, 200, 220, 0.4); /* Adjusted for lighter theme */
+      --input-light-border: rgba(200, 200, 220, 0.3);
       
+      --button-bg: rgba(255, 255, 255, 0.25); /* Uniform button bg for light theme */
+      --button-text: var(--text-on-glass-light-bg); /* Dark text for buttons on light theme */
+      --button-hover-bg: rgba(255, 255, 255, 0.4);
+      
+      /* Specific action button colors (will be overridden by uniform style if !important is not used, or remove if truly uniform) */
+      /* For now, these define the ICON/ACCENT color if we re-introduce it, but background is uniform */
+      --button-upload-accent: #2ecc71;
+      --button-ai-accent: #9b59b6;
+      --button-userguide-accent: #5276e8;
+      --button-nodesize-accent: #f39c12;
+      --button-template-accent: #9b59b6; /* Same as AI */
+      --button-action-add-accent: #2ecc71;
+      --button-action-save-accent: #3498db;
+      --button-danger-accent: #e74c3c;
+      --button-confirm-accent: #5cb85c;
+
       --modal-base-bg-rgb: 255, 255, 255;
       --modal-bg-alpha: 0.3; 
       --modal-bg: rgba(var(--modal-base-bg-rgb), var(--modal-bg-alpha));
@@ -38,8 +48,8 @@
       --close-button-color: rgba(0,0,0, 0.5);
       --close-button-hover-color: #000;
       
-      --flowchart-container-bg: rgba(255, 255, 255, 0.05);
-      --flowchart-container-border: rgba(255, 255, 255, 0.2);
+      --flowchart-container-bg: rgba(255, 255, 255, 0.15); /* Slightly more opaque for definition on pale bg */
+      --flowchart-container-border: rgba(200, 200, 220, 0.3);
       
       --node-text-fill: var(--text-on-glass-light-bg);
       --node-fill-opacity: 0.55; 
@@ -48,16 +58,16 @@
       --task-count-text-fill: white;
       --task-count-border: rgba(255, 255, 255, 0.2);
 
-      --selected-swatch-outline: #fff;
-      --selected-row-bg: rgba(236, 240, 241, 0.2);
+      --selected-swatch-outline: var(--text-on-glass-light-bg); /* Darker outline for selected swatch */
+      --selected-row-bg: rgba(200, 210, 225, 0.3);
       --selected-row-border: rgba(52, 152, 219, 0.8);
       --table-header-separator: rgba(0, 0, 0, 0.2);
       --th-text-color: var(--text-on-glass-light-bg);
 
-      --glass-bg: var(--modal-bg); 
-      --glass-border: rgba(255, 255, 255, 0.25);
-      --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.1); 
-      --modal-strong-shadow: 0 15px 45px rgba(0, 0, 0, 0.25); 
+      --glass-bg: var(--modal-bg); /* Base for glass elements */
+      --glass-border: rgba(200, 200, 220, 0.4); /* Adjusted for lighter theme */
+      --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.08); 
+      --modal-strong-shadow: 0 15px 45px rgba(0, 0, 0, 0.15); 
       --backdrop-blur: 10px;
     }
 
@@ -66,23 +76,16 @@
       --text-primary: #e0e0e0;
       --text-on-glass-light-bg: #e0e0e0; 
       --text-on-header: #e0e0e0;
-      --text-filename: rgba(255, 255, 255, 0.8);
+      --text-filename: rgba(255, 255, 255, 0.8); 
+      
       --input-bg: rgba(255, 255, 255, 0.1);
       --input-text: #e0e0e0;
       --input-border: rgba(255, 255, 255, 0.2);
       --input-light-border: rgba(255, 255, 255, 0.1);
-      --button-bg: rgba(255, 255, 255, 0.1);
-      --button-text: #e0e0e0;
-      --button-hover-bg: rgba(255, 255, 255, 0.2);
-      --button-upload-bg: rgba(46, 204, 113, 0.7);
-      --button-ai-bg: rgba(155, 89, 182, 0.7);
-      --button-userguide-bg: rgba(82, 108, 232, 0.7);
-      --button-nodesize-bg: rgba(243, 156, 18, 0.7);
-      --button-template-bg: rgba(155, 89, 182, 0.7);
-      --button-action-add-bg: rgba(46, 204, 113, 0.7);
-      --button-action-save-bg: rgba(52, 152, 219, 0.7);
-      --button-danger-bg: rgba(192, 57, 43, 0.7);
-      --button-confirm-bg: rgba(88, 179, 88, 0.7);
+      
+      --button-bg: rgba(255, 255, 255, 0.12); /* Uniform button bg for dark theme */
+      --button-text: #e0e0e0; /* Light text for buttons on dark theme */
+      --button-hover-bg: rgba(255, 255, 255, 0.22);
       
       --modal-base-bg-rgb: 25, 30, 45; 
       --modal-bg-alpha: 0.5; 
@@ -117,44 +120,71 @@
     * { box-sizing: border-box; }
     body { margin: 0; font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg-primary); color: var(--text-primary); display: flex; flex-direction: column; min-height: 100vh; transition: background 0.5s ease; position: relative; overflow-x: hidden; }
     body::before { content: ''; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--bg-primary); z-index: -1; transition: background 0.5s ease;}
-    header { background: var(--glass-bg); backdrop-filter: blur(var(--backdrop-blur)); -webkit-backdrop-filter: blur(var(--backdrop-blur)); border-bottom: 1px solid var(--glass-border); box-shadow: var(--glass-shadow); color: var(--text-on-header); padding: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; position: relative; transition: background 0.3s ease, border-color 0.3s ease; }
-    header h1 { margin: 0; display: flex; align-items: center; font-size: 1.8em; font-weight: 600; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3); }
+    
+    header { 
+      background: var(--header-fixed-bg); /* Static dark grey background */
+      backdrop-filter: blur(var(--backdrop-blur)); 
+      -webkit-backdrop-filter: blur(var(--backdrop-blur)); 
+      border-bottom: 1px solid var(--header-glass-border); /* Specific border for header */
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3); /* Shadow suitable for dark header */
+      color: var(--text-on-header); 
+      padding: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; position: relative; transition: background 0.3s ease, border-color 0.3s ease; 
+    }
+    header h1 { margin: 0; display: flex; align-items: center; font-size: 1.8em; font-weight: 600; text-shadow: 0 1px 2px rgba(0,0,0,0.5); } /* Adjusted text shadow for dark bg */
     #headerLogo { width: 32px; height: 32px; margin-right: 12px; vertical-align: middle; }
     header h1 input#flowchartNameInput { margin-left: 15px; font-size: 0.65em; padding: 8px 16px; border: 1px solid var(--input-border); border-radius: 12px; background: var(--input-bg); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); color: var(--input-text); transition: all 0.3s ease; font-weight: 400; }
     header h1 input#flowchartNameInput:focus { outline: none; border-color: var(--glass-border); box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1); transform: translateY(-1px); }
-    nav { display: flex; align-items: center; flex-wrap: wrap; gap: 1rem; } /* Added flex-wrap for nav itself if needed */
-    nav button, #themeToggleBtn { background: var(--button-bg); backdrop-filter: blur(var(--backdrop-blur)); -webkit-backdrop-filter: blur(var(--backdrop-blur)); border: 1px solid var(--glass-border); color: var(--button-text); padding: 0.75rem 1.5rem; cursor: pointer; border-radius: 12px; white-space: nowrap; font-family: 'Inter', 'Segoe UI', sans-serif; font-size: 0.9em; font-weight: 500; transition: all 0.3s ease; position: relative; overflow: hidden; }
-    nav button::before, #themeToggleBtn::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent); transition: left 0.5s ease; }
-    nav button:hover::before, #themeToggleBtn:hover::before { left: 100%; }
-    nav button:hover, #themeToggleBtn:hover { background: var(--button-hover-bg); transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2); }
-    nav button:active, #themeToggleBtn:active { transform: translateY(0); }
-    #themeToggleBtn { padding: 0.75rem; font-size: 1.2em; line-height: 1; border-radius: 50%; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; }
+    
+    nav { display: flex; align-items: center; flex-wrap: wrap; gap: 0.75rem; }
+    /* Uniform button style */
+    nav button, #themeToggleBtn, .template-btn, .action-buttons button, #deleteNodeBtn, .confirm-action-btn, #deleteTaskBtn, button { 
+      background: var(--button-bg); 
+      backdrop-filter: blur(var(--backdrop-blur)); 
+      -webkit-backdrop-filter: blur(var(--backdrop-blur)); 
+      border: 1px solid var(--glass-border); 
+      color: var(--button-text); 
+      padding: 0.75rem 1rem; 
+      cursor: pointer; 
+      border-radius: 12px; 
+      white-space: nowrap; 
+      font-family: 'Inter', 'Segoe UI', sans-serif; 
+      font-size: 0.85em; 
+      font-weight: 500; 
+      transition: all 0.3s ease; 
+      position: relative; 
+      overflow: hidden; 
+    }
+    nav button::before, #themeToggleBtn::before, button::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent); transition: left 0.5s ease; }
+    nav button:hover::before, #themeToggleBtn:hover::before, button:hover::before { left: 100%; }
+    nav button:hover, #themeToggleBtn:hover, button:hover { background: var(--button-hover-bg); transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2); }
+    nav button:active, #themeToggleBtn:active, button:active { transform: translateY(0); }
+    
+    /* Remove specific background overrides for uniform color */
+    nav .upload-btn, nav .ai-assistant-btn, nav .user-guide-btn, nav .node-size-btn,
+    .template-btn, .add-node-btn, .save-btn, .confirm-action-btn, #deleteNodeBtn, #deleteTaskBtn {
+        background: var(--button-bg); /* Ensures they all use the uniform background */
+    }
+    #deleteTaskBtn, #deleteNodeBtn { /* Still allow danger buttons to have a distinct color if needed, or remove this */
+       /* background: var(--button-danger-bg); */ /* If you want danger buttons to be different, uncomment */
+    }
+
+    #themeToggleBtn { padding: 0.75rem; font-size: 1.2em; width: auto; min-width: 45px; height: auto; aspect-ratio: 1/1; }
     nav input[type="file"] { display: none; }
-    nav .upload-btn { background: var(--button-upload-bg); } 
-    nav .ai-assistant-btn { background: var(--button-ai-bg); } 
-    nav .user-guide-btn { background: var(--button-userguide-bg); } /* Style for new button */
-    nav .node-size-btn { background: var(--button-nodesize-bg); padding: 0.75rem 1rem; }
-    #fileNameDisplay { margin-left: 1rem; font-size: 0.9em; color: var(--text-filename); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3); }
+    nav .node-size-btn { padding: 0.75rem 0.8rem; } 
+    #fileNameDisplay { margin-left: 1rem; font-size: 0.9em; color: var(--text-on-header); /* Adjusted for static dark header */ white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3); }
+    
     #flowchartContainer { width: calc(100% - 2rem); flex-grow: 1; border: 1px solid var(--flowchart-container-border); background: var(--flowchart-container-bg); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); overflow: hidden; position: relative; margin: 1rem; border-radius: 20px; box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.1); transition: background 0.3s ease, border-color 0.3s ease; }
     #flowchart { display: block; width: 100%; height: 100%; }
     .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); padding-top: 50px; overflow-y: auto; }
-    .modal-content { background: var(--modal-bg); backdrop-filter: blur(var(--backdrop-blur)); -webkit-backdrop-filter: blur(var(--backdrop-blur)); border: 1px solid var(--glass-border); color: var(--modal-text); margin: 20px auto; padding: 2rem; width: 90%; max-width: 600px; /* Slightly wider for user guide */ overflow-y: visible; border-radius: 20px; position: relative; box-shadow: var(--modal-strong-shadow); transition: background 0.3s ease, border-color 0.3s ease; }
-    .close-button { position: absolute; right: 15px; top: 15px; font-size: 24px; cursor: pointer; color: var(--close-button-color); width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: rgba(255, 255, 255, 0.1); transition: all 0.3s ease; }
+    .modal-content { background: var(--modal-bg); backdrop-filter: blur(var(--backdrop-blur)); -webkit-backdrop-filter: blur(var(--backdrop-blur)); border: 1px solid var(--glass-border); color: var(--modal-text); margin: 20px auto; padding: 2rem; width: 90%; max-width: 600px; overflow-y: auto; max-height: calc(100vh - 100px); border-radius: 20px; position: relative; box-shadow: var(--modal-strong-shadow); transition: background 0.3s ease, border-color 0.3s ease; }
+    .close-button { position: absolute; right: 15px; top: 15px; font-size: 24px; cursor: pointer; color: var(--close-button-color); width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: rgba(255, 255, 255, 0.1); transition: all 0.3s ease; z-index: 10; }
     .close-button:hover { color: var(--close-button-hover-color); background: rgba(255, 255, 255, 0.2); transform: scale(1.1); }
     form { display: flex; flex-direction: column; gap: 1rem; }
     input, select, textarea { padding: 12px 16px; border: 1px solid var(--input-border); border-radius: 12px; font-size: 1em; background: var(--input-bg); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); color: var(--input-text); font-family: 'Inter', 'Segoe UI', sans-serif; transition: all 0.3s ease; }
     input:focus, select:focus, textarea:focus { outline: none; border-color: var(--glass-border); box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1); transform: translateY(-1px); }
     textarea { resize: vertical; min-height: 80px; }
     #taskName { width: 100%; }
-    button { padding: 12px 20px; border: 1px solid var(--glass-border); border-radius: 12px; font-size: 1em; background: var(--button-bg); backdrop-filter: blur(var(--backdrop-blur)); -webkit-backdrop-filter: blur(var(--backdrop-blur)); color: var(--button-text); cursor: pointer; font-family: 'Inter', 'Segoe UI', sans-serif; font-weight: 500; transition: all 0.3s ease; position: relative; overflow: hidden; }
-    button::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent); transition: left 0.5s ease; }
-    button:hover::before { left: 100%; }
-    button:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2); }
-    button:active { transform: translateY(0); }
-    nav button, #themeToggleBtn, .template-btn, .action-buttons button, #deleteNodeBtn, .confirm-action-btn, #deleteTaskBtn { border: 1px solid var(--glass-border); }
-    #deleteTaskBtn { background: var(--button-danger-bg); color: var(--button-text); margin-top: 15px; padding: 12px 20px; font-weight: 500; }
-    .template-btn { background: var(--button-template-bg); color: var(--button-text); padding: 15px; margin: 8px 0; }
-    
+        
     .flowchart-node-html-wrapper { overflow: visible; }
     .flowchart-node-html {
       backdrop-filter: blur(var(--backdrop-blur));
@@ -169,7 +199,7 @@
       align-items: center;
       justify-content: center; 
       padding: 12px; 
-      padding-top: 32px; /* Make space for pill */
+      padding-top: 32px; 
       box-sizing: border-box;
       color: var(--node-text-fill);
       text-align: center;
@@ -186,20 +216,18 @@
       width: 100%; 
       max-height: 100%; 
       overflow: hidden; 
-      /* font-size is set by JS */
     }
     body.dark-mode .node-name-html { text-shadow: 0 1px 4px rgba(0,0,0,0.35); }
 
     .task-count-pill-html {
       position: absolute;
-      top: 8px; /* Positioned inside from the top */
+      top: 8px; 
       left: 50%;
       transform: translateX(-50%);
       background: var(--task-count-rect-bg);
       color: var(--task-count-text-fill);
-      padding: 5px 12px; /* Increased padding */
+      padding: 5px 12px; 
       border-radius: 14px; 
-      /* font-size is set by JS */
       font-weight: 600;
       box-shadow: 0 2px 5px rgba(0,0,0,0.2);
       border: 1px solid var(--task-count-border);
@@ -209,37 +237,19 @@
       z-index: 5; 
       transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
     }
-    /* User Guide Modal Specific Content Styling */
-    #userGuideModal .modal-content h3 {
-      margin-top: 1.5em;
-      margin-bottom: 0.5em;
-      font-size: 1.2em;
-      color: var(--modal-text); /* Ensure heading color matches modal text */
-    }
-    #userGuideModal .modal-content ul {
-      list-style-type: none; /* Or disc, square if preferred */
-      padding-left: 10px;
-    }
-    #userGuideModal .modal-content li {
-      margin-bottom: 0.6em;
-      line-height: 1.6;
-    }
-    #userGuideModal .modal-content strong {
-      font-weight: 600;
-    }
-
+    #userGuideModal .modal-content h2 { font-size: 1.5em; margin-bottom: 1em; }
+    #userGuideModal .modal-content h3 { margin-top: 1.5em; margin-bottom: 0.5em; font-size: 1.15em; color: var(--modal-text); }
+    #userGuideModal .modal-content ul { list-style-type: none; padding-left: 10px; }
+    #userGuideModal .modal-content li { margin-bottom: 0.7em; line-height: 1.6; }
+    #userGuideModal .modal-content li strong { font-weight: 600; color: var(--modal-text); }
+    #userGuideModal .modal-content p { margin-bottom: 1em; line-height: 1.6; }
 
     .action-buttons { display: flex; gap: 15px; margin-top: 20px; }
-    .action-buttons button { padding: 12px 20px; flex: 1; font-weight: 500; }
-    .add-node-btn { background: var(--button-action-add-bg); color: var(--button-text); }
-    .save-btn { background: var(--button-action-save-bg); color: var(--button-text); }
-    .confirm-action-btn { background: var(--button-confirm-bg); color: var(--button-text); align-self: flex-start; padding: 10px 16px; }
     .color-panel { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; margin-bottom: 12px; }
     .color-swatch { width: 32px; height: 32px; border: 2px solid var(--glass-border); border-radius: 8px; cursor: pointer; transition: all 0.3s ease; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
     .color-swatch:hover { transform: scale(1.15) translateY(-2px); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3); }
     .selected-swatch { outline: 3px solid var(--selected-swatch-outline); outline-offset: 3px; transform: scale(1.1); }
     .selectedTaskRow { border: 2px solid var(--selected-row-border); background: var(--selected-row-bg); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 8px; }
-    #deleteNodeBtn { background: var(--button-danger-bg); color: var(--button-text); padding: 12px 20px; font-weight: 500; }
     #taskTable { width:100%; margin-bottom:15px; border-collapse: collapse; }
     #taskTable th { text-align: left; padding-bottom: 8px; border-bottom: 2px solid var(--table-header-separator); color: var(--th-text-color); font-weight: 600; }
     #taskTable td { padding-top: 8px; }
@@ -250,16 +260,16 @@
         header { flex-direction: column; align-items: flex-start; gap: 1rem; padding: 1rem; }
         header h1 { font-size: 1.5em; width: 100%; justify-content: space-between; }
         nav { width: 100%; flex-wrap: wrap; gap: 0.5rem; }
-        nav button, #themeToggleBtn { flex-grow: 1; min-width: 100px; font-size: 0.85em; padding: 0.6rem 1rem; }
+        nav button, #themeToggleBtn { flex-grow: 1; min-width: calc(33.33% - 1rem); font-size: 0.8em; padding: 0.6rem 0.8rem; } /* Ensure buttons can fit better */
         #fileNameDisplay { width: 100%; text-align: center; margin-top: 0.5rem; margin-left: 0; max-width: none; }
-        .modal-content { width: 95%; padding: 1.5rem; margin: 10px auto; }
+        .modal-content { width: 95%; padding: 1.5rem; margin: 10px auto; max-height: calc(100vh - 40px); }
         #flowchartContainer { height: 70vh; margin: 0.5rem; width: calc(100% - 1rem); }
     }
     @media (max-width: 480px) {
         header h1 { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
         header h1 input#flowchartNameInput { margin-left: 0; width: 100%; }
-        nav button, #themeToggleBtn { font-size: 0.8em; padding: 0.5rem 0.8rem; }
-        #themeToggleBtn { width: 40px; height: 40px; }
+        nav button, #themeToggleBtn { font-size: 0.75em; padding: 0.5rem 0.7rem; min-width: calc(50% - 0.75rem); }
+        #themeToggleBtn { flex-grow: 0; min-width: 40px; }
     }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
@@ -277,7 +287,7 @@
     <button id="aiAssistantBtn" class="ai-assistant-btn">Flowchart AI Assistant</button>
     <button id="userGuideBtn" class="user-guide-btn">User Guide</button>
     <button id="templateBtn">Templates</button>
-    <button id="saveBtn">Save</button> {/* Renamed from Export */}
+    <button id="saveBtn">Save</button>
     <input type="file" id="fileInput" accept=".json">
     <button id="uploadBtn" class="upload-btn">Upload</button>
     <div id="fileNameDisplay">No file loaded</div>
@@ -400,13 +410,11 @@
     document.querySelectorAll('.template-btn').forEach(b=>b.onclick=(e)=>{loadTemplate(e.target.dataset.template);g('templateModal').style.display='none';});
     if(g('addNodeBtn'))g('addNodeBtn').onclick=(e)=>{e.preventDefault();const nN=createNode(selectedNode);if(nN){selectedNode=nN;nodeClick({stopPropagation:()=>{}},nN);}};
     
-    const saveButton = document.getElementById('saveBtn'); // Get the save button by its new ID if it was changed, or old ID 'exportBtn'
+    const saveButton = document.getElementById('saveBtn'); 
     if (saveButton) saveButton.onclick = saveToFile;
-    else if (g('exportBtn')) g('exportBtn').onclick = saveToFile; // Fallback if ID wasn't updated in HTML yet
 
     if(g('uploadBtn')&&g('fileInput')){g('uploadBtn').onclick=()=>g('fileInput').click();g('fileInput').onchange=(e)=>{if(e.target.files.length>0)loadFromFile(e.target.files[0]);}};
     
-    // User Guide Modal Logic
     const userGuideBtn = g('userGuideBtn');
     const userGuideModal = g('userGuideModal');
     const closeUserGuideModalBtn = g('closeUserGuideModal');
@@ -415,7 +423,7 @@
         closeUserGuideModalBtn.onclick = () => userGuideModal.style.display = 'none';
     }
 
-    document.querySelectorAll('.close-button').forEach(b=>b.onclick=(e)=>{e.stopPropagation();b.closest('.modal').style.display='none';});
+    document.querySelectorAll('.close-button').forEach(b=>{ if(b.id !== 'closeUserGuideModal') { b.onclick=(e)=>{e.stopPropagation();b.closest('.modal').style.display='none';}}});
     window.onclick=(e)=>{if(e.target.classList.contains('modal'))e.target.style.display='none';};
     if(g('taskForm'))g('taskForm').onsubmit=(e)=>{e.preventDefault();if(selectedNode){let tsks=[];document.querySelectorAll('#taskTable tbody tr').forEach(r=>{let chk=r.querySelector('input[type="checkbox"]'),txt=r.querySelector('textarea.task-detail-textarea');if(txt&&txt.value.trim()!=="")tsks.push({completed:chk.checked,task:txt.value.trim()});});Object.assign(selectedNode,{name:g('taskName').value,responsible:g('responsible').value,status:g('status').value,deadline:g('deadline').value,priority:g('priority').value,actionDescription:JSON.stringify(tsks),color:g('nodeColor').value||null});selectedNode.fx=selectedNode.x;selectedNode.fy=selectedNode.y;update();}g('modal').style.display='none';};
     if(g('addTaskRowBtn'))g('addTaskRowBtn').addEventListener('click',()=>addTaskRow({}));
