@@ -9,7 +9,7 @@
     :root {
       --bg-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       --bg-secondary: rgba(255, 255, 255, 0.1);
-      --bg-header: rgba(255, 255, 255, 0.15); /* Used by --glass-bg as well */
+      --bg-header: rgba(255, 255, 255, 0.15);
       --text-primary: #333;
       --text-on-glass-light-bg: #1c1c1e;
       --text-on-header: white;
@@ -30,7 +30,9 @@
       --button-danger-bg: rgba(231, 76, 60, 0.8);
       --button-confirm-bg: rgba(92, 184, 92, 0.8);
       
-      --modal-bg: rgba(255, 255, 255, 0.25); /* Made slightly less translucent */
+      --modal-base-bg-rgb: 255, 255, 255; /* RGB part of modal background for light */
+      --modal-bg-alpha: 0.3; /* Adjusted modal translucency */
+      --modal-bg: rgba(var(--modal-base-bg-rgb), var(--modal-bg-alpha));
       --modal-text: var(--text-on-glass-light-bg);
       --close-button-color: rgba(0,0,0, 0.5);
       --close-button-hover-color: #000;
@@ -38,10 +40,11 @@
       --flowchart-container-bg: rgba(255, 255, 255, 0.05);
       --flowchart-container-border: rgba(255, 255, 255, 0.2);
       
-      --node-text-fill: var(--text-on-glass-light-bg); /* Nodes are now HTML, use appropriate text color */
+      --node-text-fill: var(--text-on-glass-light-bg);
+      --node-fill-opacity: 0.65; /* Alpha for dynamic node colors */
       
-      --task-count-rect-bg: rgba(44, 62, 80, 0.7); /* Pill bg */
-      --task-count-text-fill: white; /* Pill text */
+      --task-count-rect-bg: rgba(44, 62, 80, 0.75);
+      --task-count-text-fill: white;
       --task-count-border: rgba(255, 255, 255, 0.2);
 
       --selected-swatch-outline: #fff;
@@ -50,17 +53,17 @@
       --table-header-separator: rgba(0, 0, 0, 0.2);
       --th-text-color: var(--text-on-glass-light-bg);
 
-      /* Glassmorphism base variables */
-      --glass-bg: rgba(255, 255, 255, 0.15);
+      --glass-bg: var(--modal-bg); /* Nodes will use modal's bg properties */
       --glass-border: rgba(255, 255, 255, 0.25);
-      --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.1); /* Default shadow */
+      --modal-strong-shadow: 0 15px 45px rgba(0, 0, 0, 0.25); /* Stronger shadow for modals and nodes */
       --backdrop-blur: 10px;
     }
 
     body.dark-mode {
       --bg-primary: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
       --text-primary: #e0e0e0;
-      --text-on-glass-light-bg: #e0e0e0; /* Light text for dark mode glass elements */
+      --text-on-glass-light-bg: #e0e0e0;
       --text-on-header: #e0e0e0;
       --text-filename: rgba(255, 255, 255, 0.8);
       --input-bg: rgba(255, 255, 255, 0.1);
@@ -79,7 +82,9 @@
       --button-danger-bg: rgba(192, 57, 43, 0.7);
       --button-confirm-bg: rgba(88, 179, 88, 0.7);
       
-      --modal-bg: rgba(30, 30, 45, 0.4); /* Darker, less translucent for dark mode */
+      --modal-base-bg-rgb: 30, 35, 50; /* RGB part of modal background for dark */
+      --modal-bg-alpha: 0.45; /* Adjusted modal translucency for dark */
+      --modal-bg: rgba(var(--modal-base-bg-rgb), var(--modal-bg-alpha));
       --modal-text: #e0e0e0;
       --close-button-color: rgba(255, 255, 255, 0.6);
       --close-button-hover-color: #e0e0e0;
@@ -87,10 +92,11 @@
       --flowchart-container-bg: rgba(255, 255, 255, 0.02);
       --flowchart-container-border: rgba(255, 255, 255, 0.1);
       
-      --node-text-fill: #e0e0e0; /* Nodes are now HTML, use this for their text */
+      --node-text-fill: #e0e0e0;
+      --node-fill-opacity: 0.6; /* Alpha for dynamic node colors in dark mode */
       
-      --task-count-rect-bg: rgba(220, 220, 230, 0.7); /* Lighter pill bg for dark mode */
-      --task-count-text-fill: #1a1a2e; /* Dark text on light pill */
+      --task-count-rect-bg: rgba(220, 220, 230, 0.7);
+      --task-count-text-fill: #1a1a2e;
       --task-count-border: rgba(255, 255, 255, 0.15);
 
       --selected-swatch-outline: #e0e0e0;
@@ -99,10 +105,10 @@
       --table-header-separator: rgba(255, 255, 255, 0.15);
       --th-text-color: #e0e0e0;
 
-      /* Dark mode glassmorphism base */
-      --glass-bg: rgba(45, 50, 75, 0.25); /* Darker base for glass elements */
+      --glass-bg: var(--modal-bg); /* Nodes will use modal's bg properties */
       --glass-border: rgba(255, 255, 255, 0.15);
       --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      --modal-strong-shadow: 0 15px 45px rgba(0, 0, 0, 0.4);
       --backdrop-blur: 15px;
     }
 
@@ -123,10 +129,10 @@
     nav input[type="file"] { display: none; }
     nav .upload-btn { background: var(--button-upload-bg); } nav .ai-assistant-btn { background: var(--button-ai-bg); } nav .node-size-btn { background: var(--button-nodesize-bg); padding: 0.75rem 1rem; }
     #fileNameDisplay { margin-left: 1rem; font-size: 0.9em; color: var(--text-filename); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3); }
-    #flowchartContainer { width: calc(100% - 2rem); flex-grow: 1; border: 1px solid var(--flowchart-container-border); background: var(--flowchart-container-bg); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); overflow: auto; position: relative; margin: 1rem; border-radius: 20px; box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.1); transition: background 0.3s ease, border-color 0.3s ease; }
-    #flowchart { display: block; } /* SVG itself */
+    #flowchartContainer { width: calc(100% - 2rem); flex-grow: 1; border: 1px solid var(--flowchart-container-border); background: var(--flowchart-container-bg); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); overflow: hidden; /* Changed from auto to hidden for SVG parent */ position: relative; margin: 1rem; border-radius: 20px; box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.1); transition: background 0.3s ease, border-color 0.3s ease; }
+    #flowchart { display: block; width: 100%; height: 100%; } /* Ensure SVG takes full space */
     .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); padding-top: 50px; overflow-y: auto; }
-    .modal-content { background: var(--modal-bg); backdrop-filter: blur(var(--backdrop-blur)); -webkit-backdrop-filter: blur(var(--backdrop-blur)); border: 1px solid var(--glass-border); color: var(--modal-text); margin: 20px auto; padding: 2rem; width: 90%; max-width: 500px; overflow-y: visible; border-radius: 20px; position: relative; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); transition: background 0.3s ease, border-color 0.3s ease; }
+    .modal-content { background: var(--modal-bg); backdrop-filter: blur(var(--backdrop-blur)); -webkit-backdrop-filter: blur(var(--backdrop-blur)); border: 1px solid var(--glass-border); color: var(--modal-text); margin: 20px auto; padding: 2rem; width: 90%; max-width: 500px; overflow-y: visible; border-radius: 20px; position: relative; box-shadow: var(--modal-strong-shadow); transition: background 0.3s ease, border-color 0.3s ease; }
     .close-button { position: absolute; right: 15px; top: 15px; font-size: 24px; cursor: pointer; color: var(--close-button-color); width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: rgba(255, 255, 255, 0.1); transition: all 0.3s ease; }
     .close-button:hover { color: var(--close-button-hover-color); background: rgba(255, 255, 255, 0.2); transform: scale(1.1); }
     form { display: flex; flex-direction: column; gap: 1rem; }
@@ -139,62 +145,68 @@
     button:hover::before { left: 100%; }
     button:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2); }
     button:active { transform: translateY(0); }
-    nav button, #themeToggleBtn, .template-btn, .action-buttons button, #deleteNodeBtn, .confirm-action-btn, #deleteTaskBtn { border: 1px solid var(--glass-border); } /* Ensure all major buttons get the glass border */
+    nav button, #themeToggleBtn, .template-btn, .action-buttons button, #deleteNodeBtn, .confirm-action-btn, #deleteTaskBtn { border: 1px solid var(--glass-border); }
     #deleteTaskBtn { background: var(--button-danger-bg); color: var(--button-text); margin-top: 15px; padding: 12px 20px; font-weight: 500; }
     .template-btn { background: var(--button-template-bg); color: var(--button-text); padding: 15px; margin: 8px 0; }
     
     /* Styling for HTML nodes */
+    .flowchart-node-html-wrapper { /* The foreignObject itself */
+        overflow: visible; /* Allow shadows to escape */
+    }
     .flowchart-node-html {
-      background: var(--glass-bg); /* Using the general glass background */
+      /* Base background comes from dynamic color with alpha */
       backdrop-filter: blur(var(--backdrop-blur));
       -webkit-backdrop-filter: blur(var(--backdrop-blur));
       border: 1px solid var(--glass-border);
-      box-shadow: var(--glass-shadow);
-      border-radius: 16px; /* Rounded rectangle */
+      box-shadow: var(--modal-strong-shadow); /* Use stronger shadow like modals */
+      border-radius: 18px; /* Consistent rounded rectangle */
       width: 100%;
       height: 100%;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      padding: 15px;
+      justify-content: center; /* Center text vertically */
+      padding: 12px;
       box-sizing: border-box;
       color: var(--node-text-fill);
       text-align: center;
-      cursor: move; /* Indicate draggable */
-      position: relative; /* For absolute positioning of pill */
-      overflow: hidden; /* Prevent content spill */
-      transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+      cursor: move;
+      position: relative; 
+      overflow: hidden; /* Clip content, prevent internal scrollbars if text too long */
+      transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
     }
     .node-name-html {
       font-weight: 500;
-      font-size: 1em; /* Scaled by D3 factor on parent */
+      /* font-size is scaled by JS based on currentNodeSizeFactor */
       text-shadow: 0 1px 3px rgba(0,0,0,0.2);
-      word-break: break-word;
-      max-height: 80%; /* Allow space for pill */
-      overflow-y: auto; /* In case text is too long */
+      word-break: break-word; /* Allow long words to break */
+      max-width: 100%;
+      /* Max-height and overflow for text itself if it's truly too long */
+      max-height: calc(100% - 30px); /* Reserve space for pill at top */
+      overflow: hidden; /* Hide overflow for now, consider custom scroll or ellipsis */
+      padding: 5px;
     }
     body.dark-mode .node-name-html {
-      text-shadow: 0 1px 5px rgba(0,0,0,0.4);
+      text-shadow: 0 1px 4px rgba(0,0,0,0.35);
     }
 
     .task-count-pill-html {
       position: absolute;
-      top: 8px; /* Position from the top of the node */
+      top: -12px; /* Position above the node, adjust as needed */
       left: 50%;
       transform: translateX(-50%);
       background: var(--task-count-rect-bg);
       color: var(--task-count-text-fill);
-      padding: 4px 10px;
+      padding: 3px 10px;
       border-radius: 12px;
-      font-size: 0.75em; /* Relative to parent, or fixed like 11px */
+      font-size: 11px; 
       font-weight: 600;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
       border: 1px solid var(--task-count-border);
-      backdrop-filter: blur(3px); /* Subtle blur for the pill */
-      -webkit-backdrop-filter: blur(3px);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
       white-space: nowrap;
-      z-index: 5; /* Ensure it's above node content if overlapping */
+      z-index: 10;
       transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
     }
 
@@ -214,11 +226,7 @@
     #taskTable td { padding-top: 8px; }
     .task-detail-textarea { width: 100%; resize: vertical; border: 1px solid var(--input-light-border); padding: 8px 12px; background: var(--input-bg); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); color: var(--input-text); border-radius: 8px; font-size: 0.9em; min-height: 3em; transition: all 0.3s ease; }
     .task-detail-textarea:focus { border-color: var(--glass-border); box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1); }
-    
-    /* Remove SVG specific task count styling as it's now HTML */
-    /* .taskCountGroup text { ... } */
-    /* .taskCountGroup rect { ... } */
-    
+        
     @media (max-width: 768px) {
         header { flex-direction: column; align-items: flex-start; gap: 1rem; padding: 1rem; }
         header h1 { font-size: 1.5em; width: 100%; justify-content: space-between; }
@@ -274,13 +282,36 @@
 
   // --- Main Application Script ---
   function openAIAssistant() { const url = 'https://chatgpt.com/g/g-678c450b02988191b07d47c7a5bd9d4a-flow-chart-assistant', sW=window.screen.availWidth,sH=window.screen.availHeight,bS=Math.min(sW,sH),pW=Math.floor(bS*0.45),pH=Math.floor(bS*0.55),l=Math.floor((sW-pW)/2),t=Math.floor((sH-pH)/2); window.open(url,'FlowchartAIAssistant',`width=${pW},height=${pH},left=${l},top=${t},resizable=yes,scrollbars=yes,status=no,location=no,menubar=no,toolbar=no`); }
-  // SVG wrapText is no longer needed for node names if they become HTML
-  // function wrapText(txtEl,wdth,baseFntSz){...} 
-  let selectedNode=null,data={flowchartName:"Untitled Flowchart",nodes:[],links:[]},simulation,svg,nodeGroup,mainZoomGroup;
   
-  const BASE_NODE_DIMENSION = 160; // Used for width/height of foreignObject
+  let selectedNode=null,data={flowchartName:"Untitled Flowchart",nodes:[],links:[]},simulation,svg,nodeGroup,mainZoomGroup;
+  const BASE_NODE_DIMENSION = 160; 
   let currentNodeSizeFactor=1.0; 
   const MIN_NODE_SIZE_FACTOR=0.5,MAX_NODE_SIZE_FACTOR=1.5,NODE_SIZE_STEP=0.1;
+
+  // Helper to convert hex to rgba
+  function hexToRgba(hex, alpha = 1) {
+    if (!hex || typeof hex !== 'string') return `rgba(200,200,200,${alpha})`; // Default grey for invalid input
+    hex = hex.replace('#', '');
+    let r = 0, g = 0, b = 0;
+    if (hex.length === 3) { // #RGB
+      r = parseInt(hex[0] + hex[0], 16);
+      g = parseInt(hex[1] + hex[1], 16);
+      b = parseInt(hex[2] + hex[2], 16);
+    } else if (hex.length === 6) { // #RRGGBB
+      r = parseInt(hex.substring(0, 2), 16);
+      g = parseInt(hex.substring(2, 4), 16);
+      b = parseInt(hex.substring(4, 6), 16);
+    } else {
+      console.warn("Could not parse hex color:", hex);
+      return `rgba(128, 128, 128, ${alpha})`; // Fallback
+    }
+    if (isNaN(r) || isNaN(g) || isNaN(b)) {
+        console.warn("NaN after parsing hex:", hex);
+        return `rgba(128,128,128,${alpha})`;
+    }
+    return `rgba(${r},${g},${b},${alpha})`;
+  }
+
 
   function initD3() {
     const fcCont = document.getElementById('flowchartContainer');
@@ -289,16 +320,14 @@
     svg=d3.select(fcCont).append('svg').attr('id','flowchart').attr('width',"100%").attr('height',"100%").attr('viewBox',`0 0 ${vW} ${vH}`).attr('preserveAspectRatio','xMidYMid meet');
     mainZoomGroup=svg.append('g');
     const zm=d3.zoom().on("zoom",(ev)=>mainZoomGroup.attr("transform",ev.transform));svg.call(zm).on("dblclick.zoom",null);
-    
-    // No SVG filters needed for nodes if they are HTML based. Defs can be empty or removed if not used elsewhere.
-    mainZoomGroup.append('defs'); // Keep defs in case other filters are added later for other SVG elements
+    mainZoomGroup.append('defs'); // Keep for potential future SVG filters (not for nodes now)
 
     const scaledNodeDimension = BASE_NODE_DIMENSION * currentNodeSizeFactor;
     simulation=d3.forceSimulation()
-      .force('charge',d3.forceManyBody().strength(-1500 * (scaledNodeDimension/160) )) // Adjust strength based on new dimension
-      .force('collide',d3.forceCollide().radius((scaledNodeDimension/2)+25).strength(0.9)) // Use half dimension for radius
+      .force('charge',d3.forceManyBody().strength(-1800 * (scaledNodeDimension/160) )) 
+      .force('collide',d3.forceCollide().radius((scaledNodeDimension*0.55)+25).strength(0.9)) // collision radius based on half dimension
       .force('center',d3.forceCenter(vW/2,vH/2));
-    nodeGroup=mainZoomGroup.append('g').attr("class","nodes");
+    nodeGroup=mainZoomGroup.append('g').attr("class","nodes"); // This will hold the <g> elements for each node
     window.addEventListener('resize',()=>{const nCW=fcCont.clientWidth,nCH=fcCont.clientHeight,nV_W=Math.max(nCW*1.5,vW),nV_H=Math.max(nCH*1.5,vH);simulation.force('center',d3.forceCenter(nV_W/2,nV_H/2)).alpha(0.3).restart();});
   }
 
@@ -314,7 +343,7 @@
   document.addEventListener('DOMContentLoaded',()=>{try{initD3();const g=(id)=>document.getElementById(id);if(g('aiAssistantBtn'))g('aiAssistantBtn').onclick=openAIAssistant;if(g('nodeSizeIncreaseBtn'))g('nodeSizeIncreaseBtn').onclick=()=>{if(currentNodeSizeFactor<MAX_NODE_SIZE_FACTOR){currentNodeSizeFactor=parseFloat((currentNodeSizeFactor+NODE_SIZE_STEP).toFixed(2));updateNodeSizes();}};if(g('nodeSizeDecreaseBtn'))g('nodeSizeDecreaseBtn').onclick=()=>{if(currentNodeSizeFactor>MIN_NODE_SIZE_FACTOR){currentNodeSizeFactor=parseFloat((currentNodeSizeFactor-NODE_SIZE_STEP).toFixed(2));updateNodeSizes();}};document.querySelectorAll('.color-swatch').forEach(s=>s.addEventListener('click',()=>{document.querySelectorAll('.color-swatch').forEach(x=>x.classList.remove('selected-swatch'));s.classList.add('selected-swatch');g('nodeColor').value=s.dataset.color;}));if(g('templateBtn'))g('templateBtn').onclick=()=>g('templateModal').style.display='block';document.querySelectorAll('.template-btn').forEach(b=>b.onclick=(e)=>{loadTemplate(e.target.dataset.template);g('templateModal').style.display='none';});if(g('addNodeBtn'))g('addNodeBtn').onclick=(e)=>{e.preventDefault();const nN=createNode(selectedNode);if(nN){selectedNode=nN;nodeClick({stopPropagation:()=>{}},nN);}};if(g('exportBtn'))g('exportBtn').onclick=saveToFile;if(g('uploadBtn')&&g('fileInput')){g('uploadBtn').onclick=()=>g('fileInput').click();g('fileInput').onchange=(e)=>{if(e.target.files.length>0)loadFromFile(e.target.files[0]);}};document.querySelectorAll('.close-button').forEach(b=>b.onclick=(e)=>{e.stopPropagation();b.closest('.modal').style.display='none';});window.onclick=(e)=>{if(e.target.classList.contains('modal'))e.target.style.display='none';};if(g('taskForm'))g('taskForm').onsubmit=(e)=>{e.preventDefault();if(selectedNode){let tsks=[];document.querySelectorAll('#taskTable tbody tr').forEach(r=>{let chk=r.querySelector('input[type="checkbox"]'),txt=r.querySelector('textarea.task-detail-textarea');if(txt&&txt.value.trim()!=="")tsks.push({completed:chk.checked,task:txt.value.trim()});});Object.assign(selectedNode,{name:g('taskName').value,responsible:g('responsible').value,status:g('status').value,deadline:g('deadline').value,priority:g('priority').value,actionDescription:JSON.stringify(tsks),color:g('nodeColor').value||null});selectedNode.fx=selectedNode.x;selectedNode.fy=selectedNode.y;update();}g('modal').style.display='none';};if(g('addTaskRowBtn'))g('addTaskRowBtn').addEventListener('click',()=>addTaskRow({}));if(g('deleteTaskBtn'))g('deleteTaskBtn').addEventListener('click',()=>{let sR=document.querySelector('#taskTable tbody tr.selectedTaskRow');if(sR)sR.remove();g('taskTextPopup').style.display='none';});if(g('deleteNodeBtn'))g('deleteNodeBtn').addEventListener('click',()=>{if(selectedNode&&confirm("Delete node?")){data.nodes=data.nodes.filter(n=>n.id!==selectedNode.id);data.links=data.links.filter(l=>(l.source.id||l.source)!==selectedNode.id&&(l.target.id||l.target)!==selectedNode.id);selectedNode=null;update();g('modal').style.display='none';}});if(g('flowchartNameInput'))g('flowchartNameInput').addEventListener('input',function(){data.flowchartName=this.value||"Untitled";});if(data.nodes.length===0)loadTemplate('prototype');else update();}catch(dE){console.error("DOMContentLoaded error:",dE);}});
   
   function createNode(pN){const nId=`node-${Date.now()}-${Math.random().toString(36).substr(2,5)}`;let iX,iY;const vB=svg.attr('viewBox').split(' '),vW=parseFloat(vB[2]),vH=parseFloat(vB[3]),cSD=BASE_NODE_DIMENSION*currentNodeSizeFactor;if(pN&&typeof pN.x==='number'&&typeof pN.y==='number'){iX=pN.x+(Math.random()*100-50);iY=pN.y+(cSD*0.9)+(Math.random()*20-10);}else{iX=vW/2+(Math.random()*200-100);iY=vH/3+(Math.random()*100-50);}iX=Math.max(cSD/2,Math.min(iX,vW-cSD/2));iY=Math.max(cSD/2,Math.min(iY,vH-cSD/2));const nN={id:nId,name:'New Task Node',status:'Not Started',responsible:'',deadline:'',priority:'Normal',actionDescription:'[]',color:null,x:iX,y:iY,fx:iX,fy:iY};data.nodes.push(nN);update();return nN;}
-  function updateNodeSizes(){if(!simulation)return;const sD=BASE_NODE_DIMENSION*currentNodeSizeFactor;simulation.force('collide').radius((sD/2)+25);simulation.force('charge').strength(-1500*(sD/160));update();simulation.alpha(0.3).restart();};
+  function updateNodeSizes(){if(!simulation)return;const sD=BASE_NODE_DIMENSION*currentNodeSizeFactor;simulation.force('collide').radius((sD*0.55)+25);simulation.force('charge').strength(-1800*(sD/160));update();simulation.alpha(0.3).restart();};
   
   function update(){
     if(!svg||!simulation){console.error("D3 not init for update");return;}
@@ -322,59 +351,67 @@
     if(simulation.force("link"))simulation.force("link",null);
 
     const currentScaledDimension = BASE_NODE_DIMENSION * currentNodeSizeFactor;
+    const nodeHeight = currentScaledDimension * 0.8; // Rectangular nodes: width = currentScaledDimension, height adjusted
+    const nodeNameBaseFontSize = 1; // em unit, scales with parent
     
-    const nds=nodeGroup.selectAll('.node').data(data.nodes,d=>d.id);
+    const nds=nodeGroup.selectAll('g.node-group').data(data.nodes,d=>d.id); // Select the main <g> for each node
     nds.exit().remove();
     
-    const nE=nds.enter().append('g').attr('class','node')
+    const nE=nds.enter().append('g').attr('class','node-group') // Changed class for clarity
       .call(d3.drag().on('start',dragStart).on('drag',dragging).on('end',dragEnd))
       .on('click',nodeClick);
 
     // Append foreignObject for HTML content
     nE.append('foreignObject')
-      .attr('width', currentScaledDimension)
-      .attr('height', currentScaledDimension * 0.85) // Make them slightly rectangular or keep square
-      .attr('x', -currentScaledDimension / 2)
-      .attr('y', -(currentScaledDimension * 0.85) / 2)
-      .style('overflow', 'visible') // Important for shadows from inner div
-      .append('xhtml:div')
-        .attr('class', 'flowchart-node-html')
-        .style('background-color', d => d.color ? d.color : getStatusColor(d.status)) // Apply base color to the glass
-        .html(d => `
-          <div class="task-count-pill-html"></div>
-          <div class="node-name-html">${d.name || ''}</div>
-        `);
-        
+      .attr('class', 'flowchart-node-html-wrapper') // Added class for the foreignObject
+      .append('xhtml:div') // Namespaced div
+        .attr('class', 'flowchart-node-html'); // This div gets the glass styling
+        // Content (pill, name) will be added/updated below
+
     const allNds=nE.merge(nds);
 
+    // Update foreignObject attributes
     allNds.select('foreignObject')
       .attr('width', currentScaledDimension)
-      .attr('height', currentScaledDimension * 0.85)
+      .attr('height', nodeHeight)
       .attr('x', -currentScaledDimension / 2)
-      .attr('y', -(currentScaledDimension * 0.85) / 2);
+      .attr('y', -nodeHeight / 2);
 
+    // Update inner HTML structure and styles
     allNds.select('.flowchart-node-html')
-      .style('background-color', d => d.color ? d.color : getStatusColor(d.status)) // Update background color
       .each(function(d) {
-        const nodeDiv = d3.select(this);
-        nodeDiv.select('.node-name-html').text(d.name || '');
+        const nodeOuterDiv = d3.select(this);
         
-        // Update task count pill
+        // Determine background color with appropriate alpha
+        const nodeFillOpacity = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--node-fill-opacity').trim() || '0.7');
+        const baseColorHex = d.color ? d.color : getStatusColor(d.status);
+        nodeOuterDiv.style('background-color', hexToRgba(baseColorHex, nodeFillOpacity));
+
+        // Ensure pill and name divs exist
+        let pillDiv = nodeOuterDiv.select('.task-count-pill-html');
+        if (pillDiv.empty()) {
+          pillDiv = nodeOuterDiv.append('div').attr('class', 'task-count-pill-html');
+        }
+        let nameDiv = nodeOuterDiv.select('.node-name-html');
+        if (nameDiv.empty()) {
+          nameDiv = nodeOuterDiv.append('div').attr('class', 'node-name-html');
+        }
+        
+        nameDiv.text(d.name || '');
+        
         let tasks=[];
         if(d.actionDescription){try{const p=JSON.parse(d.actionDescription);if(Array.isArray(p))tasks=p;}catch(e){/*ignore*/}}
         const compC=tasks.filter(t=>t.completed).length,totC=tasks.length;
-        const pill = nodeDiv.select('.task-count-pill-html');
+        
         if(totC > 0) {
-          pill.text(`✓ ${compC}/${totC}`).style('display', 'block');
+          pillDiv.text(`✓ ${compC}/${totC}`).style('display', 'block');
         } else {
-          pill.style('display', 'none');
+          pillDiv.style('display', 'none');
         }
       });
       
-    // Adjust font size of node name based on overall node size factor
     allNds.select('.node-name-html')
-        .style('font-size', `${1 * currentNodeSizeFactor}em`);
-
+        .style('font-size', `${nodeNameBaseFontSize * Math.min(1.2, Math.max(0.8, currentNodeSizeFactor))}em`); // Scale font slightly with node size
 
     simulation.nodes(data.nodes).on('tick',()=>allNds.attr('transform',d=>`translate(${d.x||0},${d.y||0})`));
     simulation.alpha(0.3).restart();
