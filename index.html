@@ -9,13 +9,13 @@
     :root {
       --bg-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       --bg-secondary: rgba(255, 255, 255, 0.1);
-      --bg-header: rgba(255, 255, 255, 0.15);
-      --text-primary: #333; /* Default text on light theme (e.g. modal content if not overridden) */
-      --text-on-glass-light-bg: #1c1c1e; /* Text on light glass elements */
+      --bg-header: rgba(255, 255, 255, 0.15); /* Used by --glass-bg as well */
+      --text-primary: #333;
+      --text-on-glass-light-bg: #1c1c1e;
       --text-on-header: white;
       --text-filename: rgba(255, 255, 255, 0.9);
       --input-bg: rgba(255, 255, 255, 0.2);
-      --input-text: #1c1c1e; /* Dark text for inputs on light theme */
+      --input-text: #1c1c1e;
       --input-border: rgba(255, 255, 255, 0.3);
       --input-light-border: rgba(255, 255, 255, 0.2);
       --button-bg: rgba(255, 255, 255, 0.2);
@@ -29,47 +29,46 @@
       --button-action-save-bg: rgba(52, 152, 219, 0.8);
       --button-danger-bg: rgba(231, 76, 60, 0.8);
       --button-confirm-bg: rgba(92, 184, 92, 0.8);
-      --modal-bg: rgba(255, 255, 255, 0.15); /* Semi-transparent white */
-      --modal-text: var(--text-on-glass-light-bg); /* Dark text for modals on light theme */
-      --close-button-color: rgba(0,0,0, 0.5); /* Darker close button on light modals */
+      
+      --modal-bg: rgba(255, 255, 255, 0.25); /* Made slightly less translucent */
+      --modal-text: var(--text-on-glass-light-bg);
+      --close-button-color: rgba(0,0,0, 0.5);
       --close-button-hover-color: #000;
+      
       --flowchart-container-bg: rgba(255, 255, 255, 0.05);
       --flowchart-container-border: rgba(255, 255, 255, 0.2);
-      --node-text-fill: white; /* Default for colored nodes, may need contrast check */
-      --task-count-rect-bg: rgba(44, 62, 80, 0.85);
-      --task-count-text-fill: white;
+      
+      --node-text-fill: var(--text-on-glass-light-bg); /* Nodes are now HTML, use appropriate text color */
+      
+      --task-count-rect-bg: rgba(44, 62, 80, 0.7); /* Pill bg */
+      --task-count-text-fill: white; /* Pill text */
+      --task-count-border: rgba(255, 255, 255, 0.2);
+
       --selected-swatch-outline: #fff;
       --selected-row-bg: rgba(236, 240, 241, 0.2);
       --selected-row-border: rgba(52, 152, 219, 0.8);
-      --table-header-separator: rgba(0, 0, 0, 0.2); /* Darker separator for light theme */
+      --table-header-separator: rgba(0, 0, 0, 0.2);
       --th-text-color: var(--text-on-glass-light-bg);
-      /* Glassmorphism variables */
+
+      /* Glassmorphism base variables */
       --glass-bg: rgba(255, 255, 255, 0.15);
       --glass-border: rgba(255, 255, 255, 0.25);
       --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
       --backdrop-blur: 10px;
-      /* Node glassmorphism */
-      --node-fill-opacity: 0.75;
-      --node-stroke-glass: rgba(255, 255, 255, 0.5);
-      --node-stroke-width-glass: 1.5px;
-      --node-shadow-opacity: 0.15;
-      --task-pill-shadow-opacity: 0.15;
     }
 
     body.dark-mode {
       --bg-primary: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-      --bg-secondary: rgba(255, 255, 255, 0.05);
-      --bg-header: rgba(255, 255, 255, 0.08);
       --text-primary: #e0e0e0;
-      --text-on-glass-light-bg: #e0e0e0; /* Re-alias for dark mode, light text on dark glass */
+      --text-on-glass-light-bg: #e0e0e0; /* Light text for dark mode glass elements */
       --text-on-header: #e0e0e0;
       --text-filename: rgba(255, 255, 255, 0.8);
       --input-bg: rgba(255, 255, 255, 0.1);
-      --input-text: #e0e0e0; /* Light text for inputs on dark theme */
+      --input-text: #e0e0e0;
       --input-border: rgba(255, 255, 255, 0.2);
       --input-light-border: rgba(255, 255, 255, 0.1);
       --button-bg: rgba(255, 255, 255, 0.1);
-      --button-text: #e0e0e0; /* Ensure button text is light for dark mode */
+      --button-text: #e0e0e0;
       --button-hover-bg: rgba(255, 255, 255, 0.2);
       --button-upload-bg: rgba(46, 204, 113, 0.7);
       --button-ai-bg: rgba(155, 89, 182, 0.7);
@@ -79,37 +78,38 @@
       --button-action-save-bg: rgba(52, 152, 219, 0.7);
       --button-danger-bg: rgba(192, 57, 43, 0.7);
       --button-confirm-bg: rgba(88, 179, 88, 0.7);
-      --modal-bg: rgba(40, 40, 55, 0.25); /* Darker, more saturated semi-transparent for dark mode */
-      --modal-text: #e0e0e0; /* Light text for modals on dark theme */
+      
+      --modal-bg: rgba(30, 30, 45, 0.4); /* Darker, less translucent for dark mode */
+      --modal-text: #e0e0e0;
       --close-button-color: rgba(255, 255, 255, 0.6);
       --close-button-hover-color: #e0e0e0;
+      
       --flowchart-container-bg: rgba(255, 255, 255, 0.02);
       --flowchart-container-border: rgba(255, 255, 255, 0.1);
-      --node-text-fill: #e0e0e0;
-      --task-count-rect-bg: rgba(220, 220, 230, 0.8); /* Lighter pill bg for dark mode */
+      
+      --node-text-fill: #e0e0e0; /* Nodes are now HTML, use this for their text */
+      
+      --task-count-rect-bg: rgba(220, 220, 230, 0.7); /* Lighter pill bg for dark mode */
       --task-count-text-fill: #1a1a2e; /* Dark text on light pill */
+      --task-count-border: rgba(255, 255, 255, 0.15);
+
       --selected-swatch-outline: #e0e0e0;
       --selected-row-bg: rgba(255, 255, 255, 0.1);
       --selected-row-border: rgba(93, 173, 226, 0.8);
       --table-header-separator: rgba(255, 255, 255, 0.15);
       --th-text-color: #e0e0e0;
-      /* Dark mode glassmorphism */
-      --glass-bg: rgba(255, 255, 255, 0.08); /* Slightly less transparent for dark mode cards */
+
+      /* Dark mode glassmorphism base */
+      --glass-bg: rgba(45, 50, 75, 0.25); /* Darker base for glass elements */
       --glass-border: rgba(255, 255, 255, 0.15);
-      --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); /* Shadow can be a bit more pronounced */
+      --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
       --backdrop-blur: 15px;
-      /* Dark node glassmorphism */
-      --node-fill-opacity: 0.7;
-      --node-stroke-glass: rgba(255, 255, 255, 0.25);
-      --node-stroke-width-glass: 1.5px;
-      --node-shadow-opacity: 0.25;
-      --task-pill-shadow-opacity: 0.2;
     }
 
     * { box-sizing: border-box; }
-    body { margin: 0; font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg-primary); color: var(--text-primary); display: flex; flex-direction: column; min-height: 100vh; transition: all 0.3s ease; position: relative; overflow-x: hidden; }
-    body::before { content: ''; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--bg-primary); z-index: -1; } /* For gradient background */
-    header { background: var(--glass-bg); backdrop-filter: blur(var(--backdrop-blur)); -webkit-backdrop-filter: blur(var(--backdrop-blur)); border: 1px solid var(--glass-border); border-top: none; border-left: none; border-right: none; box-shadow: var(--glass-shadow); color: var(--text-on-header); padding: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; position: relative; }
+    body { margin: 0; font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg-primary); color: var(--text-primary); display: flex; flex-direction: column; min-height: 100vh; transition: background 0.5s ease; position: relative; overflow-x: hidden; }
+    body::before { content: ''; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--bg-primary); z-index: -1; transition: background 0.5s ease;}
+    header { background: var(--glass-bg); backdrop-filter: blur(var(--backdrop-blur)); -webkit-backdrop-filter: blur(var(--backdrop-blur)); border-bottom: 1px solid var(--glass-border); box-shadow: var(--glass-shadow); color: var(--text-on-header); padding: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; position: relative; transition: background 0.3s ease, border-color 0.3s ease; }
     header h1 { margin: 0; display: flex; align-items: center; font-size: 1.8em; font-weight: 600; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3); }
     header h1 input#flowchartNameInput { margin-left: 15px; font-size: 0.65em; padding: 8px 16px; border: 1px solid var(--input-border); border-radius: 12px; background: var(--input-bg); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); color: var(--input-text); transition: all 0.3s ease; font-weight: 400; }
     header h1 input#flowchartNameInput:focus { outline: none; border-color: var(--glass-border); box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1); transform: translateY(-1px); }
@@ -121,14 +121,12 @@
     nav button:active, #themeToggleBtn:active { transform: translateY(0); }
     #themeToggleBtn { padding: 0.75rem; font-size: 1.2em; line-height: 1; border-radius: 50%; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; }
     nav input[type="file"] { display: none; }
-    nav .upload-btn { background: var(--button-upload-bg); }
-    nav .ai-assistant-btn { background: var(--button-ai-bg); }
-    nav .node-size-btn { background: var(--button-nodesize-bg); padding: 0.75rem 1rem; }
+    nav .upload-btn { background: var(--button-upload-bg); } nav .ai-assistant-btn { background: var(--button-ai-bg); } nav .node-size-btn { background: var(--button-nodesize-bg); padding: 0.75rem 1rem; }
     #fileNameDisplay { margin-left: 1rem; font-size: 0.9em; color: var(--text-filename); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3); }
-    #flowchartContainer { width: calc(100% - 2rem); flex-grow: 1; border: 1px solid var(--flowchart-container-border); background: var(--flowchart-container-bg); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); overflow: auto; position: relative; margin: 1rem; border-radius: 20px; box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.1); }
-    #flowchart { display: block; }
+    #flowchartContainer { width: calc(100% - 2rem); flex-grow: 1; border: 1px solid var(--flowchart-container-border); background: var(--flowchart-container-bg); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); overflow: auto; position: relative; margin: 1rem; border-radius: 20px; box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.1); transition: background 0.3s ease, border-color 0.3s ease; }
+    #flowchart { display: block; } /* SVG itself */
     .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); padding-top: 50px; overflow-y: auto; }
-    .modal-content { background: var(--modal-bg); backdrop-filter: blur(var(--backdrop-blur)); -webkit-backdrop-filter: blur(var(--backdrop-blur)); border: 1px solid var(--glass-border); color: var(--modal-text); margin: 20px auto; padding: 2rem; width: 90%; max-width: 500px; overflow-y: visible; border-radius: 20px; position: relative; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); }
+    .modal-content { background: var(--modal-bg); backdrop-filter: blur(var(--backdrop-blur)); -webkit-backdrop-filter: blur(var(--backdrop-blur)); border: 1px solid var(--glass-border); color: var(--modal-text); margin: 20px auto; padding: 2rem; width: 90%; max-width: 500px; overflow-y: visible; border-radius: 20px; position: relative; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); transition: background 0.3s ease, border-color 0.3s ease; }
     .close-button { position: absolute; right: 15px; top: 15px; font-size: 24px; cursor: pointer; color: var(--close-button-color); width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: rgba(255, 255, 255, 0.1); transition: all 0.3s ease; }
     .close-button:hover { color: var(--close-button-hover-color); background: rgba(255, 255, 255, 0.2); transform: scale(1.1); }
     form { display: flex; flex-direction: column; gap: 1rem; }
@@ -141,17 +139,65 @@
     button:hover::before { left: 100%; }
     button:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2); }
     button:active { transform: translateY(0); }
-    nav button, #themeToggleBtn, .template-btn, .action-buttons button, #deleteNodeBtn, .confirm-action-btn, #deleteTaskBtn { border: 1px solid var(--glass-border); }
+    nav button, #themeToggleBtn, .template-btn, .action-buttons button, #deleteNodeBtn, .confirm-action-btn, #deleteTaskBtn { border: 1px solid var(--glass-border); } /* Ensure all major buttons get the glass border */
     #deleteTaskBtn { background: var(--button-danger-bg); color: var(--button-text); margin-top: 15px; padding: 12px 20px; font-weight: 500; }
     .template-btn { background: var(--button-template-bg); color: var(--button-text); padding: 15px; margin: 8px 0; }
     
-    .node circle {
-      stroke: var(--node-stroke-glass);
-      stroke-width: var(--node-stroke-width-glass);
-      fill-opacity: var(--node-fill-opacity);
-      filter: url(#modernGlassmorphism); /* Apply the new filter for nodes */
+    /* Styling for HTML nodes */
+    .flowchart-node-html {
+      background: var(--glass-bg); /* Using the general glass background */
+      backdrop-filter: blur(var(--backdrop-blur));
+      -webkit-backdrop-filter: blur(var(--backdrop-blur));
+      border: 1px solid var(--glass-border);
+      box-shadow: var(--glass-shadow);
+      border-radius: 16px; /* Rounded rectangle */
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 15px;
+      box-sizing: border-box;
+      color: var(--node-text-fill);
+      text-align: center;
+      cursor: move; /* Indicate draggable */
+      position: relative; /* For absolute positioning of pill */
+      overflow: hidden; /* Prevent content spill */
+      transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
     }
-    .node text.node-name { fill: var(--node-text-fill); text-anchor: middle; pointer-events: none; text-shadow: 0 1px 5px rgba(0,0,0,0.35); font-weight: 500; }
+    .node-name-html {
+      font-weight: 500;
+      font-size: 1em; /* Scaled by D3 factor on parent */
+      text-shadow: 0 1px 3px rgba(0,0,0,0.2);
+      word-break: break-word;
+      max-height: 80%; /* Allow space for pill */
+      overflow-y: auto; /* In case text is too long */
+    }
+    body.dark-mode .node-name-html {
+      text-shadow: 0 1px 5px rgba(0,0,0,0.4);
+    }
+
+    .task-count-pill-html {
+      position: absolute;
+      top: 8px; /* Position from the top of the node */
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--task-count-rect-bg);
+      color: var(--task-count-text-fill);
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 0.75em; /* Relative to parent, or fixed like 11px */
+      font-weight: 600;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      border: 1px solid var(--task-count-border);
+      backdrop-filter: blur(3px); /* Subtle blur for the pill */
+      -webkit-backdrop-filter: blur(3px);
+      white-space: nowrap;
+      z-index: 5; /* Ensure it's above node content if overlapping */
+      transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+    }
+
     .action-buttons { display: flex; gap: 15px; margin-top: 20px; }
     .action-buttons button { padding: 12px 20px; flex: 1; font-weight: 500; }
     .add-node-btn { background: var(--button-action-add-bg); color: var(--button-text); }
@@ -169,14 +215,9 @@
     .task-detail-textarea { width: 100%; resize: vertical; border: 1px solid var(--input-light-border); padding: 8px 12px; background: var(--input-bg); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); color: var(--input-text); border-radius: 8px; font-size: 0.9em; min-height: 3em; transition: all 0.3s ease; }
     .task-detail-textarea:focus { border-color: var(--glass-border); box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1); }
     
-    .taskCountGroup rect {
-      fill: var(--task-count-rect-bg);
-      rx: 15px; ry: 15px;
-      filter: url(#taskCountGlass); /* Apply filter to task count pill */
-      stroke: var(--glass-border); /* Give it a subtle border too */
-      stroke-width: 0.5px;
-    }
-    .taskCountGroup text { fill: var(--task-count-text-fill); text-anchor: middle; dy: 0.35em; font-weight: 600; text-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+    /* Remove SVG specific task count styling as it's now HTML */
+    /* .taskCountGroup text { ... } */
+    /* .taskCountGroup rect { ... } */
     
     @media (max-width: 768px) {
         header { flex-direction: column; align-items: flex-start; gap: 1rem; padding: 1rem; }
@@ -217,46 +258,29 @@
 <div id="taskTextPopup" class="modal"> <div class="modal-content"> <span class="close-button" id="closeTaskPopup">×</span> <p id="taskFullText" style="white-space: pre-wrap; max-height: 60vh; overflow-y: auto;"></p> <button id="deleteTaskBtn">Delete Task</button> </div> </div>
 
 <script>
-  // --- Theme Toggle Script (Completed and Verified) ---
+  // --- Theme Toggle Script ---
   try {
     const themeToggleBtn = document.getElementById('themeToggleBtn');
     const currentDocumentBody = document.body;
     const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
-
-    function applyTheme(theme) {
-      currentDocumentBody.classList.toggle('dark-mode', theme === 'dark');
-    }
-
+    function applyTheme(theme) { currentDocumentBody.classList.toggle('dark-mode', theme === 'dark'); }
     if (themeToggleBtn && currentDocumentBody && prefersDarkScheme) {
       const savedTheme = localStorage.getItem('theme');
-      // Apply saved theme or system preference, default to light
       applyTheme(savedTheme ? savedTheme : (prefersDarkScheme.matches ? 'dark' : 'light'));
-
-      themeToggleBtn.addEventListener('click', () => {
-        const isDarkMode = currentDocumentBody.classList.contains('dark-mode');
-        const newTheme = isDarkMode ? 'light' : 'dark';
-        applyTheme(newTheme);
-        localStorage.setItem('theme', newTheme);
-      });
-
-      prefersDarkScheme.addEventListener('change', (e) => {
-        // Only apply system preference if no user preference is stored
-        if (!localStorage.getItem('theme')) {
-          applyTheme(e.matches ? 'dark' : 'light');
-        }
-      });
-    } else {
-      console.error("Theme toggle critical elements not found.");
-    }
-  } catch (themeError) {
-    console.error("Error in theme toggle script:", themeError);
-  }
+      themeToggleBtn.addEventListener('click', () => { const newTheme = currentDocumentBody.classList.contains('dark-mode') ? 'light' : 'dark'; applyTheme(newTheme); localStorage.setItem('theme', newTheme); });
+      prefersDarkScheme.addEventListener('change', (e) => { if (!localStorage.getItem('theme')) applyTheme(e.matches ? 'dark' : 'light'); });
+    } else console.error("Theme toggle critical elements missing.");
+  } catch (themeError) { console.error("Theme script error:", themeError); }
 
   // --- Main Application Script ---
   function openAIAssistant() { const url = 'https://chatgpt.com/g/g-678c450b02988191b07d47c7a5bd9d4a-flow-chart-assistant', sW=window.screen.availWidth,sH=window.screen.availHeight,bS=Math.min(sW,sH),pW=Math.floor(bS*0.45),pH=Math.floor(bS*0.55),l=Math.floor((sW-pW)/2),t=Math.floor((sH-pH)/2); window.open(url,'FlowchartAIAssistant',`width=${pW},height=${pH},left=${l},top=${t},resizable=yes,scrollbars=yes,status=no,location=no,menubar=no,toolbar=no`); }
-  function wrapText(txtEl,wdth,baseFntSz){txtEl.each(function(){const n=d3.select(this),w=n.text().split(/\s+/).reverse();let wd,ln=[],lH=1.1,x=n.attr("x")||0,y=n.attr("y")||0;n.text(null);let ts=n.append("tspan").attr("x",x).attr("y",y),tss=[ts];while(wd=w.pop()){ln.push(wd);ts.text(ln.join(" "));if(ts.node().getComputedTextLength()>wdth&&ln.length>1){ln.pop();ts.text(ln.join(" "));ln=[wd];ts=n.append("tspan").attr("x",x).attr("dy",`${lH}em`).text(wd);tss.push(ts);}}const totL=tss.length,initDy=-( (totL-1)*lH/2);tss.forEach((s,i)=>{if(i===0)s.attr("dy",`${initDy+0.35}em`);else s.attr("dy",`${lH}em`);});});}
+  // SVG wrapText is no longer needed for node names if they become HTML
+  // function wrapText(txtEl,wdth,baseFntSz){...} 
   let selectedNode=null,data={flowchartName:"Untitled Flowchart",nodes:[],links:[]},simulation,svg,nodeGroup,mainZoomGroup;
-  const BASE_NODE_RADIUS=80,CURRENT_NODE_SIZE_FACTOR_DEFAULT=1.0; let currentNodeSizeFactor=CURRENT_NODE_SIZE_FACTOR_DEFAULT; const MIN_NODE_SIZE_FACTOR=0.5,MAX_NODE_SIZE_FACTOR=1.5,NODE_SIZE_STEP=0.1;
+  
+  const BASE_NODE_DIMENSION = 160; // Used for width/height of foreignObject
+  let currentNodeSizeFactor=1.0; 
+  const MIN_NODE_SIZE_FACTOR=0.5,MAX_NODE_SIZE_FACTOR=1.5,NODE_SIZE_STEP=0.1;
 
   function initD3() {
     const fcCont = document.getElementById('flowchartContainer');
@@ -266,89 +290,92 @@
     mainZoomGroup=svg.append('g');
     const zm=d3.zoom().on("zoom",(ev)=>mainZoomGroup.attr("transform",ev.transform));svg.call(zm).on("dblclick.zoom",null);
     
-    // Define SVG filters here
-    mainZoomGroup.append('defs').html(`
-      <filter id="modernGlassmorphism" x="-50%" y="-50%" width="200%" height="200%">
-        <feGaussianBlur in="SourceAlpha" stdDeviation="3" result="shadowBlur"/>
-        <feOffset dx="2" dy="3" in="shadowBlur" result="shadowOffset"/>
-        <feFlood flood-color="black" flood-opacity="var(--node-shadow-opacity, 0.2)" result="shadowColor" />
-        <feComposite in="shadowColor" in2="shadowOffset" operator="in" result="dropShadow"/>
-        <feMerge>
-          <feMergeNode in="dropShadow"/>
-          <feMergeNode in="SourceGraphic"/>
-        </feMerge>
-      </filter>
-      <filter id="taskCountGlass" x="-50%" y="-50%" width="200%" height="200%">
-        <feGaussianBlur in="SourceAlpha" stdDeviation="1.5" result="pillShadowBlur"/>
-        <feOffset dx="1" dy="1.5" in="pillShadowBlur" result="pillShadowOffset"/>
-        <feFlood flood-color="black" flood-opacity="var(--task-pill-shadow-opacity, 0.15)" result="pillShadowColor" />
-        <feComposite in="pillShadowColor" in2="pillShadowOffset" operator="in" result="pillDropShadow"/>
-        <feMerge>
-          <feMergeNode in="pillDropShadow"/>
-          <feMergeNode in="SourceGraphic"/>
-        </feMerge>
-      </filter>
-    `);
+    // No SVG filters needed for nodes if they are HTML based. Defs can be empty or removed if not used elsewhere.
+    mainZoomGroup.append('defs'); // Keep defs in case other filters are added later for other SVG elements
 
-    simulation=d3.forceSimulation().force('charge',d3.forceManyBody().strength(-1500*(BASE_NODE_RADIUS*currentNodeSizeFactor/80))).force('collide',d3.forceCollide().radius((BASE_NODE_RADIUS*currentNodeSizeFactor)+25).strength(0.9)).force('center',d3.forceCenter(vW/2,vH/2));
+    const scaledNodeDimension = BASE_NODE_DIMENSION * currentNodeSizeFactor;
+    simulation=d3.forceSimulation()
+      .force('charge',d3.forceManyBody().strength(-1500 * (scaledNodeDimension/160) )) // Adjust strength based on new dimension
+      .force('collide',d3.forceCollide().radius((scaledNodeDimension/2)+25).strength(0.9)) // Use half dimension for radius
+      .force('center',d3.forceCenter(vW/2,vH/2));
     nodeGroup=mainZoomGroup.append('g').attr("class","nodes");
     window.addEventListener('resize',()=>{const nCW=fcCont.clientWidth,nCH=fcCont.clientHeight,nV_W=Math.max(nCW*1.5,vW),nV_H=Math.max(nCH*1.5,vH);simulation.force('center',d3.forceCenter(nV_W/2,nV_H/2)).alpha(0.3).restart();});
   }
 
-  function placeNodesDiagonally(){const iX=(mainZoomGroup.node()?parseFloat(svg.attr('viewBox').split(' ')[2])/2:1000),iY=150,cSR=BASE_NODE_RADIUS*currentNodeSizeFactor,hS=cSR*3.5,vS=cSR*2.5;data.nodes.forEach((n,i)=>{if(n.x==null||n.fx==null){n.x=iX+(i%3-1)*hS+(Math.random()*50-25);n.fx=n.x;}if(n.y==null||n.fy==null){n.y=iY+Math.floor(i/3)*vS+(Math.random()*50-25);n.fy=n.y;}});};
+  function placeNodesDiagonally(){const iX=(mainZoomGroup.node()?parseFloat(svg.attr('viewBox').split(' ')[2])/2:1000),iY=150,cSD=BASE_NODE_DIMENSION*currentNodeSizeFactor,hS=cSD*1.75,vS=cSD*1.25;data.nodes.forEach((n,i)=>{if(n.x==null||n.fx==null){n.x=iX+(i%3-1)*hS+(Math.random()*50-25);n.fx=n.x;}if(n.y==null||n.fy==null){n.y=iY+Math.floor(i/3)*vS+(Math.random()*50-25);n.fy=n.y;}});};
   function addTaskRow(t){const tb=document.querySelector('#taskTable tbody'),tr=document.createElement('tr');tr.addEventListener('click',function(){document.querySelectorAll('#taskTable tbody tr').forEach(r=>r.classList.remove('selectedTaskRow'));this.classList.add('selectedTaskRow');});const tdC=document.createElement('td'),cb=document.createElement('input');cb.type='checkbox';cb.checked=t&&t.completed?true:false;tdC.appendChild(cb);const tdT=document.createElement('td'),ti=document.createElement('textarea');ti.classList.add('task-detail-textarea');ti.value=t&&t.task?t.task:'';ti.rows=1;ti.addEventListener('input',function(){this.style.height='auto';this.style.height=(this.scrollHeight)+'px';});ti.addEventListener('dblclick',function(e){e.stopPropagation();tr.classList.add('selectedTaskRow');showTaskPopup(this.value);});let pT;ti.addEventListener('touchstart',function(e){e.stopPropagation();pT=window.setTimeout(()=>{tr.classList.add('selectedTaskRow');showTaskPopup(this.value);},800);});ti.addEventListener('touchend',function(){clearTimeout(pT);});ti.addEventListener('touchmove',function(){clearTimeout(pT);});tdT.appendChild(ti);tr.appendChild(tdC);tr.appendChild(tdT);tb.appendChild(tr);ti.dispatchEvent(new Event('input'));};
   function populateTaskTable(str){const tb=document.querySelector('#taskTable tbody');tb.innerHTML='';let arr=[];if(str&&typeof str==='string'){try{arr=JSON.parse(str);if(!Array.isArray(arr))arr=str.trim()?[{completed:false,task:str}]:[];}catch(e){arr=str.trim()?[{completed:false,task:str}]:[];}}else if(Array.isArray(str))arr=str;if(arr.length>0)arr.forEach(t=>addTaskRow(t));else addTaskRow({});};
   function showTaskPopup(txt){document.getElementById('taskFullText').textContent=txt;document.getElementById('taskTextPopup').style.display='block';};
   function nodeClick(ev,d){ev.stopPropagation();selectedNode=d;const g=(id)=>document.getElementById(id);g('taskName').value=d.name||'';g('responsible').value=d.responsible||'';g('status').value=d.status||'Not Started';g('deadline').value=d.deadline||'';g('priority').value=d.priority||'Normal';populateTaskTable(d.actionDescription||'');g('nodeColor').value=d.color||'';document.querySelectorAll('.color-swatch').forEach(s=>s.classList.remove('selected-swatch'));if(d.color){const sS=document.querySelector(`.color-swatch[data-color='${d.color}']`);if(sS)sS.classList.add('selected-swatch');}g('modal').style.display='block';};
   function saveToFile(){try{data.flowchartName=document.getElementById('flowchartNameInput').value||"Untitled Flowchart";const expD={flowchartName:data.flowchartName,nodes:data.nodes.map(n=>({id:n.id,name:n.name,status:n.status,responsible:n.responsible,deadline:n.deadline,priority:n.priority,actionDescription:n.actionDescription,color:n.color,x:n.x,y:n.y,fx:n.fx,fy:n.fy})),links:data.links},dS=JSON.stringify(expD,null,2),blb=new Blob([dS],{type:'application/json'}),url=URL.createObjectURL(blb),a=document.createElement('a');a.href=url;a.download=(expD.flowchartName.replace(/[^a-z0-9]/gi,'_').toLowerCase()||'flowchart')+'.json';document.body.appendChild(a);a.click();setTimeout(()=>{try{document.body.removeChild(a);URL.revokeObjectURL(url);}catch(rE){console.error("Revoke URL error:",rE);}},100);}catch(e){console.error("Save file error:",e);alert("Error saving.");}};
   function loadFromFile(f){if(!f){alert('No file.');return;}const r=new FileReader();r.onload=(e)=>{try{const fD=JSON.parse(e.target.result);if(fD&&typeof fD==='object'&&Array.isArray(fD.nodes)){data.flowchartName=fD.flowchartName||"Untitled";document.getElementById('flowchartNameInput').value=data.flowchartName;data.nodes=fD.nodes.map(n=>({...n,x:n.x,y:n.y,fx:n.fx!==undefined?n.fx:n.x,fy:n.fy!==undefined?n.fy:n.y}));data.links=Array.isArray(fD.links)?fD.links:[];document.getElementById('fileNameDisplay').innerText=`Loaded: ${f.name}`;document.getElementById('fileNameDisplay').title=`Loaded: ${f.name}`;update();}else alert('Invalid format.');}catch(err){alert('Parse error.');console.error("Load file error:",err);}};r.onerror=()=>alert('Read error.');r.readAsText(f);};
-  function loadTemplate(tmpl){data.flowchartName=tmpl.charAt(0).toUpperCase()+tmpl.slice(1)+" Template";document.getElementById('flowchartNameInput').value=data.flowchartName;data.links=[];switch(tmpl){case 'prototype':data.nodes=[{id:'1',name:'Design',status:'Completed',actionDescription:'[{"completed":false,"task":"Define user stories"},{"completed":false,"task":"Create wireframes"}]',color:'#2ecc71'},{id:'2',name:'Development',status:'In Progress',actionDescription:'[{"completed":false,"task":"Setup environment"},{"completed":false,"task":"Build core features"}]',color:'#f1c40f'},{id:'3',name:'Testing',status:'Not Started',actionDescription:'[{"completed":false,"task":"Write test cases"},{"completed":false,"task":"Perform QA"}]',color:'#e74c3c'}];break;case 'vendor':data.nodes=[{id:'1',name:'Identify Vendors',status:'Completed',actionDescription:'[{"completed":false,"task":"Research options"},{"completed":false,"task":"Shortlist 5 vendors"}]',color:'#2ecc71'},{id:'2',name:'Outreach & Demo',status:'In Progress',actionDescription:'[{"completed":false,"task":"Send RFPs"},{"completed":false,"task":"Schedule demos"}]',color:'#f1c40f'},{id:'3',name:'Negotiate & Select',status:'Not Started',actionDescription:'[{"completed":false,"task":"Compare proposals"},{"completed":false,"task":"Finalize contract"}]',color:'#e74c3c'}];break;case 'marketing':data.nodes=[{id:'1',name:'Market Research',status:'Completed',actionDescription:'[{"completed":false,"task":"Analyze competitors"},{"completed":false,"task":"Define target audience"}]',color:'#2ecc71'},{id:'2',name:'Campaign Planning',status:'In Progress',actionDescription:'[{"completed":false,"task":"Set goals & KPIs"},{"completed":false,"task":"Develop content strategy"}]',color:'#f1c40f'},{id:'3',name:'Execution & Launch',status:'Not Started',actionDescription:'[{"completed":false,"task":"Create assets"},{"completed":false,"task":"Launch campaign"}]',color:'#e74c3c'}];break;default:data.nodes=[{id:'root-1',name:'Start Here',status:'Not Started',actionDescription:'[]',color:'#3498db',x:300,y:150,fx:300,fy:150}];data.flowchartName="New";document.getElementById('flowchartNameInput').value=data.flowchartName;}data.nodes.forEach(n=>{n.fx=null;n.fy=null;});placeNodesDiagonally();update();};
+  function loadTemplate(tmpl){data.flowchartName=tmpl.charAt(0).toUpperCase()+tmpl.slice(1)+" Template";document.getElementById('flowchartNameInput').value=data.flowchartName;data.links=[];switch(tmpl){case 'prototype':data.nodes=[{id:'1',name:'Design System Setup and Component Library Integration',status:'Completed',actionDescription:'[]',color:'#2ecc71'},{id:'2',name:'User Authentication and Profile Management Development',status:'In Progress',actionDescription:'[]',color:'#f1c40f'},{id:'3',name:'Real-time Collaboration Feature Testing and Debugging',status:'Not Started',actionDescription:'[]',color:'#e74c3c'}];break;case 'vendor':data.nodes=[{id:'1',name:'Identify Potential Software Vendors and Compile Shortlist',status:'Completed',actionDescription:'[]',color:'#2ecc71'},{id:'2',name:'Conduct Vendor Outreach, Schedule Demos, and Collect RFPs',status:'In Progress',actionDescription:'[]',color:'#f1c40f'},{id:'3',name:'Evaluate Proposals, Negotiate Terms, and Select Final Vendor',status:'Not Started',actionDescription:'[]',color:'#e74c3c'}];break;case 'marketing':data.nodes=[{id:'1',name:'Comprehensive Market Research and Competitor Analysis',status:'Completed',actionDescription:'[]',color:'#2ecc71'},{id:'2',name:'Marketing Campaign Strategy, Goal Setting, and Content Calendar Development',status:'In Progress',actionDescription:'[]',color:'#f1c40f'},{id:'3',name:'Campaign Asset Creation, Platform Setup, and Official Launch Execution',status:'Not Started',actionDescription:'[]',color:'#e74c3c'}];break;default:data.nodes=[{id:'root-1',name:'Start New Project Here',status:'Not Started',actionDescription:'[]',color:'#3498db',x:300,y:150,fx:300,fy:150}];data.flowchartName="New Flowchart";document.getElementById('flowchartNameInput').value=data.flowchartName;}data.nodes.forEach(n=>{n.fx=null;n.fy=null;});placeNodesDiagonally();update();};
   
   document.addEventListener('DOMContentLoaded',()=>{try{initD3();const g=(id)=>document.getElementById(id);if(g('aiAssistantBtn'))g('aiAssistantBtn').onclick=openAIAssistant;if(g('nodeSizeIncreaseBtn'))g('nodeSizeIncreaseBtn').onclick=()=>{if(currentNodeSizeFactor<MAX_NODE_SIZE_FACTOR){currentNodeSizeFactor=parseFloat((currentNodeSizeFactor+NODE_SIZE_STEP).toFixed(2));updateNodeSizes();}};if(g('nodeSizeDecreaseBtn'))g('nodeSizeDecreaseBtn').onclick=()=>{if(currentNodeSizeFactor>MIN_NODE_SIZE_FACTOR){currentNodeSizeFactor=parseFloat((currentNodeSizeFactor-NODE_SIZE_STEP).toFixed(2));updateNodeSizes();}};document.querySelectorAll('.color-swatch').forEach(s=>s.addEventListener('click',()=>{document.querySelectorAll('.color-swatch').forEach(x=>x.classList.remove('selected-swatch'));s.classList.add('selected-swatch');g('nodeColor').value=s.dataset.color;}));if(g('templateBtn'))g('templateBtn').onclick=()=>g('templateModal').style.display='block';document.querySelectorAll('.template-btn').forEach(b=>b.onclick=(e)=>{loadTemplate(e.target.dataset.template);g('templateModal').style.display='none';});if(g('addNodeBtn'))g('addNodeBtn').onclick=(e)=>{e.preventDefault();const nN=createNode(selectedNode);if(nN){selectedNode=nN;nodeClick({stopPropagation:()=>{}},nN);}};if(g('exportBtn'))g('exportBtn').onclick=saveToFile;if(g('uploadBtn')&&g('fileInput')){g('uploadBtn').onclick=()=>g('fileInput').click();g('fileInput').onchange=(e)=>{if(e.target.files.length>0)loadFromFile(e.target.files[0]);}};document.querySelectorAll('.close-button').forEach(b=>b.onclick=(e)=>{e.stopPropagation();b.closest('.modal').style.display='none';});window.onclick=(e)=>{if(e.target.classList.contains('modal'))e.target.style.display='none';};if(g('taskForm'))g('taskForm').onsubmit=(e)=>{e.preventDefault();if(selectedNode){let tsks=[];document.querySelectorAll('#taskTable tbody tr').forEach(r=>{let chk=r.querySelector('input[type="checkbox"]'),txt=r.querySelector('textarea.task-detail-textarea');if(txt&&txt.value.trim()!=="")tsks.push({completed:chk.checked,task:txt.value.trim()});});Object.assign(selectedNode,{name:g('taskName').value,responsible:g('responsible').value,status:g('status').value,deadline:g('deadline').value,priority:g('priority').value,actionDescription:JSON.stringify(tsks),color:g('nodeColor').value||null});selectedNode.fx=selectedNode.x;selectedNode.fy=selectedNode.y;update();}g('modal').style.display='none';};if(g('addTaskRowBtn'))g('addTaskRowBtn').addEventListener('click',()=>addTaskRow({}));if(g('deleteTaskBtn'))g('deleteTaskBtn').addEventListener('click',()=>{let sR=document.querySelector('#taskTable tbody tr.selectedTaskRow');if(sR)sR.remove();g('taskTextPopup').style.display='none';});if(g('deleteNodeBtn'))g('deleteNodeBtn').addEventListener('click',()=>{if(selectedNode&&confirm("Delete node?")){data.nodes=data.nodes.filter(n=>n.id!==selectedNode.id);data.links=data.links.filter(l=>(l.source.id||l.source)!==selectedNode.id&&(l.target.id||l.target)!==selectedNode.id);selectedNode=null;update();g('modal').style.display='none';}});if(g('flowchartNameInput'))g('flowchartNameInput').addEventListener('input',function(){data.flowchartName=this.value||"Untitled";});if(data.nodes.length===0)loadTemplate('prototype');else update();}catch(dE){console.error("DOMContentLoaded error:",dE);}});
   
-  function createNode(pN){const nId=`node-${Date.now()}-${Math.random().toString(36).substr(2,5)}`;let iX,iY;const vB=svg.attr('viewBox').split(' '),vW=parseFloat(vB[2]),vH=parseFloat(vB[3]),cSR=BASE_NODE_RADIUS*currentNodeSizeFactor;if(pN&&typeof pN.x==='number'&&typeof pN.y==='number'){iX=pN.x+(Math.random()*100-50);iY=pN.y+(cSR*2.5)+(Math.random()*20-10);}else{iX=vW/2+(Math.random()*200-100);iY=vH/3+(Math.random()*100-50);}iX=Math.max(cSR,Math.min(iX,vW-cSR));iY=Math.max(cSR,Math.min(iY,vH-cSR));const nN={id:nId,name:'New Task',status:'Not Started',responsible:'',deadline:'',priority:'Normal',actionDescription:'[]',color:null,x:iX,y:iY,fx:iX,fy:iY};data.nodes.push(nN);update();return nN;}
-  function updateNodeSizes(){if(!simulation)return;const sR=BASE_NODE_RADIUS*currentNodeSizeFactor;simulation.force('collide').radius(sR+20);simulation.force('charge').strength(-1500*(sR/80));update();simulation.alpha(0.3).restart();};
+  function createNode(pN){const nId=`node-${Date.now()}-${Math.random().toString(36).substr(2,5)}`;let iX,iY;const vB=svg.attr('viewBox').split(' '),vW=parseFloat(vB[2]),vH=parseFloat(vB[3]),cSD=BASE_NODE_DIMENSION*currentNodeSizeFactor;if(pN&&typeof pN.x==='number'&&typeof pN.y==='number'){iX=pN.x+(Math.random()*100-50);iY=pN.y+(cSD*0.9)+(Math.random()*20-10);}else{iX=vW/2+(Math.random()*200-100);iY=vH/3+(Math.random()*100-50);}iX=Math.max(cSD/2,Math.min(iX,vW-cSD/2));iY=Math.max(cSD/2,Math.min(iY,vH-cSD/2));const nN={id:nId,name:'New Task Node',status:'Not Started',responsible:'',deadline:'',priority:'Normal',actionDescription:'[]',color:null,x:iX,y:iY,fx:iX,fy:iY};data.nodes.push(nN);update();return nN;}
+  function updateNodeSizes(){if(!simulation)return;const sD=BASE_NODE_DIMENSION*currentNodeSizeFactor;simulation.force('collide').radius((sD/2)+25);simulation.force('charge').strength(-1500*(sD/160));update();simulation.alpha(0.3).restart();};
   
   function update(){
     if(!svg||!simulation){console.error("D3 not init for update");return;}
     if(mainZoomGroup){const lg=mainZoomGroup.select(".links");if(lg&&!lg.empty())lg.selectAll('*').remove();}
     if(simulation.force("link"))simulation.force("link",null);
 
-    const cDR=BASE_NODE_RADIUS*currentNodeSizeFactor;
-    const cMFS=14*currentNodeSizeFactor; // Main font size for node name
-    const cTCFS=13*currentNodeSizeFactor; // Task count font size (from previous adjustment)
-
+    const currentScaledDimension = BASE_NODE_DIMENSION * currentNodeSizeFactor;
+    
     const nds=nodeGroup.selectAll('.node').data(data.nodes,d=>d.id);
     nds.exit().remove();
-    const nE=nds.enter().append('g').attr('class','node').call(d3.drag().on('start',dragStart).on('drag',dragging).on('end',dragEnd)).on('click',nodeClick);
-    nE.append('circle'); // Filter and other styles applied via CSS
-    nE.append('text').attr('class','node-name').attr('text-anchor','middle').attr('dominant-baseline','central');
-    nE.append('g').attr('class','taskCountGroup');
     
+    const nE=nds.enter().append('g').attr('class','node')
+      .call(d3.drag().on('start',dragStart).on('drag',dragging).on('end',dragEnd))
+      .on('click',nodeClick);
+
+    // Append foreignObject for HTML content
+    nE.append('foreignObject')
+      .attr('width', currentScaledDimension)
+      .attr('height', currentScaledDimension * 0.85) // Make them slightly rectangular or keep square
+      .attr('x', -currentScaledDimension / 2)
+      .attr('y', -(currentScaledDimension * 0.85) / 2)
+      .style('overflow', 'visible') // Important for shadows from inner div
+      .append('xhtml:div')
+        .attr('class', 'flowchart-node-html')
+        .style('background-color', d => d.color ? d.color : getStatusColor(d.status)) // Apply base color to the glass
+        .html(d => `
+          <div class="task-count-pill-html"></div>
+          <div class="node-name-html">${d.name || ''}</div>
+        `);
+        
     const allNds=nE.merge(nds);
-    allNds.select('circle').attr('r',cDR).attr('fill',d=>d.color?d.color:getStatusColor(d.status));
-    allNds.select('text.node-name').style('font-size',`${cMFS}px`).text(d=>d.name).call(wrapText,cDR*1.5,cMFS); // Adjusted wrap width slightly if needed for new radius
-    
-    allNds.select('.taskCountGroup')
-      .attr('transform',`translate(0,-${cDR+(18*currentNodeSizeFactor)})`) // Position pill above node
-      .each(function(d){
-        const grp=d3.select(this);grp.selectAll('*').remove();let tsks=[];
-        if(d.actionDescription){try{const p=JSON.parse(d.actionDescription);if(Array.isArray(p))tsks=p;}catch(e){/*ignore*/}}
-        const compC=tsks.filter(t=>t.completed).length,totC=tsks.length;
-        if(totC>0){
-          const txtStr=`✓ ${compC}/${totC}`,
-                txtEl=grp.append('text').style('font-size',`${cTCFS}px`).text(txtStr),
-                txtN=txtEl.node();
-          if(txtN){
-            const bb=txtN.getBBox(),
-                  rW=bb.width+(14*currentNodeSizeFactor), // Pill padding
-                  rH=bb.height+(8*currentNodeSizeFactor); // Pill padding
-            grp.insert('rect','text').attr('width',rW).attr('height',rH)
-              .attr('x',-rW/2).attr('y',-(rH/2)) // Center rect around text
-              .attr('rx',rH/2).attr('ry',rH/2); // Make it a fully rounded pill
-          }
+
+    allNds.select('foreignObject')
+      .attr('width', currentScaledDimension)
+      .attr('height', currentScaledDimension * 0.85)
+      .attr('x', -currentScaledDimension / 2)
+      .attr('y', -(currentScaledDimension * 0.85) / 2);
+
+    allNds.select('.flowchart-node-html')
+      .style('background-color', d => d.color ? d.color : getStatusColor(d.status)) // Update background color
+      .each(function(d) {
+        const nodeDiv = d3.select(this);
+        nodeDiv.select('.node-name-html').text(d.name || '');
+        
+        // Update task count pill
+        let tasks=[];
+        if(d.actionDescription){try{const p=JSON.parse(d.actionDescription);if(Array.isArray(p))tasks=p;}catch(e){/*ignore*/}}
+        const compC=tasks.filter(t=>t.completed).length,totC=tasks.length;
+        const pill = nodeDiv.select('.task-count-pill-html');
+        if(totC > 0) {
+          pill.text(`✓ ${compC}/${totC}`).style('display', 'block');
+        } else {
+          pill.style('display', 'none');
         }
       });
+      
+    // Adjust font size of node name based on overall node size factor
+    allNds.select('.node-name-html')
+        .style('font-size', `${1 * currentNodeSizeFactor}em`);
+
+
     simulation.nodes(data.nodes).on('tick',()=>allNds.attr('transform',d=>`translate(${d.x||0},${d.y||0})`));
     simulation.alpha(0.3).restart();
   };
