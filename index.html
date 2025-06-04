@@ -55,7 +55,7 @@
       --text-filename: rgba(255, 255, 255, 0.8); 
       --input-bg: rgba(255, 255, 255, 0.1);
       --input-text: #e0e0e0;
-      --input-border: rgba(255, 255, 255, 0.2);
+      --input-border: rgba(252, 252, 255, 0.2);
       --input-light-border: rgba(255, 255, 255, 0.1);
       --button-bg: rgba(255, 255, 255, 0.12); 
       --button-text: #e0e0e0; 
@@ -143,13 +143,13 @@
       height: 100%;
     }
 
-    /* Banner container now inside #flowchartContainer */
+    /* Banner container now inside #flowchartContainer, reduced by 30% */
     #banner-container {
       position: absolute;
       top: 10px;        /* Slightly below the top edge inside container */
       left: 10px;       /* Slightly inside from left edge */
-      width: 50%;       /* Responsive width relative to container */
-      max-width: 600px; /* Cap width so it doesn’t exceed a comfortable size */
+      width: 35%;       /* Reduced from 50% down by ~30% */
+      max-width: 420px; /* Reduced from 600px down by ~30% */
       aspect-ratio: 1500 / 625;  /* Maintain the 1500x625 ratio */
       border-radius: 12px;
       overflow: hidden;
@@ -277,8 +277,8 @@
       #flowchartContainer { height: 70vh; margin: 0.5rem; width: calc(100% - 1rem); }
       /* Adjust banner on smaller screens */
       #banner-container {
-        width: 70%;
-        max-width: 400px;
+        width: 49%;       /* ~70% of previous 35% yields ~24%, but keep at 49% for readability */
+        max-width: 294px; /* 70% of 420px */
         aspect-ratio: 1500 / 625;
       }
     }
@@ -290,8 +290,8 @@
       #themeToggleBtn { flex-grow: 0; min-width: 40px; }
       /* Further shrink banner on very small screens */
       #banner-container {
-        width: 80%;
-        max-width: 300px;
+        width: 56%;       /* 80% of 70% of original 35% = ~28%, but 56% of container for readability */
+        max-width: 252px; /* 60% of 420px */
         aspect-ratio: 1500 / 625;
       }
     }
@@ -320,7 +320,7 @@
   </header>
 
   <div id="flowchartContainer">
-    <!-- Banner-like iframe positioned inside the bordered canvas -->
+    <!-- Banner-like iframe inside the bordered canvas, now reduced by 30% -->
     <div id="banner-container">
       <iframe
         src="https://transcendence.media/SmartWealth-Banner"
