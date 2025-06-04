@@ -149,8 +149,8 @@
       flex-direction: column;
       align-items: center;
       justify-content: center; 
-      padding: 12px; 
-      padding-top: 32px; 
+      padding: 20px;          /* Increased padding to give more room */
+      padding-top: 40px;      /* Keep top space for task pill */
       box-sizing: border-box;
       color: var(--node-text-fill);
       text-align: center;
@@ -160,10 +160,10 @@
       transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
     }
 
-    /* Priority indicator: 3-part bar at top-right */
+    /* Priority indicator: moved to bottom-right */
     .flowchart-node-html .priority-indicator {
       position: absolute;
-      top: 4px;
+      bottom: 4px;    /* Move to bottom */
       right: 4px;
       display: flex;
       gap: 2px;
@@ -202,9 +202,13 @@
       transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
     }
 
+    /* Restore bullets and indent for the guide lists */
+    #userGuideModal .modal-content ul {
+      list-style-type: disc;     /* Show bullets */
+      padding-left: 20px;        /* Indent */
+    }
     #userGuideModal .modal-content h2 { font-size: 1.5em; margin-bottom: 1em; }
     #userGuideModal .modal-content h3 { margin-top: 1.5em; margin-bottom: 0.5em; font-size: 1.15em; color: var(--modal-text); }
-    #userGuideModal .modal-content ul { list-style-type: none; padding-left: 10px; }
     #userGuideModal .modal-content li { margin-bottom: 0.7em; line-height: 1.6; }
     #userGuideModal .modal-content li strong { font-weight: 600; color: var(--modal-text); }
     #userGuideModal .modal-content p { margin-bottom: 1em; line-height: 1.6; }
@@ -345,17 +349,22 @@
 
       <h3>🛠️ Interface Controls</h3>
       <ul>
-        <li><strong>Upload</strong> – Import a FlowChart (json) file to continue work or load a new chart.</li>
-        <li><strong>Save</strong> – Saving a FlowChart will always create a new file version each time.</li>
-        <li><strong>Templates</strong> – Start with a ready-made structure (Prototype, Vendor, or Marketing).</li>
-        <li><strong>Node Size +/-</strong> – Resize task nodes for better visibility.</li>
-        <li><strong>Flowchart AI Assistant</strong> – Get expert guidance to refine, organize, or expand your chart.</li>
+        <li>Upload – Import a FlowChart (json) file to continue work or load a new chart.</li>
+        <li>Save – Saving a FlowChart will always create a new file version each time.</li>
+        <li>Templates – Start with a ready-made structure (Prototype, Vendor, or Marketing).</li>
+        <li>Node Size +/- – Resize task nodes for better visibility.</li>
+        <li>Flowchart AI Assistant – Get expert guidance to refine, organize, or expand your chart.</li>
+        <li>Use your mouse to move Canvas.</li>
+        <li>Use mouse wheel to further enlarge/shrink nodes.</li>
       </ul>
 
       <h3>🧩 Working with Tasks</h3>
-      <p>Click any node to view or edit its details. Completing fields like Responsible, Deadline, and Priority helps align your workflow, track progress, and maintain clarity.</p>
+      <ul>
+        <li>Click any node to view or edit its details.</li>
+        <li>Completing fields like Responsible, Deadline, and Priority helps align your workflow, track progress, and maintain clarity.</li>
+      </ul>
 
-      <h3>💡Tips for Effective Use</h3>
+      <h3>💡 Tips for Effective Use</h3>
       <ul>
         <li>Start with a template if unsure—it gives structure fast.</li>
         <li>Organize nodes clockwise or top-down for clear readability.</li>
@@ -364,13 +373,12 @@
         <li>Keep Phase nodes separate and use them to group related tasks.</li>
       </ul>
 
-      <h3>🧠 Need Smart Help?</h3>
-      <p>Just upload your FlowChart file in chat with the Flowchart AI Assistant (that’s me!). I’ll help you:</p>
+      <h3>Click the FlowChart AI button and upload your FlowChart file in Chat.</h3>
+      <p>Ask the AI assistant to:</p>
       <ul>
-        <li>Analyze structure</li>
-        <li>Suggest improvements</li>
-        <li>Refine phases</li>
-        <li>Streamline your flow for cohesive execution</li>
+        <li>Analyze and suggest improvements</li>
+        <li>Provide insights, summaries, reports</li>
+        <li>Make changes, add nodes, tasks, update details, etc.</li>
       </ul>
     </div>
   </div>
@@ -881,7 +889,7 @@
           const baseColorHex = d.color ? d.color : getStatusColor(d.status);
           nodeOuterDiv.style('background-color', hexToRgba(baseColorHex, nodeFillOpacity));
 
-          // --- Priority Indicator Logic ---
+          // --- Priority Indicator Logic (bottom-right) ---
           let prDiv = nodeOuterDiv.select('.priority-indicator');
           if (prDiv.empty()) {
             prDiv = nodeOuterDiv.append('div').attr('class', 'priority-indicator');
