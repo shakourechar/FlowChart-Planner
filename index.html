@@ -152,8 +152,8 @@
       color: var(--node-text-fill);
       text-align: center;
       cursor: move;
-      position: relative; 
-      overflow: hidden; 
+      position: relative; /* Crucial for absolute positioning of children */
+      overflow: hidden; /* Clips children if they exceed bounds */
       transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
     }
     .node-name-html {
@@ -189,27 +189,27 @@
     /* --- START: Added CSS for Priority Indicator --- */
     .priority-indicator {
         position: absolute;
-        top: 10px; /* Align with task count pill, adjust as needed */
+        top: 10px; 
         right: 10px;
         display: flex;
-        gap: 3px; /* Space between dots */
-        z-index: 6; /* Ensure it's visible */
+        gap: 3px; 
+        z-index: 6; 
     }
 
     .priority-dot {
         width: 10px;
         height: 10px;
-        border-radius: 50%; /* Makes it a circle */
+        border-radius: 50%; 
         transition: background-color 0.3s ease, border-color 0.3s ease;
     }
 
     .priority-dot-active {
-        background-color: orangered; /* Red/Orange for active */
+        background-color: orangered; 
     }
 
     .priority-dot-inactive {
-        background-color: #f0f0f0; /* White-ish for inactive */
-        border: 1px solid #ccc; /* Light border to make it visible on light backgrounds */
+        background-color: #f0f0f0; 
+        border: 1px solid #ccc; 
     }
     /* --- END: Added CSS for Priority Indicator --- */
 
@@ -305,9 +305,7 @@
     </ul>
 
     <h3>🧠 Need Smart Help?</h3>
-    <p>Click the FlowChart AI button to open the FlowChat GPT.</p>
-    <p>Upload your FlowChart file in chat and ask the Assistant to:</p>
-    <p> analyze, provide insights, add tasks, change details, create a report, etc.</p>
+    <p>Just upload your FlowChart file in chat with the Flowchart AI Assistant (that’s me!). I’ll help you:</p>
     <ul>
       <li>Analyze structure</li>
       <li>Suggest improvements</li>
@@ -408,13 +406,13 @@
     if(g('deleteTaskBtn'))g('deleteTaskBtn').addEventListener('click',()=>{let sR=document.querySelector('#taskTable tbody tr.selectedTaskRow');if(sR)sR.remove();g('taskTextPopup').style.display='none';});
     if(g('deleteNodeBtn'))g('deleteNodeBtn').addEventListener('click',()=>{if(selectedNode&&confirm("Delete node?")){data.nodes=data.nodes.filter(n=>n.id!==selectedNode.id);data.links=data.links.filter(l=>(l.source.id||l.source)!==selectedNode.id&&(l.target.id||l.target)!==selectedNode.id);selectedNode=null;update();g('modal').style.display='none';}});
     if(g('flowchartNameInput'))g('flowchartNameInput').addEventListener('input',function(){data.flowchartName=this.value||"Untitled";});
-    if(data.nodes.length===0)loadTemplate('prototype');else update();}catch(dE){console.error("DOMContentLoaded error:",dE);}});
+    if(data.nodes.length===0)loadTemplate('prototype');else update();}catch(dE){console.error("DOMContentLoaded error:",dE);alert("A critical error occurred on page load. Check console for details.");}}); // Added alert here for visibility
   
   function createNode(pN){const nId=`node-${Date.now()}-${Math.random().toString(36).substr(2,5)}`;let iX,iY;const vB=svg.attr('viewBox').split(' '),vW=parseFloat(vB[2]),vH=parseFloat(vB[3]),cSD=BASE_NODE_DIMENSION*currentNodeSizeFactor;if(pN&&typeof pN.x==='number'&&typeof pN.y==='number'){iX=pN.x+(Math.random()*100-50);iY=pN.y+(cSD*0.9)+(Math.random()*20-10);}else{iX=vW/2+(Math.random()*200-100);iY=vH/3+(Math.random()*100-50);}iX=Math.max(cSD/2,Math.min(iX,vW-cSD/2));iY=Math.max(cSD/2,Math.min(iY,vH-cSD/2));const nN={id:nId,name:'New Task Node',status:'Not Started',responsible:'',deadline:'',priority:'Normal',actionDescription:'[]',color:null,x:iX,y:iY,fx:iX,fy:iY};data.nodes.push(nN);update();return nN;}
   function updateNodeSizes(){if(!simulation)return;const sD=BASE_NODE_DIMENSION*currentNodeSizeFactor;simulation.force('collide').radius((sD*0.55)+25);simulation.force('charge').strength(-1800*(sD/160));update();simulation.alpha(0.3).restart();};
   
   function update(){
-    if(!svg||!simulation){console.error("D3 not init for update");return;}
+    if(!svg||!simulation){console.error("D3 not initialized for update function.");return;} // More specific error
     if(mainZoomGroup){const lg=mainZoomGroup.select(".links");if(lg&&!lg.empty())lg.selectAll('*').remove();}
     if(simulation.force("link"))simulation.force("link",null);
 
@@ -451,21 +449,25 @@
         nodeOuterDiv.style('background-color', hexToRgba(baseColorHex, nodeFillOpacity));
 
         let pillDiv = nodeOuterDiv.select('.task-count-pill-html');
-        if (pillDiv.empty()) pillDiv = nodeOuterDiv.append('div').attr('class', 'task-count-pill-html');
+        if (pillDiv.empty()) {
+          pillDiv = nodeOuterDiv.append('div').attr('class', 'task-count-pill-html');
+        }
         
         let nameDiv = nodeOuterDiv.select('.node-name-html');
-        if (nameDiv.empty()) nameDiv = nodeOuterDiv.append('div').attr('class', 'node-name-html');
+        if (nameDiv.empty()) {
+          nameDiv = nodeOuterDiv.append('div').attr('class', 'node-name-html');
+        }
         
         nameDiv.text(d.name || '')
-               .style('font-size', `${Math.max(10, baseNodeNameFontSizePx * currentNodeSizeFactor)}px`);
+          .style('font-size', `${Math.max(10, baseNodeNameFontSizePx * currentNodeSizeFactor)}px`);
         
         let tasks=[];
-        if(d.actionDescription){try{const p=JSON.parse(d.actionDescription);if(Array.isArray(p))tasks=p;}catch(e){}}
+        if(d.actionDescription){try{const p=JSON.parse(d.actionDescription);if(Array.isArray(p))tasks=p;}catch(e){/* ignore parse error for this */}}
         const compC=tasks.filter(t=>t.completed).length,totC=tasks.length;
         if(totC > 0) {
           pillDiv.text(`✓ ${compC}/${totC}`)
-                 .style('display', 'block')
-                 .style('font-size', `${Math.max(9, basePillFontSizePx * currentNodeSizeFactor)}px`);
+            .style('display', 'block')
+            .style('font-size', `${Math.max(9, basePillFontSizePx * currentNodeSizeFactor)}px`);
         } else {
           pillDiv.style('display', 'none');
         }
@@ -475,11 +477,11 @@
         if (priorityIndicatorDiv.empty()) {
             priorityIndicatorDiv = nodeOuterDiv.append('div').attr('class', 'priority-indicator');
         }
-        priorityIndicatorDiv.html(''); // Clear previous dots to prevent duplication on updates
+        priorityIndicatorDiv.html(''); // Clear previous dots
 
-        const priority = d.priority || 'Normal'; // Default to Normal if priority is not set
+        const priorityValue = d.priority || 'Normal'; // Default to Normal
         let activeDots = 0;
-        switch (priority.toLowerCase()) { // Use toLowerCase for case-insensitive matching
+        switch (priorityValue.toLowerCase()) { 
             case 'low':
                 activeDots = 1;
                 break;
@@ -489,8 +491,8 @@
             case 'high':
                 activeDots = 3;
                 break;
-            default:
-                activeDots = 2; // Fallback to normal if unknown value
+            default: // Should not happen if data is clean
+                activeDots = 2; 
         }
 
         for (let i = 0; i < 3; i++) {
@@ -498,11 +500,11 @@
                 .attr('class', i < activeDots ? 'priority-dot priority-dot-active' : 'priority-dot priority-dot-inactive');
         }
         // --- END: Added JavaScript for Priority Indicator ---
-      });
+      }); // End of .each()
       
     simulation.nodes(data.nodes).on('tick',()=>allNds.attr('transform',d=>`translate(${d.x||0},${d.y||0})`));
     simulation.alpha(0.3).restart();
-  };
+  }; // End of update()
   function getStatusColor(s){switch(s){case 'Not Started':return '#e74c3c';case 'In Progress':return '#f1c40f';case 'Completed':return '#2ecc71';default:return '#3498db';}};
   function dragStart(ev,d){if(!ev.active)simulation.alphaTarget(0.3).restart();d.fx=d.x;d.fy=d.y;}
   function dragging(ev,d){d.fx=ev.x;d.fy=ev.y;}
