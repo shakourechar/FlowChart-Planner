@@ -149,8 +149,9 @@
       flex-direction: column;
       align-items: center;
       justify-content: center; 
-      padding: 20px;          /* Increased padding to give more room */
-      padding-top: 40px;      /* Keep top space for task pill */
+      padding: 20px;            /* Uniform side padding */
+      padding-top: 40px;        /* Extra top padding */
+      padding-bottom: 32px;     /* Increased bottom padding for breathing room */
       box-sizing: border-box;
       color: var(--node-text-fill);
       text-align: center;
@@ -160,10 +161,10 @@
       transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
     }
 
-    /* Priority indicator: moved to bottom-right */
+    /* Priority indicator: bottom-right */
     .flowchart-node-html .priority-indicator {
       position: absolute;
-      bottom: 4px;    /* Move to bottom */
+      bottom: 4px;
       right: 4px;
       display: flex;
       gap: 2px;
@@ -177,7 +178,7 @@
       word-break: break-word; 
       max-width: 100%;
       width: 100%; 
-      max-height: 100%; 
+      max-height: calc(100% - 72px); /* Ensures text doesn’t overlap bottom padding */
       overflow: hidden; 
     }
 
@@ -204,8 +205,8 @@
 
     /* Restore bullets and indent for the guide lists */
     #userGuideModal .modal-content ul {
-      list-style-type: disc;     /* Show bullets */
-      padding-left: 20px;        /* Indent */
+      list-style-type: disc;
+      padding-left: 20px;
     }
     #userGuideModal .modal-content h2 { font-size: 1.5em; margin-bottom: 1em; }
     #userGuideModal .modal-content h3 { margin-top: 1.5em; margin-bottom: 0.5em; font-size: 1.15em; color: var(--modal-text); }
