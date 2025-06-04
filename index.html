@@ -151,7 +151,7 @@
       justify-content: center; 
       padding: 20px;            /* Uniform side padding */
       padding-top: 40px;        /* Extra top padding */
-      padding-bottom: 40px;     /* Increased bottom padding */
+      padding-bottom: 24px;     /* Reduced bottom padding to avoid text cutoff */
       box-sizing: border-box;
       color: var(--node-text-fill);
       text-align: center;
@@ -164,8 +164,8 @@
     /* Priority indicator: bottom-right */
     .flowchart-node-html .priority-indicator {
       position: absolute;
-      bottom: 8px;    /* Added extra bottom margin */
-      right: 8px;     /* Moved slightly inward for consistency */
+      bottom: 12px;    /* Increased bottom margin so indicators don’t touch edge */
+      right: 12px;     /* Moved slightly inward for consistency */
       display: flex;
       gap: 2px;
       font-size: 0.8em;
@@ -178,8 +178,7 @@
       word-break: break-word; 
       max-width: 100%;
       width: 100%; 
-      overflow: hidden; 
-      /* Removed restrictive max-height so text is visible */
+      overflow: visible;  /* Allow text to expand within padding */
     }
 
     body.dark-mode .node-name-html { text-shadow: 0 1px 4px rgba(0,0,0,0.35); }
@@ -856,7 +855,7 @@
       if (simulation.force("link")) simulation.force("link", null);
 
       const currentScaledDimension = BASE_NODE_DIMENSION * currentNodeSizeFactor;
-      const nodeHeight = currentScaledDimension * 0.8;
+      const nodeHeight = currentScaledDimension;  /* Use full width as height */
 
       const baseNodeNameFontSizePx = 14;
       const basePillFontSizePx = 12;
