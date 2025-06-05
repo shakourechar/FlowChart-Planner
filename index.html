@@ -12,11 +12,11 @@
     href="https://static.wixstatic.com/media/c3283f_a3e1ec47496f42f7be617a2cd7a7bc9e~mv2.png"
   />
 
-  <!-- ─── FONT AWESOME FREE (v6) ──────────────────────────────────────────────────── -->
-  <!-- Known-working CDN link for Font Awesome Free (solid icons) -->
+  <!-- ─── FONT AWESOME FREE (v6.4.0) ─────────────────────────────────────────────── -->
+  <!-- Using jsDelivr CDN—no integrity attribute -->
   <link
     rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css"
   />
 
   <style>
@@ -92,7 +92,7 @@
       transition: background 0.5s ease;
     }
 
-    /* ─── HEADER & NAVIGATION ─────────────────────────────────────────────────────── */
+    /* ─── HEADER & NAVIGATION ───────────────────────────────────────────────────── */
     header {
       background: var(--header-fixed-bg);
       backdrop-filter: blur(var(--backdrop-blur));
@@ -279,7 +279,7 @@
       background: transparent;
     }
 
-    /* ─── MODALS & GENERIC STYLING ──────────────────────────────────────────────── */
+    /* ─── MODALS & GENERIC STYLING ───────────────────────────────────────────────── */
     .modal {
       display: none;
       position: fixed;
@@ -585,7 +585,7 @@
         aria-label="Node Size +"
         title="Node Size +"
       >
-        <i class="fa-solid fa-plus"></i>
+        <i class="fas fa-plus"></i>
       </button>
 
       <!-- Node Size – -->
@@ -594,7 +594,7 @@
         aria-label="Node Size -"
         title="Node Size -"
       >
-        <i class="fa-solid fa-minus"></i>
+        <i class="fas fa-minus"></i>
       </button>
 
       <!-- Flowchart AI Assistant -->
@@ -603,7 +603,7 @@
         aria-label="Flowchart AI Assistant"
         title="Flowchart AI Assistant"
       >
-        <i class="fa-solid fa-robot"></i>
+        <i class="fas fa-robot"></i>
       </button>
 
       <!-- User Guide -->
@@ -612,7 +612,7 @@
         aria-label="User Guide"
         title="User Guide"
       >
-        <i class="fa-solid fa-book-open"></i>
+        <i class="fas fa-book-open"></i>
       </button>
 
       <!-- Templates -->
@@ -621,7 +621,7 @@
         aria-label="Templates"
         title="Templates"
       >
-        <i class="fa-solid fa-file-alt"></i>
+        <i class="fas fa-file-alt"></i>
       </button>
 
       <!-- Save -->
@@ -630,7 +630,7 @@
         aria-label="Save"
         title="Save"
       >
-        <i class="fa-solid fa-floppy-disk"></i>
+        <i class="fas fa-floppy-disk"></i>
       </button>
 
       <!-- Upload -->
@@ -645,7 +645,7 @@
         aria-label="Upload"
         title="Upload"
       >
-        <i class="fa-solid fa-upload"></i>
+        <i class="fas fa-upload"></i>
       </button>
 
       <!-- Display loaded‐file name -->
@@ -657,7 +657,7 @@
         aria-label="Toggle theme"
         title="Toggle theme"
       >
-        <i class="fa-solid fa-moon"></i>
+        <i class="fas fa-moon"></i>
       </button>
     </nav>
   </header>
@@ -675,7 +675,6 @@
     </div>
     <svg id="flowchart"></svg>
   </div>
-
 
   <!-- ─── TASK DETAILS MODAL ─────────────────────────────────────────────────────── -->
   <div id="modal" class="modal">
@@ -866,12 +865,12 @@
           const newTheme = currentDocumentBody.classList.contains('dark-mode') ? 'light' : 'dark';
           applyTheme(newTheme);
           localStorage.setItem('theme', newTheme);
-          // Also toggle the moon icon to sun icon, if desired:
+          // Toggle icon between moon and sun
           const ico = themeToggleBtn.querySelector('i');
           if (newTheme === 'dark') {
-            ico.className = 'fa-solid fa-sun';
+            ico.className = 'fas fa-sun';
           } else {
-            ico.className = 'fa-solid fa-moon';
+            ico.className = 'fas fa-moon';
           }
         });
 
