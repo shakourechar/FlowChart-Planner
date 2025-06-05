@@ -4,7 +4,18 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>FlowChart Manager</title>
+
+  <!-- Font Awesome Free (Solid) -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css"
+    integrity="sha512-MVBO/rytaVn6F2u+zIz8JW7eNtkUqf9cR0Jb/75nqPrVuUKrAgyW7iJjLk2ujURzBvZJQMjgP1b08TQl/XaUVA=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  />
+
   <link rel="icon" type="image/png" href="https://static.wixstatic.com/media/c3283f_a3e1ec47496f42f7be617a2cd7a7bc9e~mv2.png">
+
   <style>
     :root {
       --bg-primary: linear-gradient(135deg, #939ef5 0%, #9e76d6 100%);
@@ -55,7 +66,7 @@
       --text-filename: rgba(255, 255, 255, 0.8); 
       --input-bg: rgba(255, 255, 255, 0.1);
       --input-text: #e0e0e0;
-      --input-border: rgba(252, 252, 255, 0.2);
+      --input-border: rgba(255, 255, 255, 0.2);
       --input-light-border: rgba(255, 255, 255, 0.1);
       --button-bg: rgba(255, 255, 255, 0.12); 
       --button-text: #e0e0e0; 
@@ -86,43 +97,180 @@
     }
 
     * { box-sizing: border-box; }
-    body { margin: 0; font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg-primary); color: var(--text-primary); display: flex; flex-direction: column; min-height: 100vh; transition: background 0.5s ease; position: relative; overflow-x: hidden; }
-    body::before { content: ''; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--bg-primary); z-index: -1; transition: background 0.5s ease; }
-
-    header { background: var(--header-fixed-bg); backdrop-filter: blur(var(--backdrop-blur)); -webkit-backdrop-filter: blur(var(--backdrop-blur)); border-bottom: 1px solid var(--header-glass-border); box-shadow: 0 4px 12px rgba(0,0,0,0.3); color: var(--text-on-header); padding: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; position: relative; transition: background 0.3s ease, border-color 0.3s ease; }
-    header h1 { margin: 0; display: flex; align-items: center; font-size: 1.8em; font-weight: 600; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
-    #headerLogo { width: 32px; height: 32px; margin-right: 12px; vertical-align: middle; }
-    header h1 input#flowchartNameInput { margin-left: 15px; font-size: 0.65em; padding: 8px 16px; border: 1px solid var(--input-border); border-radius: 12px; background: var(--input-bg); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); color: var(--input-text); transition: all 0.3s ease; font-weight: 400; }
-    header h1 input#flowchartNameInput:focus { outline: none; border-color: var(--glass-border); box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1); transform: translateY(-1px); }
-    nav { display: flex; align-items: center; flex-wrap: wrap; gap: 0.75rem; }
-    nav button, #themeToggleBtn, .template-btn, .action-buttons button, #deleteNodeBtn, .confirm-action-btn, #deleteTaskBtn, button {
-      background: var(--button-bg); 
-      backdrop-filter: blur(var(--backdrop-blur)); 
-      -webkit-backdrop-filter: blur(var(--backdrop-blur)); 
-      border: 1px solid var(--glass-border); 
-      color: var(--button-text); 
-      padding: 0.75rem 1rem; 
-      cursor: pointer; 
-      border-radius: 12px; 
-      white-space: nowrap; 
-      font-family: 'Inter', 'Segoe UI', sans-serif; 
-      font-size: 0.85em; 
-      font-weight: 500; 
-      transition: all 0.3s ease; 
-      position: relative; 
-      overflow: hidden; 
+    body {
+      margin: 0;
+      font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      transition: background 0.5s ease;
+      position: relative;
+      overflow-x: hidden;
     }
-    nav button::before, #themeToggleBtn::before, button::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent); transition: left 0.5s ease; }
-    nav button:hover::before, #themeToggleBtn:hover::before, button:hover::before { left: 100%; }
-    nav button:hover, #themeToggleBtn:hover, button:hover { background: var(--button-hover-bg); transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2); }
-    nav button:active, #themeToggleBtn:active, button:active { transform: translateY(0); }
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: var(--bg-primary);
+      z-index: -1;
+      transition: background 0.5s ease;
+    }
 
-    #themeToggleBtn { padding: 0.75rem; font-size: 1.2em; width: auto; min-width: 45px; height: auto; aspect-ratio: 1/1; }
-    nav input[type="file"] { display: none; }
-    nav .node-size-btn { padding: 0.75rem 0.8rem; } 
-    #fileNameDisplay { margin-left: 1rem; font-size: 0.9em; color: var(--text-on-header); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3); }
+    header {
+      background: var(--header-fixed-bg);
+      backdrop-filter: blur(var(--backdrop-blur));
+      -webkit-backdrop-filter: blur(var(--backdrop-blur));
+      border-bottom: 1px solid var(--header-glass-border);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      color: var(--text-on-header);
+      padding: 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+      position: relative;
+      transition: background 0.3s ease, border-color 0.3s ease;
+    }
 
-    /* Flowchart container with relative positioning for the banner */
+    header h1 {
+      margin: 0;
+      display: flex;
+      align-items: center;
+      font-size: 1.8em;
+      font-weight: 600;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    }
+
+    #headerLogo {
+      width: 32px;
+      height: 32px;
+      margin-right: 12px;
+      vertical-align: middle;
+    }
+
+    header h1 input#flowchartNameInput {
+      margin-left: 15px;
+      font-size: 0.65em;
+      padding: 8px 16px;
+      border: 1px solid var(--input-border);
+      border-radius: 12px;
+      background: var(--input-bg);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      color: var(--input-text);
+      transition: all 0.3s ease;
+      font-weight: 400;
+    }
+    header h1 input#flowchartNameInput:focus {
+      outline: none;
+      border-color: var(--glass-border);
+      box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+      transform: translateY(-1px);
+    }
+
+    nav {
+      display: flex;
+      align-items: center;
+      flex-wrap: nowrap;
+      gap: 0.5rem; /* tighten gap so all icons fit in one row */
+    }
+
+    /* All top‐row buttons (emoji/icons) */
+    nav button,
+    #themeToggleBtn,
+    .template-btn,
+    .action-buttons button,
+    #deleteNodeBtn,
+    .confirm-action-btn,
+    #deleteTaskBtn,
+    button {
+      background: var(--button-bg);
+      backdrop-filter: blur(var(--backdrop-blur));
+      -webkit-backdrop-filter: blur(var(--backdrop-blur));
+      border: 1px solid var(--glass-border);
+      color: var(--button-text);
+      padding: 0.5rem;       /* reduced padding for a tighter fit */
+      cursor: pointer;
+      border-radius: 12px;
+      white-space: nowrap;
+      font-family: 'Inter', 'Segoe UI', sans-serif;
+      font-size: 1.1rem;     /* slightly larger so icons remain crisp */
+      font-weight: 500;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 2.5rem;     /* ensure uniform square shape */
+      min-height: 2.5rem;
+    }
+
+    /* Hover‐shine effect stays the same */
+    nav button::before,
+    #themeToggleBtn::before,
+    button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s ease;
+    }
+    nav button:hover::before,
+    #themeToggleBtn:hover::before,
+    button:hover::before {
+      left: 100%;
+    }
+    nav button:hover,
+    #themeToggleBtn:hover,
+    button:hover {
+      background: var(--button-hover-bg);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    }
+    nav button:active,
+    #themeToggleBtn:active,
+    button:active {
+      transform: translateY(0);
+    }
+
+    #themeToggleBtn {
+      padding: 0.5rem;
+      font-size: 1.3rem;
+      width: auto;
+      min-width: 2.5rem;
+      aspect-ratio: 1/1;
+      height: auto;
+    }
+
+    nav input[type="file"] {
+      display: none;
+    }
+
+    nav .node-size-btn {
+      padding: 0.5rem;
+      min-width: 2.5rem;
+    }
+
+    #fileNameDisplay {
+      margin-left: 1rem;
+      font-size: 0.9em;
+      color: var(--text-on-header);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 120px;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    }
+
     #flowchartContainer {
       width: calc(100% - 2rem);
       flex-grow: 1;
@@ -131,7 +279,7 @@
       backdrop-filter: blur(5px);
       -webkit-backdrop-filter: blur(5px);
       overflow: hidden;
-      position: relative;  /* Added to position banner inside */
+      position: relative;
       margin: 1rem;
       border-radius: 20px;
       box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.1);
@@ -143,18 +291,18 @@
       height: 100%;
     }
 
-    /* Banner container now inside #flowchartContainer, reduced by 30% */
+    /* Banner container styles (unchanged from previous) */
     #banner-container {
       position: absolute;
-      top: 10px;        /* Slightly below the top edge inside container */
-      left: 10px;       /* Slightly inside from left edge */
-      width: 35%;       /* Reduced from 50% down by ~30% */
-      max-width: 420px; /* Reduced from 600px down by ~30% */
-      aspect-ratio: 1500 / 625;  /* Maintain the 1500x625 ratio */
+      top: 10px;
+      left: 10px;
+      width: 35%;
+      max-width: 420px;
+      aspect-ratio: 1500 / 625;
       border-radius: 12px;
       overflow: hidden;
       background: transparent;
-      z-index: 50;      /* Above the SVG but below modals */
+      z-index: 50;
     }
     #banner-container iframe {
       width: 100%;
@@ -180,14 +328,14 @@
       backdrop-filter: blur(var(--backdrop-blur));
       -webkit-backdrop-filter: blur(var(--backdrop-blur));
       border: 1px solid var(--glass-border);
-      box-shadow: var(--modal-strong-shadow); 
-      border-radius: 18px; 
+      box-shadow: var(--modal-strong-shadow);
+      border-radius: 18px;
       width: 100%;
       height: 100%;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center; 
+      justify-content: center;
       padding: 20px;            /* Uniform side padding */
       padding-top: 40px;        /* Extra top padding */
       padding-bottom: 24px;     /* Reduced bottom padding to avoid text cutoff */
@@ -195,8 +343,8 @@
       color: var(--node-text-fill);
       text-align: center;
       cursor: move;
-      position: relative; 
-      overflow: hidden; 
+      position: relative;
+      overflow: hidden;
       transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
     }
 
@@ -214,9 +362,9 @@
     .node-name-html {
       font-weight: 500;
       text-shadow: 0 1px 3px rgba(0,0,0,0.2);
-      word-break: break-word; 
+      word-break: break-word;
       max-width: 100%;
-      width: 100%; 
+      width: 100%;
       overflow: visible;  /* Allow text to expand within padding */
     }
 
@@ -224,20 +372,20 @@
 
     .task-count-pill-html {
       position: absolute;
-      top: 8px; 
+      top: 8px;
       left: 50%;
       transform: translateX(-50%);
       background: var(--task-count-rect-bg);
       color: var(--task-count-text-fill);
-      padding: 5px 12px; 
-      border-radius: 14px; 
+      padding: 5px 12px;
+      border-radius: 14px;
       font-weight: 600;
       box-shadow: 0 2px 5px rgba(0,0,0,0.2);
       border: 1px solid var(--task-count-border);
       backdrop-filter: blur(4px);
       -webkit-backdrop-filter: blur(4px);
       white-space: nowrap;
-      z-index: 5; 
+      z-index: 5;
       transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
     }
 
@@ -270,11 +418,12 @@
     @media (max-width: 768px) {
       header { flex-direction: column; align-items: flex-start; gap: 1rem; padding: 1rem; }
       header h1 { font-size: 1.5em; width: 100%; justify-content: space-between; }
-      nav { width: 100%; flex-wrap: wrap; gap: 0.5rem; } 
-      nav button, #themeToggleBtn { flex-grow: 1; min-width: calc(33.33% - 1rem); font-size: 0.8em; padding: 0.6rem 0.8rem; } 
+      nav { width: 100%; flex-wrap: wrap; gap: 0.4rem; } 
+      nav button, #themeToggleBtn { flex-grow: 0; min-width: 2.3rem; font-size: 1rem; padding: 0.4rem; } 
       #fileNameDisplay { width: 100%; text-align: center; margin-top: 0.5rem; margin-left: 0; max-width: none; }
       .modal-content { width: 95%; padding: 1.5rem; margin: 10px auto; max-height: calc(100vh - 40px); }
       #flowchartContainer { height: 70vh; margin: 0.5rem; width: calc(100% - 1rem); }
+
       /* Adjust banner on smaller screens */
       #banner-container {
         width: 49%;       /* ~70% of previous 35% yields ~24%, but keep at 49% for readability */
@@ -286,8 +435,8 @@
     @media (max-width: 480px) {
       header h1 { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
       header h1 input#flowchartNameInput { margin-left: 0; width: 100%; }
-      nav button, #themeToggleBtn { font-size: 0.75em; padding: 0.5rem 0.7rem; min-width: calc(50% - 0.75rem); }
-      #themeToggleBtn { flex-grow: 0; min-width: 40px; }
+      nav button, #themeToggleBtn { font-size: 0.9rem; padding: 0.4rem; min-width: 2rem; }
+      #themeToggleBtn { flex-grow: 0; min-width: 2rem; }
       /* Further shrink banner on very small screens */
       #banner-container {
         width: 56%;       /* 80% of 70% of original 35% = ~28%, but 56% of container for readability */
@@ -300,27 +449,91 @@
 </head>
 <body>
   <header>
-    <h1> 
-      <img src="https://static.wixstatic.com/media/c3283f_a3e1ec47496f42f7be617a2cd7a7bc9e~mv2.png" alt="Logo" id="headerLogo">
-      FlowChart Manager 
-      <input type="text" id="flowchartNameInput" placeholder="Enter Flowchart Name..."> 
+    <h1>
+      <img src="https://static.wixstatic.com/media/c3283f_a3e1ec47496f42f7be617a2cd7a7bc9e~mv2.png"
+           alt="Logo"
+           id="headerLogo"
+      >
+      FlowChart Manager
+      <input type="text"
+             id="flowchartNameInput"
+             placeholder="Enter Flowchart Name..."
+      >
     </h1>
     <nav>
-      <button id="nodeSizeIncreaseBtn" class="node-size-btn">Node Size +</button>
-      <button id="nodeSizeDecreaseBtn" class="node-size-btn">Node Size -</button>
-      <button id="aiAssistantBtn" class="ai-assistant-btn">Flowchart AI Assistant</button>
-      <button id="userGuideBtn" class="user-guide-btn">User Guide</button>
-      <button id="templateBtn">Templates</button>
-      <button id="saveBtn">Save</button>
-      <input type="file" id="fileInput" accept=".json">
-      <button id="uploadBtn" class="upload-btn">Upload</button>
+      <!-- Node Size + -->
+      <button id="nodeSizeIncreaseBtn"
+              aria-label="Node Size +"
+              title="Node Size +"
+      >
+        <i class="fas fa-plus"></i>
+      </button>
+
+      <!-- Node Size - -->
+      <button id="nodeSizeDecreaseBtn"
+              aria-label="Node Size -"
+              title="Node Size -"
+      >
+        <i class="fas fa-minus"></i>
+      </button>
+
+      <!-- Flowchart AI Assistant -->
+      <button id="aiAssistantBtn"
+              aria-label="Flowchart AI Assistant"
+              title="Flowchart AI Assistant"
+      >
+        <i class="fas fa-robot"></i>
+      </button>
+
+      <!-- User Guide -->
+      <button id="userGuideBtn"
+              aria-label="User Guide"
+              title="User Guide"
+      >
+        <i class="fas fa-book-open"></i>
+      </button>
+
+      <!-- Templates -->
+      <button id="templateBtn"
+              aria-label="Templates"
+              title="Templates"
+      >
+        <i class="fas fa-file-alt"></i>
+      </button>
+
+      <!-- Save -->
+      <button id="saveBtn"
+              aria-label="Save"
+              title="Save"
+      >
+        <i class="fas fa-floppy-disk"></i>
+      </button>
+
+      <!-- Upload -->
+      <input type="file" id="fileInput" accept=".json" />
+      <button id="uploadBtn"
+              aria-label="Upload"
+              title="Upload"
+      >
+        <i class="fas fa-upload"></i>
+      </button>
+
+      <!-- Display loaded‐file name (still text) -->
       <div id="fileNameDisplay">No file loaded</div>
-      <button id="themeToggleBtn" title="Toggle theme">🌓</button>
+
+      <!-- Theme Toggle (moon/sun icon) -->
+      <button id="themeToggleBtn"
+              aria-label="Toggle theme"
+              title="Toggle theme"
+      >
+        🌓
+      </button>
     </nav>
   </header>
 
+  <!-- Which appears underneath the header -->
   <div id="flowchartContainer">
-    <!-- Banner-like iframe inside the bordered canvas, now reduced by 30% -->
+    <!-- Banner iframe (same as before) -->
     <div id="banner-container">
       <iframe
         src="https://transcendence.media/SmartWealth-Banner"
@@ -332,78 +545,99 @@
     <svg id="flowchart"></svg>
   </div>
 
-  <div id="modal" class="modal"> 
-    <div class="modal-content"> 
-      <span class="close-button" id="closeModal">×</span> 
-      <h2>Task Details</h2> 
-      <form id="taskForm"> 
-        <label>Task Name: <textarea id="taskName" required></textarea></label> 
-        <label>Responsible: <input type="text" id="responsible" required></label> 
-        <label>Status: 
-          <select id="status"> 
-            <option value="Not Started">Not Started</option> 
-            <option value="In Progress">In Progress</option> 
-            <option value="Completed">Completed</option> 
-          </select> 
-        </label> 
-        <label>Deadline: <input type="date" id="deadline"></label> 
-        <label>Priority: 
-          <select id="priority"> 
-            <option value="Low">Low</option> 
-            <option value="Normal">Normal</option> 
-            <option value="High">High</option> 
-          </select> 
-        </label> 
-        <label>Action Description (Sub-tasks):</label> 
-        <table id="taskTable"> 
-          <thead> 
-            <tr> 
-              <th style="width: 30px;">✓</th> 
-              <th>Task</th> 
-            </tr> 
-          </thead> 
-          <tbody></tbody> 
-        </table> 
-        <button type="button" id="addTaskRowBtn" class="confirm-action-btn">Add Task</button> 
-        <label>Node Color:</label> 
-        <input type="hidden" id="nodeColor" /> 
-        <div class="color-panel"> 
-          <div class="color-swatch" style="background-color: #e74c3c;" data-color="#e74c3c"></div> 
-          <div class="color-swatch" style="background-color: #f1c40f;" data-color="#f1c40f"></div> 
-          <div class="color-swatch" style="background-color: #2ecc71;" data-color="#2ecc71"></div> 
-          <div class="color-swatch" style="background-color: #3498db;" data-color="#3498db"></div> 
-          <div class="color-swatch" style="background-color: #9b59b6;" data-color="#9b59b6"></div> 
-          <div class="color-swatch" style="background-color: #34495e;" data-color="#34495e"></div> 
-        </div> 
-        <div class="action-buttons"> 
-          <button type="submit" class="save-btn">Save Node</button> 
-          <button type="button" class="add-node-btn" id="addNodeBtn">Add Child Node</button> 
-        </div> 
-        <div style="text-align: center; margin-top: 20px;"> 
-          <button type="button" id="deleteNodeBtn">Delete Node</button> 
-        </div> 
-      </form> 
-    </div> 
+
+  <!-- Task Details Modal (unchanged) -->
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <span class="close-button" id="closeModal">×</span>
+      <h2>Task Details</h2>
+      <form id="taskForm">
+        <label>
+          Task Name:
+          <textarea id="taskName" required></textarea>
+        </label>
+        <label>
+          Responsible:
+          <input type="text" id="responsible" required>
+        </label>
+        <label>
+          Status:
+          <select id="status">
+            <option value="Not Started">Not Started</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Completed">Completed</option>
+          </select>
+        </label>
+        <label>
+          Deadline:
+          <input type="date" id="deadline">
+        </label>
+        <label>
+          Priority:
+          <select id="priority">
+            <option value="Low">Low</option>
+            <option value="Normal">Normal</option>
+            <option value="High">High</option>
+          </select>
+        </label>
+        <label>Action Description (Sub-tasks):</label>
+        <table id="taskTable">
+          <thead>
+            <tr>
+              <th style="width: 30px;">✓</th>
+              <th>Task</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        <button type="button" id="addTaskRowBtn" class="confirm-action-btn">
+          Add Task
+        </button>
+        <label>Node Color:</label>
+        <input type="hidden" id="nodeColor" />
+        <div class="color-panel">
+          <div class="color-swatch" style="background-color: #e74c3c;" data-color="#e74c3c"></div>
+          <div class="color-swatch" style="background-color: #f1c40f;" data-color="#f1c40f"></div>
+          <div class="color-swatch" style="background-color: #2ecc71;" data-color="#2ecc71"></div>
+          <div class="color-swatch" style="background-color: #3498db;" data-color="#3498db"></div>
+          <div class="color-swatch" style="background-color: #9b59b6;" data-color="#9b59b6"></div>
+          <div class="color-swatch" style="background-color: #34495e;" data-color="#34495e"></div>
+        </div>
+        <div class="action-buttons">
+          <button type="submit" class="save-btn">Save Node</button>
+          <button type="button" class="add-node-btn" id="addNodeBtn">Add Child Node</button>
+        </div>
+        <div style="text-align: center; margin-top: 20px;">
+          <button type="button" id="deleteNodeBtn">Delete Node</button>
+        </div>
+      </form>
+    </div>
   </div>
 
-  <div id="templateModal" class="modal"> 
-    <div class="modal-content"> 
-      <span class="close-button" id="closeTemplateModal">×</span> 
-      <h2>Select Template</h2> 
-      <button class="template-btn" data-template="prototype">Prototype Development</button> 
-      <button class="template-btn" data-template="vendor">Vendor Outreach</button> 
-      <button class="template-btn" data-template="marketing">Marketing Campaign</button> 
-    </div> 
+
+  <!-- Template Modal (unchanged) -->
+  <div id="templateModal" class="modal">
+    <div class="modal-content">
+      <span class="close-button" id="closeTemplateModal">×</span>
+      <h2>Select Template</h2>
+      <button class="template-btn" data-template="prototype">Prototype Development</button>
+      <button class="template-btn" data-template="vendor">Vendor Outreach</button>
+      <button class="template-btn" data-template="marketing">Marketing Campaign</button>
+    </div>
   </div>
 
-  <div id="taskTextPopup" class="modal"> 
-    <div class="modal-content"> 
-      <span class="close-button" id="closeTaskPopup">×</span> 
-      <p id="taskFullText" style="white-space: pre-wrap; max-height: 60vh; overflow-y: auto;"></p> 
-      <button id="deleteTaskBtn">Delete Task</button> 
-    </div> 
+
+  <!-- Task Text Popup (unchanged) -->
+  <div id="taskTextPopup" class="modal">
+    <div class="modal-content">
+      <span class="close-button" id="closeTaskPopup">×</span>
+      <p id="taskFullText" style="white-space: pre-wrap; max-height: 60vh; overflow-y: auto;"></p>
+      <button id="deleteTaskBtn">Delete Task</button>
+    </div>
   </div>
 
+
+  <!-- User Guide Modal (unchanged, aside from formatting) -->
   <div id="userGuideModal" class="modal">
     <div class="modal-content">
       <span class="close-button" id="closeUserGuideModal">×</span>
@@ -445,6 +679,7 @@
     </div>
   </div>
 
+
   <script>
     // --- Theme Toggle Script ---
     try {
@@ -452,22 +687,22 @@
       const currentDocumentBody = document.body;
       const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
 
-      function applyTheme(theme) { 
-        currentDocumentBody.classList.toggle('dark-mode', theme === 'dark'); 
+      function applyTheme(theme) {
+        currentDocumentBody.classList.toggle('dark-mode', theme === 'dark');
       }
 
       if (themeToggleBtn && currentDocumentBody && prefersDarkScheme) {
         const savedTheme = localStorage.getItem('theme');
         applyTheme(savedTheme ? savedTheme : (prefersDarkScheme.matches ? 'dark' : 'light'));
 
-        themeToggleBtn.addEventListener('click', () => { 
-          const newTheme = currentDocumentBody.classList.contains('dark-mode') ? 'light' : 'dark'; 
-          applyTheme(newTheme); 
-          localStorage.setItem('theme', newTheme); 
+        themeToggleBtn.addEventListener('click', () => {
+          const newTheme = currentDocumentBody.classList.contains('dark-mode') ? 'light' : 'dark';
+          applyTheme(newTheme);
+          localStorage.setItem('theme', newTheme);
         });
 
-        prefersDarkScheme.addEventListener('change', (e) => { 
-          if (!localStorage.getItem('theme')) applyTheme(e.matches ? 'dark' : 'light'); 
+        prefersDarkScheme.addEventListener('change', (e) => {
+          if (!localStorage.getItem('theme')) applyTheme(e.matches ? 'dark' : 'light');
         });
       } else {
         console.error("Theme toggle critical elements missing.");
@@ -476,7 +711,8 @@
       console.error("Theme script error:", themeError);
     }
 
-    // --- Main Application Script ---
+
+    // --- Main Application Script (unchanged logic) ---
     function openAIAssistant() {
       const url = 'https://chatgpt.com/g/g-678c450b02988191b07d47c7a5bd9d4a-flow-chart-assistant';
       const sW = window.screen.availWidth, sH = window.screen.availHeight, bS = Math.min(sW, sH);
@@ -995,7 +1231,7 @@
           }
         });
 
-      simulation.nodes(data.nodes).on('tick', () => 
+      simulation.nodes(data.nodes).on('tick', () =>
         allNds.attr('transform', d => `translate(${d.x || 0},${d.y || 0})`)
       );
 
