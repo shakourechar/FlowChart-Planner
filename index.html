@@ -625,6 +625,15 @@
         <i class="fas fa-file-alt"></i>
       </button>
 
+      <!-- Add Connector -->
+      <button
+        id="addConnectorBtn"
+        aria-label="Add Connector"
+        title="Add Connector"
+      >
+        <i class="fas fa-link"></i>
+      </button>
+
       <!-- Project Description (hidden until summary exists) -->
       <button
         id="projectDescBtn"
@@ -934,6 +943,13 @@
       svg,
       nodeGroup,
       mainZoomGroup;
+
+    // Connector mode state
+    let connectorMode = false;
+    let tempLine = null;
+    let firstNodeForConnector = null;
+    let endNodeForConnector = null;
+
     const BASE_NODE_DIMENSION = 160;
     let currentNodeSizeFactor = 1.0;
     const MIN_NODE_SIZE_FACTOR = 0.5,
@@ -977,6 +993,9 @@
         .attr('viewBox', `0 0 ${vW} ${vH}`)
         .attr('preserveAspectRatio', 'xMidYMid meet');
       mainZoomGroup = svg.append('g');
+
+      // Create a <g class="links"> for connector lines
+      mainZoomGroup.append('g').attr('class', 'links');
 
       const zm = d3.zoom().on('zoom', (ev) =>
         mainZoomGroup.attr('transform', ev.transform)
@@ -1374,6 +1393,14 @@
           }
         };
 
+        // Add Connector Button
+        if (g('addConnectorBtn')) {
+          g('addConnectorBtn').onclick = () => {
+            connectorMode = true;
+            svg.style('cursor', 'crosshair');
+          };
+        }
+
         const saveButton = document.getElementById('saveBtn');
         if (saveButton) saveButton.onclick = saveToFile;
 
@@ -1474,8 +1501,8 @@
               data.nodes = data.nodes.filter((n) => n.id !== selectedNode.id);
               data.links = data.links.filter(
                 (l) =>
-                  (l.source.id || l.source) !== selectedNode.id &&
-                  (l.target.id || l.target) !== selectedNode.id
+                  (l.source !== selectedNode.id) &&
+                  (l.target !== selectedNode.id)
               );
               selectedNode = null;
               update();
@@ -1487,6 +1514,92 @@
             data.flowchartName = this.value || 'Untitled';
           });
 
+        // Set up connector mouse events on the SVG
+        svg.on('mousedown.connector', (event) => {
+          if (!connectorMode) return;
+          event.stopPropagation();
+          const [mx, my] = d3.pointer(event, svg.node());
+          const threshold = (BASE_NODE_DIMENSION * currentNodeSizeFactor) / 2;
+          let startNode = null;
+
+          // Find nearest node to start, if any
+          for (const nd of data.nodes) {
+            const dx = mx - nd.x;
+            const dy = my - nd.y;
+            const dist = Math.hypot(dx, dy);
+            if (dist < threshold) {
+              startNode = nd;
+              break;
+            }
+          }
+
+          const x1 = startNode ? startNode.x : mx;
+          const y1 = startNode ? startNode.y : my;
+          firstNodeForConnector = startNode || null;
+
+          // Create the temporary line
+          tempLine = mainZoomGroup.select('.links')
+            .append('line')
+            .attr('class', 'temp-connector')
+            .attr('x1', x1)
+            .attr('y1', y1)
+            .attr('x2', x1)
+            .attr('y2', y1)
+            .attr('stroke', '#555')
+            .attr('stroke-width', 2)
+            .attr('stroke-dasharray', '5,5');
+
+          endNodeForConnector = null;
+        });
+
+        svg.on('mousemove.connector', (event) => {
+          if (!connectorMode || !tempLine) return;
+          event.stopPropagation();
+          const [mx, my] = d3.pointer(event, svg.node());
+          const threshold = (BASE_NODE_DIMENSION * currentNodeSizeFactor) / 2;
+          let snapNode = null;
+
+          for (const nd of data.nodes) {
+            const dx = mx - nd.x;
+            const dy = my - nd.y;
+            const dist = Math.hypot(dx, dy);
+            if (dist < threshold) {
+              snapNode = nd;
+              break;
+            }
+          }
+
+          const x2 = snapNode ? snapNode.x : mx;
+          const y2 = snapNode ? snapNode.y : my;
+          endNodeForConnector = snapNode || null;
+
+          tempLine.attr('x2', x2).attr('y2', y2);
+        });
+
+        svg.on('mouseup.connector', (event) => {
+          if (!connectorMode || !tempLine) return;
+          event.stopPropagation();
+          // If both endpoints are valid distinct nodes, commit the link
+          if (
+            firstNodeForConnector &&
+            endNodeForConnector &&
+            firstNodeForConnector.id !== endNodeForConnector.id
+          ) {
+            data.links.push({
+              source: firstNodeForConnector.id,
+              target: endNodeForConnector.id,
+            });
+            update();
+          }
+          // Clean up the temporary line
+          tempLine.remove();
+          tempLine = null;
+          firstNodeForConnector = null;
+          endNodeForConnector = null;
+          connectorMode = false;
+          svg.style('cursor', 'default');
+        });
+
         if (data.nodes.length === 0) loadTemplate('prototype');
         else update();
       } catch (dE) {
@@ -1497,10 +1610,10 @@
     function createNode(pN) {
       const nId = `node-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
       let iX, iY;
-      const vB = svg.attr('viewBox').split(' '),
-        vW = parseFloat(vB[2]),
-        vH = parseFloat(vB[3]),
-        cSD = BASE_NODE_DIMENSION * currentNodeSizeFactor;
+      const vB = svg.attr('viewBox').split(' ');
+      const vW = parseFloat(vB[2]);
+      const vH = parseFloat(vB[3]);
+      const cSD = BASE_NODE_DIMENSION * currentNodeSizeFactor;
       if (pN && typeof pN.x === 'number' && typeof pN.y === 'number') {
         iX = pN.x + (Math.random() * 100 - 50);
         iY = pN.y + cSD * 0.9 + (Math.random() * 20 - 10);
@@ -1543,9 +1656,24 @@
         console.error('D3 not init for update');
         return;
       }
+      // Render links first (so nodes appear on top)
+      const linkGroup = mainZoomGroup.select('.links');
+      const linkSelection = linkGroup
+        .selectAll('line.link')
+        .data(data.links, (d) => d.source + '-' + d.target);
+      linkSelection.exit().remove();
+      const linkEnter = linkSelection
+        .enter()
+        .append('line')
+        .attr('class', 'link')
+        .attr('stroke', '#999')
+        .attr('stroke-width', 2);
+      linkEnter.merge(linkSelection);
+
+      // Render nodes next
       if (mainZoomGroup) {
         const lg = mainZoomGroup.select('.links');
-        if (lg && !lg.empty()) lg.selectAll('*').remove();
+        // (links group is separate; we clear only link children via data-binding)
       }
       if (simulation.force('link')) simulation.force('link', null);
 
@@ -1638,9 +1766,28 @@
 
       simulation
         .nodes(data.nodes)
-        .on('tick', () =>
-          allNds.attr('transform', (d) => `translate(${d.x || 0},${d.y || 0})`)
-        );
+        .on('tick', () => {
+          // Update node positions
+          allNds.attr('transform', (d) => `translate(${d.x || 0},${d.y || 0})`);
+          // Update link endpoints
+          mainZoomGroup.selectAll('line.link')
+            .attr('x1', (d) => {
+              const sNode = data.nodes.find((n) => n.id === d.source);
+              return sNode ? sNode.x : 0;
+            })
+            .attr('y1', (d) => {
+              const sNode = data.nodes.find((n) => n.id === d.source);
+              return sNode ? sNode.y : 0;
+            })
+            .attr('x2', (d) => {
+              const tNode = data.nodes.find((n) => n.id === d.target);
+              return tNode ? tNode.x : 0;
+            })
+            .attr('y2', (d) => {
+              const tNode = data.nodes.find((n) => n.id === d.target);
+              return tNode ? tNode.y : 0;
+            });
+        });
 
       simulation.alpha(0.3).restart();
     }
