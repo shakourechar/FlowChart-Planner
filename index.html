@@ -625,6 +625,16 @@
         <i class="fas fa-file-alt"></i>
       </button>
 
+      <!-- Project Description (hidden until file load) -->
+      <button
+        id="projectDescBtn"
+        aria-label="Project Description"
+        title="Project Description"
+        style="display: none;"
+      >
+        <i class="fas fa-info-circle"></i>
+      </button>
+
       <!-- Save -->
       <button
         id="saveBtn"
@@ -846,6 +856,16 @@
     </div>
   </div>
 
+  <!-- ─── PROJECT DESCRIPTION MODAL ─────────────────────────────────────────── -->
+  <div id="projectDescModal" class="modal">
+    <div class="modal-content">
+      <span class="close-button" id="closeProjectDescModal">×</span>
+      <h2>Project Description</h2>
+      <p id="projectSummary"></p>
+      <p id="projectGeneratedDate"></p>
+    </div>
+  </div>
+
   <!-- ─── D3 & APPLICATION LOGIC ───────────────────────────────────────────────── -->
   <script>
     // --- Theme Toggle Script ---
@@ -904,7 +924,12 @@
     }
 
     let selectedNode = null,
-      data = { flowchartName: 'Untitled Flowchart', nodes: [], links: [] },
+      data = {
+        flowchartName: 'Untitled Flowchart',
+        projectDescription: { summary: '', generatedDate: '' },
+        nodes: [],
+        links: []
+      },
       simulation,
       svg,
       nodeGroup,
@@ -914,6 +939,9 @@
     const MIN_NODE_SIZE_FACTOR = 0.5,
       MAX_NODE_SIZE_FACTOR = 1.5,
       NODE_SIZE_STEP = 0.1;
+
+    // Flag to know if a JSON file is loaded
+    let fileLoaded = false;
 
     function hexToRgba(hex, alpha = 1) {
       if (!hex || typeof hex !== 'string') return `rgba(200,200,200,${alpha})`;
@@ -1077,6 +1105,12 @@
       document.getElementById('taskTextPopup').style.display = 'block';
     }
 
+    function updateProjectDescButton() {
+      const btn = document.getElementById('projectDescBtn');
+      if (!btn) return;
+      btn.style.display = fileLoaded ? 'inline-flex' : 'none';
+    }
+
     function nodeClick(ev, d) {
       ev.stopPropagation();
       selectedNode = d;
@@ -1104,6 +1138,7 @@
           document.getElementById('flowchartNameInput').value || 'Untitled Flowchart';
         const expD = {
           flowchartName: data.flowchartName,
+          projectDescription: data.projectDescription,
           nodes: data.nodes.map((n) => ({
             id: n.id,
             name: n.name,
@@ -1156,6 +1191,11 @@
           if (fD && typeof fD === 'object' && Array.isArray(fD.nodes)) {
             data.flowchartName = fD.flowchartName || 'Untitled';
             document.getElementById('flowchartNameInput').value = data.flowchartName;
+            data.projectDescription =
+              fD.projectDescription || { summary: '', generatedDate: '' };
+            fileLoaded = true;
+            updateProjectDescButton();
+
             data.nodes = fD.nodes.map((n) => ({
               ...n,
               x: n.x,
@@ -1181,6 +1221,9 @@
       data.flowchartName = tmpl.charAt(0).toUpperCase() + tmpl.slice(1) + ' Template';
       document.getElementById('flowchartNameInput').value = data.flowchartName;
       data.links = [];
+      data.projectDescription = { summary: '', generatedDate: '' };
+      fileLoaded = false;
+      updateProjectDescButton();
       switch (tmpl) {
         case 'prototype':
           data.nodes = [
@@ -1349,14 +1392,43 @@
           closeUserGuideModalBtn.onclick = () => (userGuideModal.style.display = 'none');
         }
 
+        const projectDescBtn = g('projectDescBtn');
+        const projectDescModal = g('projectDescModal');
+        const projectSummaryEl = g('projectSummary');
+        const projectGeneratedDateEl = g('projectGeneratedDate');
+        updateProjectDescButton();
+        if (projectDescBtn && projectDescModal && projectSummaryEl && projectGeneratedDateEl) {
+          projectDescBtn.onclick = () => {
+            const pd = data.projectDescription || {};
+            if (pd.summary && pd.generatedDate) {
+              projectSummaryEl.textContent = pd.summary;
+              projectGeneratedDateEl.textContent = `Generated: ${pd.generatedDate}`;
+            } else {
+              projectSummaryEl.textContent = 'File does not contain a Project Description.';
+              projectGeneratedDateEl.textContent = '';
+            }
+            projectDescModal.style.display = 'block';
+          };
+        }
+
         document.querySelectorAll('.close-button').forEach((b) => {
-          if (b.id !== 'closeUserGuideModal') {
+          if (
+            b.id !== 'closeUserGuideModal' &&
+            b.id !== 'closeProjectDescModal'
+          ) {
             b.onclick = (e) => {
               e.stopPropagation();
               b.closest('.modal').style.display = 'none';
             };
           }
         });
+        // Close Project Description Modal when its close button is clicked
+        if (g('closeProjectDescModal')) {
+          g('closeProjectDescModal').onclick = (e) => {
+            e.stopPropagation();
+            document.getElementById('projectDescModal').style.display = 'none';
+          };
+        }
         window.onclick = (e) => {
           if (e.target.classList.contains('modal')) e.target.style.display = 'none';
         };
