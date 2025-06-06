@@ -625,7 +625,7 @@
         <i class="fas fa-file-alt"></i>
       </button>
 
-      <!-- Project Description (hidden until file load) -->
+      <!-- Project Description (hidden until summary exists) -->
       <button
         id="projectDescBtn"
         aria-label="Project Description"
@@ -940,9 +940,6 @@
       MAX_NODE_SIZE_FACTOR = 1.5,
       NODE_SIZE_STEP = 0.1;
 
-    // Flag to know if a JSON file is loaded
-    let fileLoaded = false;
-
     function hexToRgba(hex, alpha = 1) {
       if (!hex || typeof hex !== 'string') return `rgba(200,200,200,${alpha})`;
       hex = hex.replace('#', '');
@@ -1108,7 +1105,10 @@
     function updateProjectDescButton() {
       const btn = document.getElementById('projectDescBtn');
       if (!btn) return;
-      btn.style.display = fileLoaded ? 'inline-flex' : 'none';
+
+      const pd = data.projectDescription || {};
+      const hasDesc = pd.summary && pd.summary.trim().length > 0;
+      btn.style.display = hasDesc ? 'inline-flex' : 'none';
     }
 
     function nodeClick(ev, d) {
@@ -1191,9 +1191,9 @@
           if (fD && typeof fD === 'object' && Array.isArray(fD.nodes)) {
             data.flowchartName = fD.flowchartName || 'Untitled';
             document.getElementById('flowchartNameInput').value = data.flowchartName;
+
             data.projectDescription =
               fD.projectDescription || { summary: '', generatedDate: '' };
-            fileLoaded = true;
             updateProjectDescButton();
 
             data.nodes = fD.nodes.map((n) => ({
@@ -1204,6 +1204,7 @@
               fy: n.fy !== undefined ? n.fy : n.y,
             }));
             data.links = Array.isArray(fD.links) ? fD.links : [];
+
             document.getElementById('fileNameDisplay').innerText = `Loaded: ${f.name}`;
             document.getElementById('fileNameDisplay').title = `Loaded: ${f.name}`;
             update();
@@ -1222,7 +1223,6 @@
       document.getElementById('flowchartNameInput').value = data.flowchartName;
       data.links = [];
       data.projectDescription = { summary: '', generatedDate: '' };
-      fileLoaded = false;
       updateProjectDescButton();
       switch (tmpl) {
         case 'prototype':
