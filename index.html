@@ -968,7 +968,7 @@
       window.open(
         url,
         'FlowchartAIAssistant',
-        `width=${pW},height=${pH},left=${l},top=${t},resizable=yes,scrollbars=yes,status=no,location=no,menubar=no,toolbar=no`
+        `width=<span class="math-inline">\{pW\},height\=</span>{pH},left=<span class="math-inline">\{l\},top\=</span>{t},resizable=yes,scrollbars=yes,status=no,location=no,menubar=no,toolbar=no`
       );
     }
 
@@ -1012,7 +1012,7 @@
         return `rgba(128, 128, 128, ${alpha})`;
       }
       if (isNaN(r) || isNaN(g) || isNaN(b)) return `rgba(128,128,128,${alpha})`;
-      return `rgba(${r},${g},${b},${alpha})`;
+      return `rgba(<span class="math-inline">\{r\},</span>{g},<span class="math-inline">\{b\},</span>{alpha})`;
     }
 
     function initD3() {
@@ -1608,7 +1608,7 @@
     });
 
     function createNode(pN) {
-      const nId = `node-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
+      const nId = `node-<span class="math-inline">\{Date\.now\(\)\}\-</span>{Math.random().toString(36).substr(2, 5)}`;
       let iX, iY;
       const vB = svg.attr('viewBox').split(' '),
         vW = parseFloat(vB[2]),
@@ -1658,7 +1658,7 @@
       }
 
       // --- RENDER LINKS ---
-      const linkSel = linkGroup.selectAll('line.link').data(data.links, d => `${d.source.id || d.source}-${d.target.id || d.target}`);
+      const linkSel = linkGroup.selectAll('line.link').data(data.links, d => `<span class="math-inline">\{d\.source\.id \|\| d\.source\}\-</span>{d.target.id || d.target}`);
       linkSel.exit().remove();
       
       const linkEnter = linkSel.enter()
@@ -1782,7 +1782,7 @@
           totC = tasks.length;
         if (totC > 0) {
           pillDiv
-            .text(`✓ ${compC}/${totC}`)
+            .text(`✓ <span class="math-inline">\{compC\}/</span>{totC}`)
             .style('display', 'block')
             .style('font-size', `${Math.max(9, basePillFontSizePx * currentNodeSizeFactor)}px`);
         } else {
@@ -1800,7 +1800,7 @@
         .force('link', linkForce)
         .on('tick', () => {
             // Update node positions
-            allNds.attr('transform', (d) => `translate(${d.x || 0},${d.y || 0})`);
+            allNds.attr('transform', (d) => `translate(<span class="math-inline">\{d\.x \|\| 0\},</span>{d.y || 0})`);
             
             // Update link positions
             linkGroup.selectAll('line.link')
