@@ -103,6 +103,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+      flex-wrap: wrap; /* Allow header content to wrap on smaller screens */
     }
 
     header h1 {
@@ -139,12 +140,12 @@
       box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
     }
 
-  nav {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-wrap: wrap; /* This allows buttons to wrap to a new line */
-}
+    nav {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap; /* Allow buttons to wrap to a new line */
+    }
 
     nav button,
     #themeToggleBtn {
@@ -227,7 +228,6 @@
       }
       nav {
         width: 100%;
-        flex-wrap: wrap;
         gap: 0.25rem;
       }
       nav button,
@@ -1420,8 +1420,11 @@
             projectDescModal.style.display = 'block';
           };
         }
-
-        document.querySelectorAll('.close-button').forEach((b) => {
+        
+        // --- FIX [1 of 2]: CORRECTED SELECTOR ---
+        // This selector now specifically targets .close-button elements that are INSIDE a .modal,
+        // preventing it from affecting any other buttons in the application.
+        document.querySelectorAll('.modal .close-button').forEach((b) => {
           if (
             b.id !== 'closeUserGuideModal' &&
             b.id !== 'closeProjectDescModal'
@@ -1432,6 +1435,7 @@
             };
           }
         });
+
         // Close Project Description Modal when its close button is clicked
         if (g('closeProjectDescModal')) {
           g('closeProjectDescModal').onclick = (e) => {
@@ -1481,10 +1485,16 @@
         if (g('deleteNodeBtn'))
           g('deleteNodeBtn').addEventListener('click', () => {
             if (selectedNode && confirm('Delete node? This will also remove any connectors attached to it.')) {
-              data.nodes = data.nodes.filter((n) => n.id !== selectedNode.id);
+              const selectedId = selectedNode.id;
+              data.nodes = data.nodes.filter((n) => n.id !== selectedId);
+              
+              // --- FIX [2 of 2]: ROBUST LINK FILTERING ---
+              // This logic correctly handles links whether D3 stores the source/target as an ID string or a full node object.
               data.links = data.links.filter(
-                (l) => l.source !== selectedNode.id && l.target !== selectedNode.id
+                (l) => (l.source.id || l.source) !== selectedId &&
+                       (l.target.id || l.target) !== selectedId
               );
+              
               selectedNode = null;
               update();
               g('modal').style.display = 'none';
@@ -1553,7 +1563,7 @@
       }
 
       // --- RENDER LINKS ---
-      const linkSel = linkGroup.selectAll('line.link').data(data.links, d => `${d.source}-${d.target}`);
+      const linkSel = linkGroup.selectAll('line.link').data(data.links, d => `${d.source.id || d.source}-${d.target.id || d.target}`);
       linkSel.exit().remove();
       linkSel.enter()
           .append('line')
@@ -1578,9 +1588,11 @@
         .append('g')
         .attr('class', 'node-group')
         .call(d3.drag().on('start', dragStart).on('drag', dragging).on('end', dragEnd));
+        
+      const allNds = nE.merge(nds);
 
       // --- NODE CLICK LOGIC (Connector vs. Modal) ---
-      nE.on('click', (event, d) => {
+      allNds.on('click', (event, d) => {
           event.stopPropagation();
           if (connectorMode) {
               if (!connectorStartNode) {
@@ -1588,8 +1600,8 @@
               } else if (d.id !== connectorStartNode.id) {
                   // Second click: create link if it doesn't already exist
                   const linkExists = data.links.some(l => 
-                      (l.source === connectorStartNode.id && l.target === d.id) ||
-                      (l.source === d.id && l.target === connectorStartNode.id)
+                      ((l.source.id || l.source) === connectorStartNode.id && (l.target.id || l.target) === d.id) ||
+                      ((l.source.id || l.source) === d.id && (l.target.id || l.target) === connectorStartNode.id)
                   );
 
                   if (!linkExists) {
@@ -1616,8 +1628,6 @@
         .attr('class', 'flowchart-node-html-wrapper')
         .append('xhtml:div')
         .attr('class', 'flowchart-node-html');
-
-      const allNds = nE.merge(nds);
 
       allNds
         .select('foreignObject')
@@ -1690,12 +1700,13 @@
             
             // Update link positions
             linkGroup.selectAll('line.link')
-                .attr('x1', d => findNode(d.source)?.x)
-                .attr('y1', d => findNode(d.source)?.y)
-                .attr('x2', d => findNode(d.target)?.x)
-                .attr('y2', d => findNode(d.target)?.y);
+                .attr('x1', d => findNode(d.source.id || d.source)?.x)
+                .attr('y1', d => findNode(d.source.id || d.source)?.y)
+                .attr('x2', d => findNode(d.target.id || d.target)?.x)
+                .attr('y2', d => findNode(d.target.id || d.target)?.y);
         });
-
+        
+      // Restart the simulation if nodes were added/removed
       simulation.alpha(0.3).restart();
     }
 
@@ -1725,6 +1736,7 @@
 
     function dragEnd(ev, d) {
       if (!ev.active) simulation.alphaTarget(0);
+      // No need to set fx/fy to null if we want nodes to stay put after dragging
     }
   </script>
 </body>
