@@ -1757,14 +1757,29 @@
             simulation.force('link', linkForce);
         }
 
+        // START: MODIFIED CODE
+        // The 'tick' handler now calculates connector endpoints on the node's border.
         simulation.on('tick', () => {
+            // Update node positions
             node.attr('transform', d => `translate(${d.x},${d.y})`);
             
-            link.attr('x1', d => d.source.x)
-                .attr('y1', d => d.source.y)
-                .attr('x2', d => d.target.x)
-                .attr('y2', d => d.target.y);
+            // Update link positions
+            link.each(function(d) {
+                // Guard clause: Prevents errors if the simulation has not yet
+                // resolved link source/target from IDs to full node objects.
+                if (d.source && d.target && typeof d.source.x === 'number' && typeof d.target.x === 'number') {
+                    const sourcePoint = getIntersectionPoint(d.source, d.target, currentScaledDimension, currentScaledDimension);
+                    const targetPoint = getIntersectionPoint(d.target, d.source, currentScaledDimension, currentScaledDimension);
+
+                    d3.select(this)
+                        .attr('x1', sourcePoint.x)
+                        .attr('y1', sourcePoint.y)
+                        .attr('x2', targetPoint.x)
+                        .attr('y2', targetPoint.y);
+                }
+            });
         });
+        // END: MODIFIED CODE
 
         simulation.alpha(1).restart();
     }
@@ -1797,6 +1812,66 @@
     function dragEnd(ev, d) {
       if (!ev.active) simulation.alphaTarget(0);
     }
+
+    // START: NEW HELPER FUNCTION
+    /**
+     * Calculates the intersection point of a line (from source center to target center)
+     * with the boundary of a rectangle centered at the source node.
+     * @param {object} sourceNode - The source node object {x, y}.
+     * @param {object} targetNode - The target node object {x, y}.
+     * @param {number} width - The width of the source node's rectangle.
+     * @param {number} height - The height of the source node's rectangle.
+     * @returns {object} An object {x, y} representing the intersection point.
+     */
+    function getIntersectionPoint(sourceNode, targetNode, width, height) {
+        const sx = sourceNode.x;
+        const sy = sourceNode.y;
+        const tx = targetNode.x;
+        const ty = targetNode.y;
+
+        const dx = tx - sx;
+        const dy = ty - sy;
+        
+        // If nodes are at the exact same position, return the center to avoid errors.
+        if (dx === 0 && dy === 0) {
+            return { x: sx, y: sy };
+        }
+
+        const halfWidth = width / 2;
+        const halfHeight = height / 2;
+        
+        // Calculate the slope of the line from the source center to the target center.
+        const slope = dy / dx;
+        
+        // Calculate the slope of the rectangle's diagonal for comparison.
+        const rectSlope = halfHeight / halfWidth;
+
+        let ix, iy;
+
+        // Determine which side of the rectangle the line intersects.
+        // If the absolute slope is less than the rectangle's diagonal slope,
+        // the intersection is on the left or right side.
+        if (Math.abs(slope) < rectSlope) {
+            if (dx > 0) { // Target is to the right
+                ix = sx + halfWidth;
+                iy = sy + halfWidth * slope;
+            } else { // Target is to the left
+                ix = sx - halfWidth;
+                iy = sy - halfWidth * slope;
+            }
+        } else { // Otherwise, the intersection is on the top or bottom side.
+            if (dy > 0) { // Target is below
+                iy = sy + halfHeight;
+                ix = sx + halfHeight / slope;
+            } else { // Target is above
+                iy = sy - halfHeight;
+                ix = sx - halfHeight / slope;
+            }
+        }
+
+        return { x: ix, y: iy };
+    }
+    // END: NEW HELPER FUNCTION
   </script>
 </body>
 </html>
