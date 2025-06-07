@@ -1393,54 +1393,7 @@
         return data.nodes.find(n => n.id === id);
     }
     
- // PASTE THE NEW JAVASCRIPT FUNCTION HERE:
-    /**
-     * Calculates the point on the edge of a source node's rectangle that
-     * lies on the direct line to a target node's center.
-     * @param {object} source - The source node object with x, y coordinates.
-     * @param {object} target - The target node object with x, y coordinates.
-     * @returns {{x: number, y: number}} The coordinates of the edge point.
-     */
-    function calculateEdgePoint(source, target) {
-        const nodeWidth = BASE_NODE_DIMENSION * currentNodeSizeFactor;
-        const nodeHeight = nodeWidth; // Nodes are square in this implementation
-
-        const dx = target.x - source.x;
-        const dy = target.y - source.y;
-
-        // Return the center if nodes are overlapping to avoid errors
-        if (dx === 0 && dy === 0) {
-            return { x: source.x, y: source.y };
-        }
-
-        const halfWidth = nodeWidth / 2;
-        const halfHeight = nodeHeight / 2;
-
-        // Calculate the slope of the line connecting the centers and the node's diagonal
-        const slope = dy / dx;
-        const rectDiagonalSlope = halfHeight / halfWidth;
-
-        let x, y;
-
-        // Determine which edge the line intersects (left/right or top/bottom)
-        if (Math.abs(slope) < rectDiagonalSlope) {
-            // Intersects with the left or right side
-            x = source.x + (dx > 0 ? halfWidth : -halfWidth);
-            y = source.y + slope * (x - source.x);
-        } else {
-            // Intersects with the top or bottom side
-            y = source.y + (dy > 0 ? halfHeight : -halfHeight);
-            x = source.x + (y - source.y) / slope;
-        }
-
-        return { x: x, y: y };
-    }
-
-
-    document.addEventListener('DOMContentLoaded', () => {
-      try {
-    
-function linkClickHandler(event, d) {
+    function linkClickHandler(event, d) {
         event.stopPropagation();
         selectedLink = d;
         
@@ -1849,18 +1802,13 @@ function linkClickHandler(event, d) {
             // Update node positions
             allNds.attr('transform', (d) => `translate(${d.x || 0},${d.y || 0})`);
             
-      // Update link positions
-linkGroup.selectAll('line.link')
-    .each(function(d) {
-        const sourcePoint = calculateEdgePoint(d.source, d.target);
-        const targetPoint = calculateEdgePoint(d.target, d.source); // Reversed for the other end
-
-        d3.select(this)
-            .attr('x1', sourcePoint.x)
-            .attr('y1', sourcePoint.y)
-            .attr('x2', targetPoint.x)
-            .attr('y2', targetPoint.y);
-    });
+            // Update link positions
+            linkGroup.selectAll('line.link')
+                .attr('x1', d => d.source.x)
+                .attr('y1', d => d.source.y)
+                .attr('x2', d => d.target.x)
+                .attr('y2', d => d.target.y);
+        });
         
       // Restart the simulation if nodes were added/removed
       simulation.alpha(1).restart();
