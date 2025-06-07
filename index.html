@@ -42,8 +42,6 @@
       --task-count-text-fill: white;
       --task-count-border: rgba(255, 255, 255, 0.2);
       --modal-strong-shadow: 0 15px 45px rgba(0, 0, 0, 0.15);
-      --link-color: #555; /* light-mode connector color */
-      --link-selected-color: #e74c3c;
     }
 
     body.dark-mode {
@@ -61,8 +59,6 @@
       --flowchart-container-bg: rgba(10, 10, 20, 0.1);
       --flowchart-container-border: rgba(255, 255, 255, 0.1);
       --modal-strong-shadow: 0 15px 45px rgba(0, 0, 0, 0.4);
-      --link-color: #aaa; /* dark-mode connector color */
-      --link-selected-color: #ff5252;
     }
 
     * {
@@ -105,7 +101,6 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      flex-wrap: wrap; /* Allow header content to wrap on smaller screens */
     }
 
     header h1 {
@@ -146,7 +141,7 @@
       display: flex;
       align-items: center;
       gap: 0.5rem;
-      flex-wrap: wrap; /* Allow buttons to wrap to a new line */
+      flex-wrap: nowrap;
     }
 
     nav button,
@@ -191,11 +186,8 @@
       box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
     }
     nav button:active,
-    #themeToggleBtn:active,
-    nav button.active {
+    #themeToggleBtn:active {
       transform: translateY(0);
-      background: var(--button-hover-bg);
-      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
     }
 
     #fileNameDisplay {
@@ -230,6 +222,7 @@
       }
       nav {
         width: 100%;
+        flex-wrap: wrap;
         gap: 0.25rem;
       }
       nav button,
@@ -262,16 +255,6 @@
       display: block;
       width: 100%;
       height: 100%;
-    }
-    
-    line.link {
-        cursor: pointer;
-        transition: stroke 0.3s ease, stroke-width 0.3s ease;
-    }
-    line.link.selected {
-        stroke: var(--link-selected-color) !important;
-        stroke-width: 4px;
-        stroke-dasharray: 5, 5;
     }
 
     /* Banner container (positioned inside #flowchartContainer) */
@@ -326,10 +309,6 @@
       box-shadow: var(--modal-strong-shadow);
       transition: background 0.3s ease, border-color 0.3s ease;
     }
-    #deleteLinkModal .modal-content {
-      max-width: 400px; /* Smaller modal for simple confirmation */
-    }
-    
     .close-button {
       position: absolute;
       right: 15px;
@@ -387,38 +366,6 @@
     #taskName {
       width: 100%;
     }
-    
-    /* Modernized Modal Button Style */
-    .modal-btn {
-        background: rgba(255, 255, 255, 0.15);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        color: var(--modal-text);
-        padding: 10px 20px;
-        border-radius: 10px;
-        font-size: 1em;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        backdrop-filter: blur(5px);
-        -webkit-backdrop-filter: blur(5px);
-    }
-    .modal-btn:hover {
-        background: rgba(255, 255, 255, 0.25);
-        border-color: rgba(255, 255, 255, 0.3);
-        transform: translateY(-2px);
-        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
-    }
-    .modal-btn:active {
-        transform: translateY(0);
-        box-shadow: none;
-    }
-    .modal-btn.danger {
-        background-color: rgba(231, 76, 60, 0.5);
-    }
-    .modal-btn.danger:hover {
-        background-color: rgba(231, 76, 60, 0.7);
-    }
-
 
     .flowchart-node-html-wrapper {
       overflow: visible;
@@ -519,7 +466,6 @@
 
     .action-buttons {
       display: flex;
-      justify-content: flex-end;
       gap: 15px;
       margin-top: 20px;
     }
@@ -650,7 +596,7 @@
         aria-label="Flowchart AI Assistant"
         title="Flowchart AI Assistant"
       >
-        <i class="fas fa-lightbulb"></i>
+        <i class="fas fa-robot"></i>
       </button>
 
       <button
@@ -676,10 +622,6 @@
         style="display: none;"
       >
         <i class="fas fa-info-circle"></i>
-      </button>
-
-      <button id="addConnectorBtn" aria-label="Add Connector" title="Add Connector">
-        <i class="fas fa-link"></i>
       </button>
 
       <button
@@ -771,7 +713,13 @@
           </thead>
           <tbody></tbody>
         </table>
-        <button type="button" id="addTaskRowBtn" class="modal-btn">Add Task</button>
+        <button
+          type="button"
+          id="addTaskRowBtn"
+          class="confirm-action-btn"
+        >
+          Add Task
+        </button>
         <label>Node Color:</label>
         <input type="hidden" id="nodeColor" />
         <div class="color-panel">
@@ -807,13 +755,13 @@
           ></div>
         </div>
         <div class="action-buttons">
-          <button type="submit" class="modal-btn">Save Node</button>
-          <button type="button" class="modal-btn" id="addNodeBtn">
+          <button type="submit" class="save-btn">Save Node</button>
+          <button type="button" class="add-node-btn" id="addNodeBtn">
             Add Child Node
           </button>
         </div>
         <div style="text-align: center; margin-top: 20px;">
-          <button type="button" id="deleteNodeBtn" class="modal-btn danger">Delete Node</button>
+          <button type="button" id="deleteNodeBtn">Delete Node</button>
         </div>
       </form>
     </div>
@@ -823,17 +771,15 @@
     <div class="modal-content">
       <span class="close-button" id="closeTemplateModal">×</span>
       <h2>Select Template</h2>
-      <div style="display: flex; flex-direction: column; gap: 1rem;">
-          <button class="modal-btn" data-template="prototype">
-            Prototype Development
-          </button>
-          <button class="modal-btn" data-template="vendor">
-            Vendor Outreach
-          </button>
-          <button class="modal-btn" data-template="marketing">
-            Marketing Campaign
-          </button>
-      </div>
+      <button class="template-btn" data-template="prototype">
+        Prototype Development
+      </button>
+      <button class="template-btn" data-template="vendor">
+        Vendor Outreach
+      </button>
+      <button class="template-btn" data-template="marketing">
+        Marketing Campaign
+      </button>
     </div>
   </div>
 
@@ -844,7 +790,7 @@
         id="taskFullText"
         style="white-space: pre-wrap; max-height: 60vh; overflow-y: auto;"
       ></p>
-      <button id="deleteTaskBtn" class="modal-btn danger">Delete Task</button>
+      <button id="deleteTaskBtn">Delete Task</button>
     </div>
   </div>
 
@@ -855,12 +801,11 @@
 
       <h3>🛠️ Interface Controls</h3>
       <ul>
-        <li><b>Upload</b> – Import a FlowChart (json) file to continue work or load a new chart.</li>
-        <li><b>Save</b> – Saving a FlowChart will always create a new file version each time.</li>
-        <li><b>Templates</b> – Start with a ready-made structure (Prototype, Vendor, or Marketing).</li>
-        <li><b>Node Size +/-</b> – Resize task nodes for better visibility.</li>
-        <li><b>Add Connector</b> - Click to enter 'Connector Mode,' then click two nodes to link them.</li>
-        <li><b>Delete a Connector</b> - Click directly on a connector line to bring up a confirmation to delete it.</li>
+        <li>Upload – Import a FlowChart (json) file to continue work or load a new chart.</li>
+        <li>Save – Saving a FlowChart will always create a new file version each time.</li>
+        <li>Templates – Start with a ready-made structure (Prototype, Vendor, or Marketing).</li>
+        <li>Node Size +/- – Resize task nodes for better visibility.</li>
+        <li>Flowchart AI Assistant – Get expert guidance to refine, organize, or expand your chart.</li>
         <li>Use your mouse to move Canvas.</li>
         <li>Use mouse wheel to further enlarge/shrink nodes.</li>
       </ul>
@@ -868,7 +813,6 @@
       <h3>🧩 Working with Tasks</h3>
       <ul>
         <li>Click any node to view or edit its details.</li>
-        <li>To delete a specific sub-task, simply double-click on its text field within the node details popup.</li>
         <li>Completing fields like Responsible, Deadline, and Priority helps align your workflow, track progress, and maintain clarity.</li>
       </ul>
 
@@ -881,17 +825,13 @@
         <li>Keep Phase nodes separate and use them to group related tasks.</li>
       </ul>
 
-      <h3><i class="fas fa-lightbulb"></i> GPT FlowChart Assistant</h3>
-        <ul>
-            <li>Click the FlowChart AI button and upload your FlowChart file in Chat to get expert guidance to refine, organize, or expand your chart.</li>
-            <li>Ask the AI assistant to:
-                <ul style="margin-top: 0.5em;">
-                    <li>Analyze and suggest improvements</li>
-                    <li>Provide insights, summaries, reports</li>
-                    <li>Make changes, add nodes, tasks, update details, etc.</li>
-                </ul>
-            </li>
-        </ul>
+      <h3>Click the FlowChart AI button and upload your FlowChart file in Chat.</h3>
+      <p>Ask the AI assistant to:</p>
+      <ul>
+        <li>Analyze and suggest improvements</li>
+        <li>Provide insights, summaries, reports</li>
+        <li>Make changes, add nodes, tasks, update details, etc.</li>
+      </ul>
     </div>
   </div>
 
@@ -903,18 +843,6 @@
       <p id="projectGeneratedDate"></p>
     </div>
   </div>
-  
-  <div id="deleteLinkModal" class="modal">
-      <div class="modal-content">
-          <span class="close-button" id="cancelDeleteLinkBtn">×</span>
-          <h2>Delete Connector</h2>
-          <p>Are you sure you want to delete this connection?</p>
-          <div class="action-buttons">
-              <button id="confirmDeleteLinkBtn" class="modal-btn danger">Delete</button>
-          </div>
-      </div>
-  </div>
-
 
   <script>
     // --- Theme Toggle Script ---
@@ -935,6 +863,7 @@
           const newTheme = currentDocumentBody.classList.contains('dark-mode') ? 'light' : 'dark';
           applyTheme(newTheme);
           localStorage.setItem('theme', newTheme);
+          // Toggle icon between moon and sun
           const ico = themeToggleBtn.querySelector('i');
           if (newTheme === 'dark') {
             ico.className = 'fas fa-sun';
@@ -972,7 +901,6 @@
     }
 
     let selectedNode = null,
-      selectedLink = null,
       data = {
         flowchartName: 'Untitled Flowchart',
         projectDescription: { summary: '', generatedDate: '' },
@@ -982,16 +910,12 @@
       simulation,
       svg,
       nodeGroup,
-      linkGroup,
       mainZoomGroup;
     const BASE_NODE_DIMENSION = 160;
     let currentNodeSizeFactor = 1.0;
     const MIN_NODE_SIZE_FACTOR = 0.5,
       MAX_NODE_SIZE_FACTOR = 1.5,
       NODE_SIZE_STEP = 0.1;
-
-    let connectorMode = false;
-    let connectorStartNode = null;
 
     function hexToRgba(hex, alpha = 1) {
       if (!hex || typeof hex !== 'string') return `rgba(200,200,200,${alpha})`;
@@ -1037,9 +961,6 @@
       svg.call(zm).on('dblclick.zoom', null);
       mainZoomGroup.append('defs');
 
-      linkGroup = mainZoomGroup.append('g').attr('class', 'links');
-      nodeGroup = mainZoomGroup.append('g').attr('class', 'nodes');
-
       const scaledNodeDimension = BASE_NODE_DIMENSION * currentNodeSizeFactor;
       simulation = d3
         .forceSimulation()
@@ -1052,6 +973,8 @@
           d3.forceCollide().radius((scaledNodeDimension * 0.55) + 25).strength(0.9)
         )
         .force('center', d3.forceCenter(vW / 2, vH / 2));
+
+      nodeGroup = mainZoomGroup.append('g').attr('class', 'nodes');
 
       window.addEventListener('resize', () => {
         const nCW = fcCont.clientWidth,
@@ -1104,18 +1027,15 @@
       ti.classList.add('task-detail-textarea');
       ti.value = t && t.task ? t.task : '';
       ti.rows = 1;
-      
       ti.addEventListener('input', function () {
         this.style.height = 'auto';
         this.style.height = this.scrollHeight + 'px';
       });
-      
       ti.addEventListener('dblclick', function (e) {
         e.stopPropagation();
         tr.classList.add('selectedTaskRow');
         showTaskPopup(this.value);
       });
-
       let pT;
       ti.addEventListener('touchstart', function (e) {
         e.stopPropagation();
@@ -1210,10 +1130,7 @@
             fx: n.fx,
             fy: n.fy,
           })),
-          links: data.links.map(l => ({
-            source: l.source.id || l.source,
-            target: l.target.id || l.target
-          })),
+          links: data.links,
         };
         const dS = JSON.stringify(expD, null, 2),
           blb = new Blob([dS], { type: 'application/json' }),
@@ -1385,53 +1302,6 @@
       update();
     }
 
-    function findNode(id) {
-        return data.nodes.find(n => n.id === id);
-    }
-    
-    function linkClickHandler(event, d) {
-        event.stopPropagation();
-        selectedLink = d;
-        
-        linkGroup.selectAll('line.link').classed('selected', l => l === selectedLink);
-        
-        document.getElementById('deleteLinkModal').style.display = 'block';
-    }
-
-    function calculateEdgePoint(source, target) {
-        const nodeWidth = BASE_NODE_DIMENSION * currentNodeSizeFactor;
-        const nodeHeight = nodeWidth; 
-
-        const dx = target.x - source.x;
-        const dy = target.y - source.y;
-
-        if (dx === 0 && dy === 0) {
-            return { x: source.x, y: source.y };
-        }
-
-        const halfWidth = nodeWidth / 2;
-        const halfHeight = nodeHeight / 2;
-
-        if (dx === 0) {
-            return { x: source.x, y: source.y + Math.sign(dy) * halfHeight };
-        }
-
-        const slope = dy / dx;
-        const rectDiagonalSlope = halfHeight / halfWidth;
-
-        let x, y;
-
-        if (Math.abs(slope) < rectDiagonalSlope) {
-            x = source.x + Math.sign(dx) * halfWidth;
-            y = source.y + slope * (x - source.x);
-        } else {
-            y = source.y + Math.sign(dy) * halfHeight;
-            x = source.x + (y - source.y) / slope;
-        }
-
-        return { x: x, y: y };
-    }
-
     document.addEventListener('DOMContentLoaded', () => {
       try {
         initD3();
@@ -1471,17 +1341,6 @@
           loadTemplate(e.target.dataset.template);
           g('templateModal').style.display = 'none';
         }));
-        
-        const addConnBtn = document.getElementById('addConnectorBtn');
-        const svgEl = document.getElementById('flowchart');
-        if (addConnBtn && svgEl) {
-            addConnBtn.addEventListener('click', () => {
-              connectorMode = !connectorMode;
-              connectorStartNode = null;
-              svgEl.style.cursor = connectorMode ? 'crosshair' : 'default';
-              addConnBtn.classList.toggle('active', connectorMode);
-            });
-        }
 
         if (g('addNodeBtn')) g('addNodeBtn').onclick = (e) => {
           e.preventDefault();
@@ -1528,8 +1387,8 @@
             projectDescModal.style.display = 'block';
           };
         }
-        
-        document.querySelectorAll('.modal .close-button').forEach((b) => {
+
+        document.querySelectorAll('.close-button').forEach((b) => {
           if (
             b.id !== 'closeUserGuideModal' &&
             b.id !== 'closeProjectDescModal'
@@ -1577,26 +1436,6 @@
             }
             g('modal').style.display = 'none';
           };
-        
-        const deleteLinkModal = g('deleteLinkModal');
-        const confirmDeleteLinkBtn = g('confirmDeleteLinkBtn');
-        const cancelDeleteLinkBtn = g('cancelDeleteLinkBtn');
-
-        const closeDeleteLinkModal = () => {
-            deleteLinkModal.style.display = 'none';
-            linkGroup.selectAll('line.link').classed('selected', false);
-            selectedLink = null;
-        }
-
-        confirmDeleteLinkBtn.onclick = () => {
-            if (selectedLink) {
-                data.links = data.links.filter(l => l !== selectedLink);
-                update();
-            }
-            closeDeleteLinkModal();
-        };
-        cancelDeleteLinkBtn.onclick = closeDeleteLinkModal;
-
 
         if (g('addTaskRowBtn'))
           g('addTaskRowBtn').addEventListener('click', () => addTaskRow({}));
@@ -1608,15 +1447,13 @@
           });
         if (g('deleteNodeBtn'))
           g('deleteNodeBtn').addEventListener('click', () => {
-            if (selectedNode && confirm('Delete node? This will also remove any connectors attached to it.')) {
-              const selectedId = selectedNode.id;
-              data.nodes = data.nodes.filter((n) => n.id !== selectedId);
-              
+            if (selectedNode && confirm('Delete node?')) {
+              data.nodes = data.nodes.filter((n) => n.id !== selectedNode.id);
               data.links = data.links.filter(
-                (l) => (l.source.id || l.source) !== selectedId &&
-                       (l.target.id || l.target) !== selectedId
+                (l) =>
+                  (l.source.id || l.source) !== selectedNode.id &&
+                  (l.target.id || l.target) !== selectedNode.id
               );
-              
               selectedNode = null;
               update();
               g('modal').style.display = 'none';
@@ -1678,137 +1515,112 @@
       simulation.alpha(0.3).restart();
     }
 
-    // --- COMPLETELY REFACTORED AND STABLE UPDATE FUNCTION ---
     function update() {
-        if (!svg || !simulation) {
-            console.error('D3 not initialized for update');
-            return;
+      if (!svg || !simulation) {
+        console.error('D3 not init for update');
+        return;
+      }
+      if (mainZoomGroup) {
+        const lg = mainZoomGroup.select('.links');
+        if (lg && !lg.empty()) lg.selectAll('*').remove();
+      }
+      if (simulation.force('link')) simulation.force('link', null);
+
+      const currentScaledDimension = BASE_NODE_DIMENSION * currentNodeSizeFactor;
+      const nodeHeight = currentScaledDimension;
+
+      const baseNodeNameFontSizePx = 14;
+      const basePillFontSizePx = 12;
+
+      const nds = nodeGroup.selectAll('g.node-group').data(data.nodes, (d) => d.id);
+      nds.exit().remove();
+
+      const nE = nds
+        .enter()
+        .append('g')
+        .attr('class', 'node-group')
+        .call(d3.drag().on('start', dragStart).on('drag', dragging).on('end', dragEnd))
+        .on('click', nodeClick);
+
+      nE
+        .append('foreignObject')
+        .attr('class', 'flowchart-node-html-wrapper')
+        .append('xhtml:div')
+        .attr('class', 'flowchart-node-html');
+
+      const allNds = nE.merge(nds);
+
+      allNds
+        .select('foreignObject')
+        .attr('width', currentScaledDimension)
+        .attr('height', nodeHeight)
+        .attr('x', -currentScaledDimension / 2)
+        .attr('y', -nodeHeight / 2);
+
+      allNds.select('.flowchart-node-html').each(function (d) {
+        const nodeOuterDiv = d3.select(this);
+        const nodeFillOpacity = parseFloat(
+          getComputedStyle(document.documentElement)
+            .getPropertyValue('--node-fill-opacity')
+            .trim() || '0.7'
+        );
+        const baseColorHex = d.color ? d.color : getStatusColor(d.status);
+        nodeOuterDiv.style('background-color', hexToRgba(baseColorHex, nodeFillOpacity));
+
+        // Priority Indicator (bottom-right)
+        let prDiv = nodeOuterDiv.select('.priority-indicator');
+        if (prDiv.empty()) {
+          prDiv = nodeOuterDiv.append('div').attr('class', 'priority-indicator');
         }
+        let indicatorHtml = '';
+        if (d.priority === 'Low') {
+          indicatorHtml = '🔴 ⚪️ ⚪️';
+        } else if (d.priority === 'Normal') {
+          indicatorHtml = '🔴 🔴 ⚪️';
+        } else if (d.priority === 'High') {
+          indicatorHtml = '🔴 🔴 🔴';
+        } else {
+          indicatorHtml = '⚪️ ⚪️ ⚪️';
+        }
+        prDiv.html(indicatorHtml);
 
-        const currentScaledDimension = BASE_NODE_DIMENSION * currentNodeSizeFactor;
-        const baseNodeNameFontSizePx = 14;
-        const basePillFontSizePx = 12;
+        let pillDiv = nodeOuterDiv.select('.task-count-pill-html');
+        if (pillDiv.empty()) pillDiv = nodeOuterDiv.append('div').attr('class', 'task-count-pill-html');
 
-        // == LINKS ==
-        let link = linkGroup.selectAll('line.link').data(data.links, d => `${d.source.id || d.source}-${d.target.id || d.target}`);
-        link.exit().remove();
-        link = link.enter()
-            .append('line')
-            .attr('class', 'link')
-            .attr('stroke', 'var(--link-color)')
-            .attr('stroke-width', 2.5)
-            .on('click', linkClickHandler)
-            .merge(link);
+        let nameDiv = nodeOuterDiv.select('.node-name-html');
+        if (nameDiv.empty()) nameDiv = nodeOuterDiv.append('div').attr('class', 'node-name-html');
 
-        // == NODES ==
-        let node = nodeGroup.selectAll('g.node-group').data(data.nodes, d => d.id);
-        node.exit().remove();
-        
-        const nodeEnter = node.enter()
-            .append('g')
-            .attr('class', 'node-group')
-            .call(d3.drag().on('start', dragStart).on('drag', dragging).on('end', dragEnd));
+        nameDiv
+          .text(d.name || '')
+          .style('font-size', `${Math.max(10, baseNodeNameFontSizePx * currentNodeSizeFactor)}px`);
 
-        nodeEnter.append('foreignObject')
-            .attr('class', 'flowchart-node-html-wrapper')
-            .append('xhtml:div')
-            .attr('class', 'flowchart-node-html');
-        
-        node = nodeEnter.merge(node);
-        
-        node.on('click', (event, d) => {
-            event.stopPropagation();
-            if (connectorMode) {
-                if (!connectorStartNode) {
-                    connectorStartNode = d;
-                } else if (d.id !== connectorStartNode.id) {
-                    const linkExists = data.links.some(l =>
-                        ((l.source.id || l.source) === connectorStartNode.id && (l.target.id || l.target) === d.id) ||
-                        ((l.source.id || l.source) === d.id && (l.target.id || l.target) === connectorStartNode.id)
-                    );
-                    if (!linkExists) {
-                        data.links.push({ source: connectorStartNode.id, target: d.id });
-                        update();
-                    }
-                    connectorMode = false;
-                    connectorStartNode = null;
-                    document.getElementById('flowchart').style.cursor = 'default';
-                    document.getElementById('addConnectorBtn').classList.remove('active');
-                }
-            } else {
-                nodeClick(event, d);
-            }
-        });
+        let tasks = [];
+        if (d.actionDescription) {
+          try {
+            const p = JSON.parse(d.actionDescription);
+            if (Array.isArray(p)) tasks = p;
+          } catch (e) {}
+        }
+        const compC = tasks.filter((t) => t.completed).length,
+          totC = tasks.length;
+        if (totC > 0) {
+          pillDiv
+            .text(`✓ ${compC}/${totC}`)
+            .style('display', 'block')
+            .style('font-size', `${Math.max(9, basePillFontSizePx * currentNodeSizeFactor)}px`);
+        } else {
+          pillDiv.style('display', 'none');
+        }
+      });
 
-        node.select('foreignObject')
-            .attr('width', currentScaledDimension)
-            .attr('height', currentScaledDimension)
-            .attr('x', -currentScaledDimension / 2)
-            .attr('y', -currentScaledDimension / 2);
+      simulation
+        .nodes(data.nodes)
+        .on('tick', () =>
+          allNds.attr('transform', (d) => `translate(${d.x || 0},${d.y || 0})`)
+        );
 
-        node.select('.flowchart-node-html').each(function(d) {
-            const nodeOuterDiv = d3.select(this);
-            const nodeFillOpacity = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--node-fill-opacity').trim() || '0.7');
-            const baseColorHex = d.color ? d.color : getStatusColor(d.status);
-            nodeOuterDiv.style('background-color', hexToRgba(baseColorHex, nodeFillOpacity));
-
-            let prDiv = nodeOuterDiv.select('.priority-indicator');
-            if (prDiv.empty()) {
-                prDiv = nodeOuterDiv.append('div').attr('class', 'priority-indicator');
-            }
-            let indicatorHtml = '⚪️ ⚪️ ⚪️';
-            if (d.priority === 'Low') indicatorHtml = '🔴 ⚪️ ⚪️';
-            else if (d.priority === 'Normal') indicatorHtml = '🔴 🔴 ⚪️';
-            else if (d.priority === 'High') indicatorHtml = '🔴 🔴 🔴';
-            prDiv.html(indicatorHtml);
-
-            let pillDiv = nodeOuterDiv.select('.task-count-pill-html');
-            if (pillDiv.empty()) pillDiv = nodeOuterDiv.append('div').attr('class', 'task-count-pill-html');
-            
-            let nameDiv = nodeOuterDiv.select('.node-name-html');
-            if (nameDiv.empty()) nameDiv = nodeOuterDiv.append('div').attr('class', 'node-name-html');
-
-            nameDiv.text(d.name || '').style('font-size', `${Math.max(10, baseNodeNameFontSizePx * currentNodeSizeFactor)}px`);
-
-            let tasks = [];
-            try {
-                if (d.actionDescription) tasks = JSON.parse(d.actionDescription);
-            } catch (e) { /* Gracefully handle invalid JSON */ }
-            
-            const compC = tasks.filter((t) => t.completed).length;
-            const totC = tasks.length;
-            if (totC > 0) {
-                pillDiv.text(`✓ ${compC}/${totC}`).style('display', 'block').style('font-size', `${Math.max(9, basePillFontSizePx * currentNodeSizeFactor)}px`);
-            } else {
-                pillDiv.style('display', 'none');
-            }
-        });
-
-        // == SIMULATION SETUP ==
-        simulation.nodes(data.nodes);
-        const linkForce = d3.forceLink(data.links).id(d => d.id).distance(250).strength(0.05);
-        simulation.force('link', linkForce);
-
-        simulation.on('tick', () => {
-            node.attr('transform', d => `translate(${d.x},${d.y})`);
-            
-            link.each(function(d) {
-                if (typeof d.source !== 'object' || typeof d.target !== 'object' || d.source.x == null || d.target.x == null) {
-                    return; 
-                }
-                const sourcePoint = calculateEdgePoint(d.source, d.target);
-                const targetPoint = calculateEdgePoint(d.target, d.source);
-                d3.select(this)
-                    .attr('x1', sourcePoint.x)
-                    .attr('y1', sourcePoint.y)
-                    .attr('x2', targetPoint.x)
-                    .attr('y2', targetPoint.y);
-            });
-        });
-
-        simulation.alpha(1).restart();
+      simulation.alpha(0.3).restart();
     }
-
 
     function getStatusColor(s) {
       switch (s) {
