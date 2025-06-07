@@ -1678,7 +1678,7 @@
       simulation.alpha(0.3).restart();
     }
 
-    // --- COMPLETELY REFACTORED UPDATE FUNCTION ---
+    // --- COMPLETELY REFACTORED AND STABLE UPDATE FUNCTION ---
     function update() {
         if (!svg || !simulation) {
             console.error('D3 not initialized for update');
@@ -1704,7 +1704,6 @@
         let node = nodeGroup.selectAll('g.node-group').data(data.nodes, d => d.id);
         node.exit().remove();
         
-        // ENTER: Create new elements for new data points
         const nodeEnter = node.enter()
             .append('g')
             .attr('class', 'node-group')
@@ -1715,10 +1714,8 @@
             .append('xhtml:div')
             .attr('class', 'flowchart-node-html');
         
-        // MERGE: Join enter and update selections
         node = nodeEnter.merge(node);
         
-        // UPDATE: Apply attributes and content to all nodes (new and existing)
         node.on('click', (event, d) => {
             event.stopPropagation();
             if (connectorMode) {
@@ -1774,12 +1771,10 @@
             nameDiv.text(d.name || '').style('font-size', `${Math.max(10, baseNodeNameFontSizePx * currentNodeSizeFactor)}px`);
 
             let tasks = [];
-            if (d.actionDescription) {
-                try {
-                    const p = JSON.parse(d.actionDescription);
-                    if (Array.isArray(p)) tasks = p;
-                } catch (e) {}
-            }
+            try {
+                if (d.actionDescription) tasks = JSON.parse(d.actionDescription);
+            } catch (e) { /* Gracefully handle invalid JSON */ }
+            
             const compC = tasks.filter((t) => t.completed).length;
             const totC = tasks.length;
             if (totC > 0) {
@@ -1789,15 +1784,16 @@
             }
         });
 
-        // == SIMULATION ==
+        // == SIMULATION SETUP ==
         simulation.nodes(data.nodes);
-        simulation.force('link').links(data.links);
+        const linkForce = d3.forceLink(data.links).id(d => d.id).distance(250).strength(0.05);
+        simulation.force('link', linkForce);
 
         simulation.on('tick', () => {
             node.attr('transform', d => `translate(${d.x},${d.y})`);
             
             link.each(function(d) {
-                if (typeof d.source !== 'object' || typeof d.target !== 'object' || !d.source.x || !d.target.x) {
+                if (typeof d.source !== 'object' || typeof d.target !== 'object' || d.source.x == null || d.target.x == null) {
                     return; 
                 }
                 const sourcePoint = calculateEdgePoint(d.source, d.target);
