@@ -43,6 +43,7 @@
       --task-count-border: rgba(255, 255, 255, 0.2);
       --modal-strong-shadow: 0 15px 45px rgba(0, 0, 0, 0.15);
       --link-color: #555; /* light-mode connector color */
+      --link-selected-color: #e74c3c;
     }
 
     body.dark-mode {
@@ -61,6 +62,7 @@
       --flowchart-container-border: rgba(255, 255, 255, 0.1);
       --modal-strong-shadow: 0 15px 45px rgba(0, 0, 0, 0.4);
       --link-color: #aaa; /* dark-mode connector color */
+      --link-selected-color: #ff5252;
     }
 
     * {
@@ -261,6 +263,17 @@
       width: 100%;
       height: 100%;
     }
+    
+    line.link {
+        cursor: pointer;
+        transition: stroke 0.3s ease;
+    }
+    line.link.selected {
+        stroke: var(--link-selected-color) !important;
+        stroke-width: 4px;
+        stroke-dasharray: 5, 5;
+    }
+
 
     /* Banner container (positioned inside #flowchartContainer) */
     #banner-container {
@@ -314,6 +327,10 @@
       box-shadow: var(--modal-strong-shadow);
       transition: background 0.3s ease, border-color 0.3s ease;
     }
+    #deleteLinkModal .modal-content {
+      max-width: 400px; /* Smaller modal for simple confirmation */
+    }
+    
     .close-button {
       position: absolute;
       right: 15px;
@@ -471,6 +488,7 @@
 
     .action-buttons {
       display: flex;
+      justify-content: flex-end;
       gap: 15px;
       margin-top: 20px;
     }
@@ -810,12 +828,13 @@
 
       <h3>🛠️ Interface Controls</h3>
       <ul>
-        <li>Upload – Import a FlowChart (json) file to continue work or load a new chart.</li>
-        <li>Save – Saving a FlowChart will always create a new file version each time.</li>
-        <li>Templates – Start with a ready-made structure (Prototype, Vendor, or Marketing).</li>
-        <li>Node Size +/- – Resize task nodes for better visibility.</li>
-        <li>Add Connector - Click to enter 'Connector Mode,' then click two nodes to link them.</li>
-        <li>Flowchart AI Assistant – Get expert guidance to refine, organize, or expand your chart.</li>
+        <li><b>Upload</b> – Import a FlowChart (json) file to continue work or load a new chart.</li>
+        <li><b>Save</b> – Saving a FlowChart will always create a new file version each time.</li>
+        <li><b>Templates</b> – Start with a ready-made structure (Prototype, Vendor, or Marketing).</li>
+        <li><b>Node Size +/-</b> – Resize task nodes for better visibility.</li>
+        <li><b>Add Connector</b> - Click to enter 'Connector Mode,' then click two nodes to link them.</li>
+        <li><b>Delete a Connector</b> - Click directly on a connector line to bring up a confirmation to delete it.</li>
+        <li><b>Flowchart AI Assistant</b> – Get expert guidance to refine, organize, or expand your chart.</li>
         <li>Use your mouse to move Canvas.</li>
         <li>Use mouse wheel to further enlarge/shrink nodes.</li>
       </ul>
@@ -823,6 +842,7 @@
       <h3>🧩 Working with Tasks</h3>
       <ul>
         <li>Click any node to view or edit its details.</li>
+        <li>To delete a specific sub-task, simply double-click on its text field within the node details popup.</li>
         <li>Completing fields like Responsible, Deadline, and Priority helps align your workflow, track progress, and maintain clarity.</li>
       </ul>
 
@@ -853,6 +873,18 @@
       <p id="projectGeneratedDate"></p>
     </div>
   </div>
+  
+  <div id="deleteLinkModal" class="modal">
+      <div class="modal-content">
+          <span class="close-button" id="cancelDeleteLinkBtn">×</span>
+          <h2>Delete Connector</h2>
+          <p>Are you sure you want to delete this connection?</p>
+          <div class="action-buttons">
+              <button id="confirmDeleteLinkBtn">Delete</button>
+          </div>
+      </div>
+  </div>
+
 
   <script>
     // --- Theme Toggle Script ---
@@ -911,6 +943,7 @@
     }
 
     let selectedNode = null,
+      selectedLink = null,
       data = {
         flowchartName: 'Untitled Flowchart',
         projectDescription: { summary: '', generatedDate: '' },
@@ -1043,15 +1076,28 @@
       ti.classList.add('task-detail-textarea');
       ti.value = t && t.task ? t.task : '';
       ti.rows = 1;
+      
+      // Event listener for expanding the textarea on input
       ti.addEventListener('input', function () {
         this.style.height = 'auto';
         this.style.height = this.scrollHeight + 'px';
       });
+      
+      // Event listener for showing the full task text in a popup
       ti.addEventListener('dblclick', function (e) {
         e.stopPropagation();
         tr.classList.add('selectedTaskRow');
         showTaskPopup(this.value);
       });
+      
+      // Event listener for deleting the task row on double-click
+      ti.addEventListener('dblclick', function(e) {
+          e.preventDefault();
+          if (confirm('Are you sure you want to delete this task?')) {
+              this.closest('tr').remove();
+          }
+      });
+
       let pT;
       ti.addEventListener('touchstart', function (e) {
         e.stopPropagation();
@@ -1147,7 +1193,10 @@
             fx: n.fx,
             fy: n.fy,
           })),
-          links: data.links,
+          links: data.links.map(l => ({
+            source: l.source.id || l.source,
+            target: l.target.id || l.target
+          })),
         };
         const dS = JSON.stringify(expD, null, 2),
           blb = new Blob([dS], { type: 'application/json' }),
@@ -1322,6 +1371,16 @@
     function findNode(id) {
         return data.nodes.find(n => n.id === id);
     }
+    
+    function linkClickHandler(event, d) {
+        event.stopPropagation();
+        selectedLink = d;
+        
+        // Visually select the link
+        linkGroup.selectAll('line.link').classed('selected', l => l === selectedLink);
+        
+        document.getElementById('deleteLinkModal').style.display = 'block';
+    }
 
     document.addEventListener('DOMContentLoaded', () => {
       try {
@@ -1421,9 +1480,6 @@
           };
         }
         
-        // --- FIX [1 of 2]: CORRECTED SELECTOR ---
-        // This selector now specifically targets .close-button elements that are INSIDE a .modal,
-        // preventing it from affecting any other buttons in the application.
         document.querySelectorAll('.modal .close-button').forEach((b) => {
           if (
             b.id !== 'closeUserGuideModal' &&
@@ -1436,7 +1492,6 @@
           }
         });
 
-        // Close Project Description Modal when its close button is clicked
         if (g('closeProjectDescModal')) {
           g('closeProjectDescModal').onclick = (e) => {
             e.stopPropagation();
@@ -1473,6 +1528,27 @@
             }
             g('modal').style.display = 'none';
           };
+        
+        // --- DELETE LINK MODAL LOGIC ---
+        const deleteLinkModal = g('deleteLinkModal');
+        const confirmDeleteLinkBtn = g('confirmDeleteLinkBtn');
+        const cancelDeleteLinkBtn = g('cancelDeleteLinkBtn');
+
+        const closeDeleteLinkModal = () => {
+            deleteLinkModal.style.display = 'none';
+            linkGroup.selectAll('line.link').classed('selected', false); // Deselect visually
+            selectedLink = null;
+        }
+
+        confirmDeleteLinkBtn.onclick = () => {
+            if (selectedLink) {
+                data.links = data.links.filter(l => l !== selectedLink);
+                update();
+            }
+            closeDeleteLinkModal();
+        };
+        cancelDeleteLinkBtn.onclick = closeDeleteLinkModal;
+
 
         if (g('addTaskRowBtn'))
           g('addTaskRowBtn').addEventListener('click', () => addTaskRow({}));
@@ -1488,8 +1564,6 @@
               const selectedId = selectedNode.id;
               data.nodes = data.nodes.filter((n) => n.id !== selectedId);
               
-              // --- FIX [2 of 2]: ROBUST LINK FILTERING ---
-              // This logic correctly handles links whether D3 stores the source/target as an ID string or a full node object.
               data.links = data.links.filter(
                 (l) => (l.source.id || l.source) !== selectedId &&
                        (l.target.id || l.target) !== selectedId
@@ -1565,12 +1639,15 @@
       // --- RENDER LINKS ---
       const linkSel = linkGroup.selectAll('line.link').data(data.links, d => `${d.source.id || d.source}-${d.target.id || d.target}`);
       linkSel.exit().remove();
-      linkSel.enter()
+      
+      const linkEnter = linkSel.enter()
           .append('line')
           .attr('class','link')
           .attr('stroke','var(--link-color)')
-          .attr('stroke-width', 2.5)
-        .merge(linkSel);
+          .attr('stroke-width', 2.5);
+      
+      linkEnter.merge(linkSel)
+        .on('click', linkClickHandler);
 
 
       // --- RENDER NODES ---
@@ -1691,23 +1768,29 @@
           pillDiv.style('display', 'none');
         }
       });
+      
+      const linkForce = d3.forceLink(data.links)
+        .id(d => d.id)
+        .distance(BASE_NODE_DIMENSION * currentNodeSizeFactor * 1.5)
+        .strength(0.05); // low strength so it doesn't override other forces too much
 
       simulation
         .nodes(data.nodes)
+        .force('link', linkForce)
         .on('tick', () => {
             // Update node positions
             allNds.attr('transform', (d) => `translate(${d.x || 0},${d.y || 0})`);
             
             // Update link positions
             linkGroup.selectAll('line.link')
-                .attr('x1', d => findNode(d.source.id || d.source)?.x)
-                .attr('y1', d => findNode(d.source.id || d.source)?.y)
-                .attr('x2', d => findNode(d.target.id || d.target)?.x)
-                .attr('y2', d => findNode(d.target.id || d.target)?.y);
+                .attr('x1', d => d.source.x)
+                .attr('y1', d => d.source.y)
+                .attr('x2', d => d.target.x)
+                .attr('y2', d => d.target.y);
         });
         
       // Restart the simulation if nodes were added/removed
-      simulation.alpha(0.3).restart();
+      simulation.alpha(1).restart();
     }
 
     function getStatusColor(s) {
