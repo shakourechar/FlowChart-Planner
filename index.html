@@ -105,7 +105,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      flex-wrap: wrap; /* Allow header content to wrap on smaller screens */
+      flex-wrap: wrap;
     }
 
     header h1 {
@@ -146,7 +146,7 @@
       display: flex;
       align-items: center;
       gap: 0.5rem;
-      flex-wrap: wrap; /* Allow buttons to wrap to a new line */
+      flex-wrap: wrap;
     }
 
     nav button,
@@ -167,7 +167,7 @@
       cursor: pointer;
       transition: all 0.3s ease;
       position: relative;
-      overflow: hidden; /* Prevent shine from spilling over */
+      overflow: hidden;
     }
     nav button::before,
     #themeToggleBtn::before {
@@ -207,6 +207,33 @@
       text-overflow: ellipsis;
       max-width: 120px;
     }
+
+    /* START: CSS FOR TOOLTIP */
+    #tooltip {
+      position: fixed;
+      background-color: var(--header-fixed-bg);
+      color: var(--text-on-header);
+      padding: 8px 14px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      z-index: 10001; /* Higher than modals */
+      pointer-events: none; /* Prevents tooltip from interfering with mouse events */
+      visibility: hidden;
+      opacity: 0;
+      white-space: nowrap;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+      border: 1px solid var(--header-glass-border);
+      transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+      transform: translateX(-50%) translateY(10px); /* Start below and centered */
+    }
+
+    #tooltip.visible {
+      visibility: visible;
+      opacity: 1;
+      transform: translateX(-50%) translateY(0); /* Animate to final position */
+    }
+    /* END: CSS FOR TOOLTIP */
 
     @media (max-width: 768px) {
       nav {
@@ -274,7 +301,6 @@
         stroke-dasharray: 5, 5;
     }
 
-    /* Banner container (positioned inside #flowchartContainer) */
     #banner-container {
       position: absolute;
       top: 10px;
@@ -327,7 +353,7 @@
       transition: background 0.3s ease, border-color 0.3s ease;
     }
     #deleteLinkModal .modal-content {
-      max-width: 400px; /* Smaller modal for simple confirmation */
+      max-width: 400px;
     }
     
     .close-button {
@@ -388,7 +414,6 @@
       width: 100%;
     }
     
-    /* Modernized Modal Button Style */
     .modal-btn {
         background: rgba(255, 255, 255, 0.15);
         border: 1px solid rgba(255, 255, 255, 0.2);
@@ -419,7 +444,6 @@
         background-color: rgba(231, 76, 60, 0.7);
     }
 
-
     .flowchart-node-html-wrapper {
       overflow: visible;
     }
@@ -448,7 +472,6 @@
       transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
     }
 
-    /* Priority indicator: bottom-right */
     .flowchart-node-html .priority-indicator {
       position: absolute;
       bottom: 12px;
@@ -517,7 +540,6 @@
       line-height: 1.6;
     }
     
-    /* START: NEW CSS FOR SHARE MODAL */
     #shareModal .modal-content {
         max-width: 900px;
     }
@@ -527,7 +549,6 @@
         border: none;
         border-radius: 12px;
     }
-    /* END: NEW CSS FOR SHARE MODAL */
 
     .action-buttons {
       display: flex;
@@ -641,10 +662,12 @@
     </h1>
 
     <nav>
+      <!-- START: ADDING DATA-TOOLTIP-TEXT ATTRIBUTES TO BUTTONS -->
       <button
         id="nodeSizeIncreaseBtn"
         aria-label="Node Size +"
-        title="Node Size +"
+        title="Increase Node Size"
+        data-tooltip-text="Increase Node Size"
       >
         <i class="fas fa-plus"></i>
       </button>
@@ -652,7 +675,8 @@
       <button
         id="nodeSizeDecreaseBtn"
         aria-label="Node Size -"
-        title="Node Size -"
+        title="Decrease Node Size"
+        data-tooltip-text="Decrease Node Size"
       >
         <i class="fas fa-minus"></i>
       </button>
@@ -661,6 +685,7 @@
         id="aiAssistantBtn"
         aria-label="Flowchart AI Assistant"
         title="Flowchart AI Assistant"
+        data-tooltip-text="AI Assistant"
       >
         <i class="fas fa-lightbulb"></i>
       </button>
@@ -669,6 +694,7 @@
         id="userGuideBtn"
         aria-label="User Guide"
         title="User Guide"
+        data-tooltip-text="User Guide"
       >
         <i class="fas fa-book-open"></i>
       </button>
@@ -677,6 +703,7 @@
         id="templateBtn"
         aria-label="Templates"
         title="Templates"
+        data-tooltip-text="Load a Template"
       >
         <i class="fas fa-file-alt"></i>
       </button>
@@ -686,11 +713,17 @@
         aria-label="Project Description"
         title="Project Description"
         style="display: none;"
+        data-tooltip-text="Project Description"
       >
         <i class="fas fa-info-circle"></i>
       </button>
 
-      <button id="addConnectorBtn" aria-label="Add Connector" title="Add Connector">
+      <button 
+        id="addConnectorBtn" 
+        aria-label="Add Connector" 
+        title="Add Connector"
+        data-tooltip-text="Add Connector"
+      >
         <i class="fas fa-link"></i>
       </button>
 
@@ -698,19 +731,19 @@
         id="saveBtn"
         aria-label="Save"
         title="Save"
+        data-tooltip-text="Save Flowchart"
       >
         <i class="fas fa-floppy-disk"></i>
       </button>
-
-      <!-- START: NEW SHARE BUTTON HTML -->
+      
       <button
         id="shareBtn"
         aria-label="Share"
         title="Share"
+        data-tooltip-text="Share"
       >
         <i class="fas fa-share-alt"></i>
       </button>
-      <!-- END: NEW SHARE BUTTON HTML -->
 
       <input
         type="file"
@@ -722,6 +755,7 @@
         id="uploadBtn"
         aria-label="Upload"
         title="Upload"
+        data-tooltip-text="Upload Flowchart"
       >
         <i class="fas fa-upload"></i>
       </button>
@@ -732,9 +766,11 @@
         id="themeToggleBtn"
         aria-label="Toggle theme"
         title="Toggle theme"
+        data-tooltip-text="Toggle Theme"
       >
         <i class="fas fa-moon"></i>
       </button>
+      <!-- END: ADDING DATA-TOOLTIP-TEXT ATTRIBUTES TO BUTTONS -->
     </nav>
   </header>
 
@@ -920,7 +956,6 @@
     </div>
   </div>
 
-  <!-- START: NEW SHARE MODAL HTML -->
   <div id="shareModal" class="modal">
     <div class="modal-content">
       <span class="close-button" id="closeShareModal">×</span>
@@ -933,7 +968,6 @@
       </iframe>
     </div>
   </div>
-  <!-- END: NEW SHARE MODAL HTML -->
 
   <div id="projectDescModal" class="modal">
     <div class="modal-content">
@@ -955,6 +989,9 @@
       </div>
   </div>
 
+  <!-- START: NEW TOOLTIP HTML ELEMENT -->
+  <div id="tooltip"></div>
+  <!-- END: NEW TOOLTIP HTML ELEMENT -->
 
   <script>
     // --- Theme Toggle Script ---
@@ -1443,6 +1480,30 @@
         initD3();
         const g = (id) => document.getElementById(id);
 
+        // START: TOOLTIP INITIALIZATION SCRIPT
+        const tooltip = document.getElementById('tooltip');
+        if (tooltip) {
+          const tooltipButtons = document.querySelectorAll('nav button[data-tooltip-text]');
+          tooltipButtons.forEach(button => {
+            button.addEventListener('mouseenter', () => {
+              const text = button.dataset.tooltipText;
+              if (text) {
+                tooltip.textContent = text;
+                const rect = button.getBoundingClientRect();
+                const top = rect.bottom + 8; // 8px below the button
+                const left = rect.left + rect.width / 2; // Centered horizontally
+                tooltip.style.top = `${top}px`;
+                tooltip.style.left = `${left}px`;
+                tooltip.classList.add('visible');
+              }
+            });
+            button.addEventListener('mouseleave', () => {
+              tooltip.classList.remove('visible');
+            });
+          });
+        }
+        // END: TOOLTIP INITIALIZATION SCRIPT
+
         if (g('aiAssistantBtn')) g('aiAssistantBtn').onclick = openAIAssistant;
         if (g('nodeSizeIncreaseBtn')) g('nodeSizeIncreaseBtn').onclick = () => {
           if (currentNodeSizeFactor < MAX_NODE_SIZE_FACTOR) {
@@ -1516,7 +1577,6 @@
           closeUserGuideModalBtn.onclick = () => (userGuideModal.style.display = 'none');
         }
         
-        // START: JAVASCRIPT FOR NEW SHARE MODAL
         const shareBtn = g('shareBtn');
         const shareModal = g('shareModal');
         const closeShareModalBtn = g('closeShareModal');
@@ -1524,7 +1584,6 @@
             shareBtn.onclick = () => (shareModal.style.display = 'block');
             closeShareModalBtn.onclick = () => (shareModal.style.display = 'none');
         }
-        // END: JAVASCRIPT FOR NEW SHARE MODAL
 
         const projectDescBtn = g('projectDescBtn');
         const projectDescModal = g('projectDescModal');
@@ -1549,7 +1608,7 @@
           if (
             b.id !== 'closeUserGuideModal' &&
             b.id !== 'closeProjectDescModal' &&
-            b.id !== 'closeShareModal' // Avoid re-binding handled buttons
+            b.id !== 'closeShareModal'
           ) {
             b.onclick = (e) => {
               e.stopPropagation();
@@ -1858,17 +1917,13 @@
         const sy = sourceNode.y;
         const tx = targetNode.x;
         const ty = targetNode.y;
-
-        // START: CORRECTED LOGIC
-        // The dx and dy variables are now correctly declared *before* they are used.
-        // This was the source of the bug in the previous versions.
+        
         const dx = tx - sx;
         const dy = ty - sy;
         
         if (dx === 0 && dy === 0) {
             return { x: sx, y: sy };
         }
-        // END: CORRECTED LOGIC
 
         const halfWidth = width / 2;
         const halfHeight = height / 2;
