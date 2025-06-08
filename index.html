@@ -517,6 +517,7 @@
       line-height: 1.6;
     }
     
+    /* START: NEW CSS FOR SHARE MODAL */
     #shareModal .modal-content {
         max-width: 900px;
     }
@@ -526,6 +527,7 @@
         border: none;
         border-radius: 12px;
     }
+    /* END: NEW CSS FOR SHARE MODAL */
 
     .action-buttons {
       display: flex;
@@ -700,6 +702,7 @@
         <i class="fas fa-floppy-disk"></i>
       </button>
 
+      <!-- START: NEW SHARE BUTTON HTML -->
       <button
         id="shareBtn"
         aria-label="Share"
@@ -707,6 +710,7 @@
       >
         <i class="fas fa-share-alt"></i>
       </button>
+      <!-- END: NEW SHARE BUTTON HTML -->
 
       <input
         type="file"
@@ -914,6 +918,7 @@
     </div>
   </div>
 
+  <!-- START: NEW SHARE MODAL HTML -->
   <div id="shareModal" class="modal">
     <div class="modal-content">
       <span class="close-button" id="closeShareModal">×</span>
@@ -926,7 +931,7 @@
       </iframe>
     </div>
   </div>
-
+  <!-- END: NEW SHARE MODAL HTML -->
 
   <div id="projectDescModal" class="modal">
     <div class="modal-content">
@@ -1509,6 +1514,7 @@
           closeUserGuideModalBtn.onclick = () => (userGuideModal.style.display = 'none');
         }
         
+        // START: JAVASCRIPT FOR NEW SHARE MODAL
         const shareBtn = g('shareBtn');
         const shareModal = g('shareModal');
         const closeShareModalBtn = g('closeShareModal');
@@ -1516,6 +1522,7 @@
             shareBtn.onclick = () => (shareModal.style.display = 'block');
             closeShareModalBtn.onclick = () => (shareModal.style.display = 'none');
         }
+        // END: JAVASCRIPT FOR NEW SHARE MODAL
 
         const projectDescBtn = g('projectDescBtn');
         const projectDescModal = g('projectDescModal');
@@ -1540,7 +1547,7 @@
           if (
             b.id !== 'closeUserGuideModal' &&
             b.id !== 'closeProjectDescModal' &&
-            b.id !== 'closeShareModal'
+            b.id !== 'closeShareModal' // Avoid re-binding handled buttons
           ) {
             b.onclick = (e) => {
               e.stopPropagation();
@@ -1850,13 +1857,16 @@
         const tx = targetNode.x;
         const ty = targetNode.y;
 
-        // FIX: Moved dx and dy declarations to before their first use.
+        // START: CORRECTED LOGIC
+        // The dx and dy variables are now correctly declared *before* they are used.
+        // This was the source of the bug in the previous versions.
         const dx = tx - sx;
         const dy = ty - sy;
         
         if (dx === 0 && dy === 0) {
             return { x: sx, y: sy };
         }
+        // END: CORRECTED LOGIC
 
         const halfWidth = width / 2;
         const halfHeight = height / 2;
