@@ -516,6 +516,18 @@
       margin-bottom: 1em;
       line-height: 1.6;
     }
+    
+    /* START: NEW CSS FOR SHARE MODAL IFRAME */
+    #shareModal .modal-content {
+        max-width: 900px; /* Allow wider modal for the content */
+    }
+    #shareModal iframe {
+        width: 100%;
+        height: 70vh; /* Use viewport height for better responsiveness */
+        border: none;
+        border-radius: 12px; /* Match modal aesthetics */
+    }
+    /* END: NEW CSS FOR SHARE MODAL IFRAME */
 
     .action-buttons {
       display: flex;
@@ -690,6 +702,16 @@
         <i class="fas fa-floppy-disk"></i>
       </button>
 
+      <!-- START: NEW SHARE BUTTON -->
+      <button
+        id="shareBtn"
+        aria-label="Share"
+        title="Share"
+      >
+        <i class="fas fa-share-alt"></i>
+      </button>
+      <!-- END: NEW SHARE BUTTON -->
+
       <input
         type="file"
         id="fileInput"
@@ -857,6 +879,7 @@
       <ul>
         <li><b>Upload</b> – Import a FlowChart (json) file to continue work or load a new chart.</li>
         <li><b>Save</b> – Saving a FlowChart will always create a new file version each time.</li>
+        <li><b>Share</b> – Get a shareable link to your FlowChart.</li>
         <li><b>Templates</b> – Start with a ready-made structure (Prototype, Vendor, or Marketing).</li>
         <li><b>Node Size +/-</b> – Resize task nodes for better visibility.</li>
         <li><b>Add Connector</b> - Click to enter 'Connector Mode,' then click two nodes to link them.</li>
@@ -894,6 +917,22 @@
         </ul>
     </div>
   </div>
+
+  <!-- START: NEW SHARE MODAL -->
+  <div id="shareModal" class="modal">
+    <div class="modal-content">
+      <span class="close-button" id="closeShareModal">×</span>
+      <h2>Share Flowchart</h2>
+      <iframe 
+        src="https://view.genially.com/6845a98ee4504c754b83f421" 
+        allowfullscreen="true" 
+        scrolling="no" 
+        frameborder="0">
+      </iframe>
+    </div>
+  </div>
+  <!-- END: NEW SHARE MODAL -->
+
 
   <div id="projectDescModal" class="modal">
     <div class="modal-content">
@@ -1475,6 +1514,16 @@
           userGuideBtn.onclick = () => (userGuideModal.style.display = 'block');
           closeUserGuideModalBtn.onclick = () => (userGuideModal.style.display = 'none');
         }
+        
+        // START: JAVASCRIPT FOR NEW SHARE MODAL
+        const shareBtn = g('shareBtn');
+        const shareModal = g('shareModal');
+        const closeShareModalBtn = g('closeShareModal');
+        if (shareBtn && shareModal && closeShareModalBtn) {
+            shareBtn.onclick = () => (shareModal.style.display = 'block');
+            closeShareModalBtn.onclick = () => (shareModal.style.display = 'none');
+        }
+        // END: JAVASCRIPT FOR NEW SHARE MODAL
 
         const projectDescBtn = g('projectDescBtn');
         const projectDescModal = g('projectDescModal');
@@ -1498,7 +1547,8 @@
         document.querySelectorAll('.modal .close-button').forEach((b) => {
           if (
             b.id !== 'closeUserGuideModal' &&
-            b.id !== 'closeProjectDescModal'
+            b.id !== 'closeProjectDescModal' &&
+            b.id !== 'closeShareModal' // Avoid re-binding the handled button
           ) {
             b.onclick = (e) => {
               e.stopPropagation();
@@ -1644,7 +1694,6 @@
       simulation.alpha(0.3).restart();
     }
     
-    // --- STABLE, REFACTORED UPDATE FUNCTION ---
     function update() {
         if (!svg || !simulation) {
             console.error('D3 not initialized for update');
@@ -1655,7 +1704,6 @@
         const baseNodeNameFontSizePx = 14;
         const basePillFontSizePx = 12;
 
-        // == LINKS ==
         let link = linkGroup.selectAll('line.link').data(data.links, d => `${d.source.id || d.source}-${d.target.id || d.target}`);
         link.exit().remove();
         link = link.enter()
@@ -1666,7 +1714,6 @@
             .on('click', linkClickHandler)
             .merge(link);
 
-        // == NODES ==
         let node = nodeGroup.selectAll('g.node-group').data(data.nodes, d => d.id);
         node.exit().remove();
         
@@ -1750,23 +1797,16 @@
             }
         });
 
-        // == SIMULATION SETUP ==
         simulation.nodes(data.nodes);
         if (data.links) {
             const linkForce = d3.forceLink(data.links).id(d => d.id).distance(250).strength(0.05);
             simulation.force('link', linkForce);
         }
 
-        // START: MODIFIED CODE
-        // The 'tick' handler now calculates connector endpoints on the node's border.
         simulation.on('tick', () => {
-            // Update node positions
             node.attr('transform', d => `translate(${d.x},${d.y})`);
             
-            // Update link positions
             link.each(function(d) {
-                // Guard clause: Prevents errors if the simulation has not yet
-                // resolved link source/target from IDs to full node objects.
                 if (d.source && d.target && typeof d.source.x === 'number' && typeof d.target.x === 'number') {
                     const sourcePoint = getIntersectionPoint(d.source, d.target, currentScaledDimension, currentScaledDimension);
                     const targetPoint = getIntersectionPoint(d.target, d.source, currentScaledDimension, currentScaledDimension);
@@ -1779,7 +1819,6 @@
                 }
             });
         });
-        // END: MODIFIED CODE
 
         simulation.alpha(1).restart();
     }
@@ -1813,26 +1852,12 @@
       if (!ev.active) simulation.alphaTarget(0);
     }
 
-    // START: NEW HELPER FUNCTION
-    /**
-     * Calculates the intersection point of a line (from source center to target center)
-     * with the boundary of a rectangle centered at the source node.
-     * @param {object} sourceNode - The source node object {x, y}.
-     * @param {object} targetNode - The target node object {x, y}.
-     * @param {number} width - The width of the source node's rectangle.
-     * @param {number} height - The height of the source node's rectangle.
-     * @returns {object} An object {x, y} representing the intersection point.
-     */
     function getIntersectionPoint(sourceNode, targetNode, width, height) {
         const sx = sourceNode.x;
         const sy = sourceNode.y;
         const tx = targetNode.x;
         const ty = targetNode.y;
 
-        const dx = tx - sx;
-        const dy = ty - sy;
-        
-        // If nodes are at the exact same position, return the center to avoid errors.
         if (dx === 0 && dy === 0) {
             return { x: sx, y: sy };
         }
@@ -1840,30 +1865,28 @@
         const halfWidth = width / 2;
         const halfHeight = height / 2;
         
-        // Calculate the slope of the line from the source center to the target center.
+        const dx = tx - sx;
+        const dy = ty - sy;
+        
         const slope = dy / dx;
         
-        // Calculate the slope of the rectangle's diagonal for comparison.
         const rectSlope = halfHeight / halfWidth;
 
         let ix, iy;
 
-        // Determine which side of the rectangle the line intersects.
-        // If the absolute slope is less than the rectangle's diagonal slope,
-        // the intersection is on the left or right side.
         if (Math.abs(slope) < rectSlope) {
-            if (dx > 0) { // Target is to the right
+            if (dx > 0) {
                 ix = sx + halfWidth;
                 iy = sy + halfWidth * slope;
-            } else { // Target is to the left
+            } else {
                 ix = sx - halfWidth;
                 iy = sy - halfWidth * slope;
             }
-        } else { // Otherwise, the intersection is on the top or bottom side.
-            if (dy > 0) { // Target is below
+        } else {
+            if (dy > 0) {
                 iy = sy + halfHeight;
                 ix = sx + halfHeight / slope;
-            } else { // Target is above
+            } else {
                 iy = sy - halfHeight;
                 ix = sx - halfHeight / slope;
             }
@@ -1871,7 +1894,6 @@
 
         return { x: ix, y: iy };
     }
-    // END: NEW HELPER FUNCTION
   </script>
 </body>
 </html>
