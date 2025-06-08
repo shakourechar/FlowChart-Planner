@@ -517,17 +517,15 @@
       line-height: 1.6;
     }
     
-    /* START: NEW CSS FOR SHARE MODAL IFRAME */
     #shareModal .modal-content {
-        max-width: 900px; /* Allow wider modal for the content */
+        max-width: 900px;
     }
     #shareModal iframe {
         width: 100%;
-        height: 70vh; /* Use viewport height for better responsiveness */
+        height: 70vh;
         border: none;
-        border-radius: 12px; /* Match modal aesthetics */
+        border-radius: 12px;
     }
-    /* END: NEW CSS FOR SHARE MODAL IFRAME */
 
     .action-buttons {
       display: flex;
@@ -702,7 +700,6 @@
         <i class="fas fa-floppy-disk"></i>
       </button>
 
-      <!-- START: NEW SHARE BUTTON -->
       <button
         id="shareBtn"
         aria-label="Share"
@@ -710,7 +707,6 @@
       >
         <i class="fas fa-share-alt"></i>
       </button>
-      <!-- END: NEW SHARE BUTTON -->
 
       <input
         type="file"
@@ -918,7 +914,6 @@
     </div>
   </div>
 
-  <!-- START: NEW SHARE MODAL -->
   <div id="shareModal" class="modal">
     <div class="modal-content">
       <span class="close-button" id="closeShareModal">×</span>
@@ -931,7 +926,6 @@
       </iframe>
     </div>
   </div>
-  <!-- END: NEW SHARE MODAL -->
 
 
   <div id="projectDescModal" class="modal">
@@ -1515,7 +1509,6 @@
           closeUserGuideModalBtn.onclick = () => (userGuideModal.style.display = 'none');
         }
         
-        // START: JAVASCRIPT FOR NEW SHARE MODAL
         const shareBtn = g('shareBtn');
         const shareModal = g('shareModal');
         const closeShareModalBtn = g('closeShareModal');
@@ -1523,7 +1516,6 @@
             shareBtn.onclick = () => (shareModal.style.display = 'block');
             closeShareModalBtn.onclick = () => (shareModal.style.display = 'none');
         }
-        // END: JAVASCRIPT FOR NEW SHARE MODAL
 
         const projectDescBtn = g('projectDescBtn');
         const projectDescModal = g('projectDescModal');
@@ -1548,7 +1540,7 @@
           if (
             b.id !== 'closeUserGuideModal' &&
             b.id !== 'closeProjectDescModal' &&
-            b.id !== 'closeShareModal' // Avoid re-binding the handled button
+            b.id !== 'closeShareModal'
           ) {
             b.onclick = (e) => {
               e.stopPropagation();
@@ -1858,6 +1850,10 @@
         const tx = targetNode.x;
         const ty = targetNode.y;
 
+        // FIX: Moved dx and dy declarations to before their first use.
+        const dx = tx - sx;
+        const dy = ty - sy;
+        
         if (dx === 0 && dy === 0) {
             return { x: sx, y: sy };
         }
@@ -1865,11 +1861,7 @@
         const halfWidth = width / 2;
         const halfHeight = height / 2;
         
-        const dx = tx - sx;
-        const dy = ty - sy;
-        
         const slope = dy / dx;
-        
         const rectSlope = halfHeight / halfWidth;
 
         let ix, iy;
