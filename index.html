@@ -1762,42 +1762,37 @@
       return nN;
     }
 
-    // START: NATIVE BROWSER SCREENSHOT FUNCTION (getDisplayMedia API)
+    // START: HIGH-FIDELITY NATIVE BROWSER SCREENSHOT FUNCTION
     async function takeScreenshot() {
-      // Define the options for the screen capture
       const displayMediaOptions = {
-        video: {
-          // It is recommended to capture the screen, but 'window' or 'tab' are also valid
-          displaySurface: "browser", // 'browser' is a common alias for 'tab'
-          cursor: "never" // Hide the cursor from the capture
-        },
+        video: { mediaSource: "browser", cursor: "never" }, // "browser" is alias for "tab"
         audio: false,
-        // New options to guide the user to select the current tab
         preferCurrentTab: true,
       };
 
       let stream = null;
       try {
-        // Prompt the user to select a screen/tab to share
         stream = await navigator.mediaDevices.getDisplayMedia(displayMediaOptions);
         
-        const track = stream.getVideoTracks()[0];
-        const imageCapture = new ImageCapture(track);
+        const video = document.createElement('video');
+        video.srcObject = stream;
         
-        // Grab a single frame from the media stream
-        const bitmap = await imageCapture.grabFrame();
-        
-        // Stop the stream immediately after capturing the frame
-        track.stop();
+        // Use a promise to wait for the video to be ready
+        await new Promise((resolve) => {
+          video.onloadedmetadata = () => {
+            video.play();
+            resolve();
+          };
+        });
 
-        // Create a canvas to hold the captured image
         const canvas = document.createElement('canvas');
-        canvas.width = bitmap.width;
-        canvas.height = bitmap.height;
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
         const context = canvas.getContext('2d');
-        context.drawImage(bitmap, 0, 0);
-
-        // Convert the canvas to a PNG image and trigger download
+        
+        // Draw the current video frame to the canvas
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        
         const dataUrl = canvas.toDataURL('image/png');
         const flowchartName = document.getElementById('flowchartNameInput').value || 'flowchart';
         const filename = `${flowchartName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_screenshot.png`;
@@ -1810,7 +1805,6 @@
         document.body.removeChild(link);
 
       } catch (err) {
-        // Handle errors, such as the user denying permission
         if (err.name === 'NotAllowedError') {
           console.log('Screenshot permission denied by user.');
         } else {
@@ -1818,13 +1812,13 @@
           alert('Could not take screenshot. Please check console for details.');
         }
       } finally {
-        // Ensure all stream tracks are stopped
+        // Essential cleanup: stop all stream tracks
         if (stream) {
           stream.getTracks().forEach(track => track.stop());
         }
       }
     }
-    // END: NATIVE BROWSER SCREENSHOT FUNCTION
+    // END: HIGH-FIDELITY NATIVE BROWSER SCREENSHOT FUNCTION
 
     function updateNodeSizes() {
       if (!simulation) return;
