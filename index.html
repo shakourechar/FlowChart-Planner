@@ -1764,31 +1764,39 @@
       return nN;
     }
 
-    // START: NEW SCREENSHOT FUNCTION
+    // START: REVISED AND IMPROVED SCREENSHOT FUNCTION
     function takeScreenshot() {
         const targetElement = document.getElementById('flowchartContainer');
         const bannerElement = document.getElementById('banner-container');
+        
+        // Store original styles to revert them later
         const originalBannerDisplay = bannerElement.style.display;
+        const originalContainerBackground = targetElement.style.background;
 
-        // Hide the banner before taking the screenshot, as it can't be rendered by html2canvas
+        // Get the computed background from the body to apply to the container
+        const bodyComputedStyle = window.getComputedStyle(document.body);
+        const bodyBackground = bodyComputedStyle.background;
+
+        // --- PREPARE FOR CAPTURE ---
+        // 1. Hide elements that don't render well or are unwanted (like the iframe banner)
         bannerElement.style.display = 'none';
+        // 2. Apply the body's background to the container for a correct render
+        targetElement.style.background = bodyBackground;
 
         const options = {
             scale: 2, // Capture at 2x resolution for higher quality
-            useCORS: true, // Tries to fetch images with CORS
-            backgroundColor: null, // Use element's background; null makes it transparent
-            logging: false, // Turn off logging
+            useCORS: true,
+            logging: false,
         };
 
         html2canvas(targetElement, options).then(canvas => {
-            // Restore the banner's visibility
+            // --- POST-CAPTURE CLEANUP (this block runs on success) ---
+            targetElement.style.background = originalContainerBackground;
             bannerElement.style.display = originalBannerDisplay;
 
-            // Create a filename from the flowchart title
             const flowchartName = document.getElementById('flowchartNameInput').value || 'flowchart';
             const filename = `${flowchartName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_screenshot.png`;
 
-            // Create a temporary link to trigger the download
             const link = document.createElement('a');
             link.download = filename;
             link.href = canvas.toDataURL('image/png');
@@ -1797,13 +1805,15 @@
             document.body.removeChild(link);
 
         }).catch(err => {
-            // Restore the banner even if an error occurs
+            // --- POST-CAPTURE CLEANUP (this block runs on failure) ---
+            targetElement.style.background = originalContainerBackground;
             bannerElement.style.display = originalBannerDisplay;
+            
             console.error('Screenshot failed:', err);
             alert('Could not take screenshot. Please check the console for errors.');
         });
     }
-    // END: NEW SCREENSHOT FUNCTION
+    // END: REVISED SCREENSHOT FUNCTION
 
     function updateNodeSizes() {
       if (!simulation) return;
