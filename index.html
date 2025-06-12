@@ -17,6 +17,7 @@
   />
 
   <style>
+    /* ALL YOUR CSS STYLES REMAIN UNCHANGED */
     :root {
       --bg-primary: linear-gradient(135deg, #939ef5 0%, #9e76d6 100%);
       --header-fixed-bg: #20232a;
@@ -643,9 +644,9 @@
   </style>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
-  <!-- SCRIPT INCLUSIONS: html2canvas (dependency) then dom-to-image-more -->
-  <script src="https://static.parastorage.com/unpkg/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-  <script src="https://static.parastorage.com/unpkg/dom-to-image-more@2.10.1/dist/dom-to-image-more.min.js"></script>
+  <!-- CORRECT SCRIPT INCLUSIONS: html2canvas first, then dom-to-image-more -->
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dom-to-image-more@2.10.1/dist/dom-to-image-more.min.js"></script>
   
 </head>
 
@@ -1577,9 +1578,10 @@
         const saveButton = document.getElementById('saveBtn');
         if (saveButton) saveButton.onclick = saveToFile;
 
-        // SCREENSHOT: wire up click to our function
-        const screenshotBtn = document.getElementById('screenshotBtn');
-        if (screenshotBtn) screenshotBtn.addEventListener('click', takeScreenshot);
+        // START: SCREENSHOT BUTTON EVENT LISTENER
+        const screenshotButton = document.getElementById('screenshotBtn');
+        if (screenshotButton) screenshotButton.onclick = takeScreenshot;
+        // END: SCREENSHOT BUTTON EVENT LISTENER
 
         if (g('uploadBtn') && g('fileInput')) {
           g('uploadBtn').onclick = () => g('fileInput').click();
@@ -1774,10 +1776,12 @@
 
       // Temporarily hide the banner
       banner.style.visibility = 'hidden';
-
+      
       const options = {
         quality: 1.0,
-        bgcolor: window.getComputedStyle(document.body).background,
+        // This is the critical part: set the background color to match the body's computed style.
+        // This ensures transparency and blur effects render against the correct background.
+        bgcolor: window.getComputedStyle(document.body).getPropertyValue('background-color'),
         width: node.offsetWidth * scale,
         height: node.offsetHeight * scale,
         style: {
@@ -1801,7 +1805,8 @@
         alert('Could not take screenshot. Please check the console for details.');
       })
       .finally(function() {
-        // This 'finally' block ensures the banner is always made visible again.
+        // This 'finally' block ensures the banner is always made visible again,
+        // regardless of whether the screenshot succeeded or failed.
         banner.style.visibility = 'visible';
       });
     }
