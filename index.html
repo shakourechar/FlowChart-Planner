@@ -735,6 +735,7 @@
     </h1>
 
     <nav>
+      <!-- START: ADDING DATA-TOOLTIP-TEXT ATTRIBUTES TO BUTTONS -->
       <button
         id="nodeSizeIncreaseBtn"
         aria-label="Node Size +"
@@ -771,6 +772,7 @@
         <i class="fas fa-book-open"></i>
       </button>
 
+      <!-- START: NEW COLOR LEGEND BUTTON -->
       <button
         id="colorLegendBtn"
         aria-label="Color Legend"
@@ -779,6 +781,8 @@
       >
           <i class="fas fa-palette"></i>
       </button>
+      <!-- END: NEW COLOR LEGEND BUTTON -->
+
       <button
         id="templateBtn"
         aria-label="Templates"
@@ -850,10 +854,14 @@
       >
         <i class="fas fa-moon"></i>
       </button>
-      </nav>
+      <!-- END: ADDING DATA-TOOLTIP-TEXT ATTRIBUTES TO BUTTONS -->
+    </nav>
   </header>
   
+  <!-- START: NEW FLOATING LEGEND DISPLAY HTML -->
   <div id="color-legend-display"></div>
+  <!-- END: NEW FLOATING LEGEND DISPLAY HTML -->
+
   <div id="flowchartContainer">
     <div id="banner-container">
       <iframe
@@ -915,32 +923,32 @@
         <div class="color-panel">
           <div
             class="color-swatch"
-            style="background-color: #e74c3c;"
+            style="background-color: rgba(231, 76, 60, 0.55);"
             data-color="#e74c3c"
           ></div>
           <div
             class="color-swatch"
-            style="background-color: #f1c40f;"
+            style="background-color: rgba(241, 196, 15, 0.55);"
             data-color="#f1c40f"
           ></div>
           <div
             class="color-swatch"
-            style="background-color: #2ecc71;"
+            style="background-color: rgba(46, 204, 113, 0.55);"
             data-color="#2ecc71"
           ></div>
           <div
             class="color-swatch"
-            style="background-color: #3498db;"
+            style="background-color: rgba(52, 152, 219, 0.55);"
             data-color="#3498db"
           ></div>
           <div
             class="color-swatch"
-            style="background-color: #9b59b6;"
+            style="background-color: rgba(155, 89, 182, 0.55);"
             data-color="#9b59b6"
           ></div>
           <div
             class="color-swatch"
-            style="background-color: #34495e;"
+            style="background-color: rgba(52, 73, 94, 0.55);"
             data-color="#34495e"
           ></div>
         </div>
@@ -1068,6 +1076,7 @@
       </div>
   </div>
 
+  <!-- START: NEW COLOR LEGEND MODAL HTML -->
   <div id="colorLegendModal" class="modal">
       <div class="modal-content">
           <span class="close-button" id="closeColorLegendModal">×</span>
@@ -1075,14 +1084,20 @@
           <form id="colorLegendForm">
               <p>Define what each color represents. These will be shown in a legend below the header.</p>
               <div id="color-legend-entries">
-                  </div>
+                  <!-- Entries will be dynamically inserted here -->
+              </div>
               <div class="action-buttons">
                   <button type="submit" class="modal-btn">Save Legend</button>
               </div>
           </form>
       </div>
   </div>
+  <!-- END: NEW COLOR LEGEND MODAL HTML -->
+
+  <!-- START: NEW TOOLTIP HTML ELEMENT -->
   <div id="tooltip"></div>
+  <!-- END: NEW TOOLTIP HTML ELEMENT -->
+
   <script>
     // --- Theme Toggle Script ---
     try {
@@ -1576,6 +1591,8 @@
         const legendEntriesContainer = document.getElementById('color-legend-entries');
         legendEntriesContainer.innerHTML = '';
         const uniqueColors = [...new Set(data.nodes.map(n => n.color).filter(c => c))];
+        // Get the opacity value from CSS variables to ensure it matches the nodes
+        const nodeFillOpacity = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--node-fill-opacity').trim() || '0.55');
 
         uniqueColors.forEach(color => {
             const entryDiv = document.createElement('div');
@@ -1583,7 +1600,8 @@
             
             const swatch = document.createElement('div');
             swatch.className = 'legend-color-swatch';
-            swatch.style.backgroundColor = color;
+            // MODIFICATION: Use hexToRgba to apply transparency
+            swatch.style.backgroundColor = hexToRgba(color, nodeFillOpacity);
             
             const input = document.createElement('input');
             input.type = 'text';
@@ -1620,7 +1638,9 @@
         displayContainer.innerHTML = '';
         
         const legendItems = Object.entries(data.colorLegend);
-        
+        // Get the opacity value to ensure it matches the nodes
+        const nodeFillOpacity = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--node-fill-opacity').trim() || '0.55');
+
         if (legendItems.length > 0) {
             legendItems.forEach(([color, description]) => {
                 const itemDiv = document.createElement('div');
@@ -1628,7 +1648,8 @@
                 
                 const swatch = document.createElement('div');
                 swatch.className = 'legend-display-color';
-                swatch.style.backgroundColor = color;
+                // MODIFICATION: Use hexToRgba to apply transparency
+                swatch.style.backgroundColor = hexToRgba(color, nodeFillOpacity);
                 
                 const text = document.createElement('span');
                 text.textContent = description;
@@ -1672,6 +1693,15 @@
           });
         }
         // END: TOOLTIP INITIALIZATION SCRIPT
+        
+        // MODIFICATION: Set the initial background colors for the swatches in the main modal
+        document.querySelectorAll('.color-panel .color-swatch').forEach(swatch => {
+            const color = swatch.dataset.color;
+            const nodeFillOpacity = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--node-fill-opacity').trim() || '0.55');
+            if (color) {
+                swatch.style.backgroundColor = hexToRgba(color, nodeFillOpacity);
+            }
+        });
 
         if (g('aiAssistantBtn')) g('aiAssistantBtn').onclick = openAIAssistant;
         if (g('nodeSizeIncreaseBtn')) g('nodeSizeIncreaseBtn').onclick = () => {
@@ -1690,10 +1720,10 @@
             updateNodeSizes();
           }
         };
-        document.querySelectorAll('.color-swatch').forEach((s) =>
+        document.querySelectorAll('.color-panel .color-swatch').forEach((s) =>
           s.addEventListener('click', () => {
             document
-              .querySelectorAll('.color-swatch')
+              .querySelectorAll('.color-panel .color-swatch')
               .forEach((x) => x.classList.remove('selected-swatch'));
             s.classList.add('selected-swatch');
             g('nodeColor').value = s.dataset.color;
