@@ -1764,56 +1764,73 @@
       return nN;
     }
 
-    // START: REVISED AND IMPROVED SCREENSHOT FUNCTION
+    // START: HIGH-QUALITY SCREENSHOT FUNCTION (CAPTURE-AND-CROP METHOD)
     function takeScreenshot() {
-        const targetElement = document.getElementById('flowchartContainer');
-        const bannerElement = document.getElementById('banner-container');
-        
-        // Store original styles to revert them later
-        const originalBannerDisplay = bannerElement.style.display;
-        const originalContainerBackground = targetElement.style.background;
-
-        // Get the computed background from the body to apply to the container
-        const bodyComputedStyle = window.getComputedStyle(document.body);
-        const bodyBackground = bodyComputedStyle.background;
+        const flowchartContainer = document.getElementById('flowchartContainer');
+        const header = document.querySelector('header');
+        const banner = document.getElementById('banner-container');
+        const scale = 2; // Capture at 2x resolution
 
         // --- PREPARE FOR CAPTURE ---
-        // 1. Hide elements that don't render well or are unwanted (like the iframe banner)
-        bannerElement.style.display = 'none';
-        // 2. Apply the body's background to the container for a correct render
-        targetElement.style.background = bodyBackground;
+        // 1. Get the exact dimensions and position of the target area
+        const cropRect = flowchartContainer.getBoundingClientRect();
 
-        const options = {
-            scale: 2, // Capture at 2x resolution for higher quality
+        // 2. Hide unwanted elements
+        header.style.visibility = 'hidden';
+        banner.style.visibility = 'hidden';
+
+        html2canvas(document.body, {
+            scale: scale,
             useCORS: true,
             logging: false,
-        };
+            // Ensure the capture starts from the top of the scrolled page
+            scrollX: -window.scrollX,
+            scrollY: -window.scrollY,
+            windowWidth: document.documentElement.offsetWidth,
+            windowHeight: document.documentElement.offsetHeight
+        }).then(fullCanvas => {
+            // --- CROP THE FULL CANVAS TO THE DESIRED AREA ---
+            const cropCanvas = document.createElement('canvas');
+            const cropContext = cropCanvas.getContext('2d');
 
-        html2canvas(targetElement, options).then(canvas => {
-            // --- POST-CAPTURE CLEANUP (this block runs on success) ---
-            targetElement.style.background = originalContainerBackground;
-            bannerElement.style.display = originalBannerDisplay;
+            // Set the size of the cropped canvas
+            cropCanvas.width = cropRect.width * scale;
+            cropCanvas.height = cropRect.height * scale;
 
+            // Draw the captured region from the full canvas onto the smaller crop canvas
+            cropContext.drawImage(
+                fullCanvas,
+                cropRect.left * scale, // source X
+                cropRect.top * scale,  // source Y
+                cropRect.width * scale,  // source width
+                cropRect.height * scale, // source height
+                0, // destination X
+                0, // destination Y
+                cropRect.width * scale,  // destination width
+                cropRect.height * scale  // destination height
+            );
+
+            // --- DOWNLOAD THE CROPPED IMAGE ---
             const flowchartName = document.getElementById('flowchartNameInput').value || 'flowchart';
             const filename = `${flowchartName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_screenshot.png`;
-
             const link = document.createElement('a');
             link.download = filename;
-            link.href = canvas.toDataURL('image/png');
+            link.href = cropCanvas.toDataURL('image/png');
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
 
         }).catch(err => {
-            // --- POST-CAPTURE CLEANUP (this block runs on failure) ---
-            targetElement.style.background = originalContainerBackground;
-            bannerElement.style.display = originalBannerDisplay;
-            
             console.error('Screenshot failed:', err);
             alert('Could not take screenshot. Please check the console for errors.');
+        }).finally(() => {
+            // --- CLEANUP ---
+            // Always restore visibility of hidden elements
+            header.style.visibility = 'visible';
+            banner.style.visibility = 'visible';
         });
     }
-    // END: REVISED SCREENSHOT FUNCTION
+    // END: HIGH-QUALITY SCREENSHOT FUNCTION
 
     function updateNodeSizes() {
       if (!simulation) return;
