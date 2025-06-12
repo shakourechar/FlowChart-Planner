@@ -1762,10 +1762,10 @@
       return nN;
     }
 
-    // START: HIGH-FIDELITY NATIVE BROWSER SCREENSHOT FUNCTION
+    // START: ROBUST NATIVE BROWSER SCREENSHOT FUNCTION
     async function takeScreenshot() {
       const displayMediaOptions = {
-        video: { mediaSource: "browser", cursor: "never" }, // "browser" is alias for "tab"
+        video: { mediaSource: "browser", cursor: "never" },
         audio: false,
         preferCurrentTab: true,
       };
@@ -1776,33 +1776,38 @@
         
         const video = document.createElement('video');
         video.srcObject = stream;
-        
-        // Use a promise to wait for the video to be ready
-        await new Promise((resolve) => {
-          video.onloadedmetadata = () => {
-            video.play();
-            resolve();
-          };
-        });
 
-        const canvas = document.createElement('canvas');
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        const context = canvas.getContext('2d');
-        
-        // Draw the current video frame to the canvas
-        context.drawImage(video, 0, 0, canvas.width, canvas.height);
-        
-        const dataUrl = canvas.toDataURL('image/png');
-        const flowchartName = document.getElementById('flowchartNameInput').value || 'flowchart';
-        const filename = `${flowchartName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_screenshot.png`;
-        
-        const link = document.createElement('a');
-        link.href = dataUrl;
-        link.download = filename;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        // The 'onplaying' event is a more reliable indicator that a valid frame is ready.
+        video.onplaying = () => {
+          // Use a short timeout to ensure the frame is fully rendered, avoiding blank captures.
+          setTimeout(() => {
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const context = canvas.getContext('2d');
+            
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            const dataUrl = canvas.toDataURL('image/png');
+            const flowchartName = document.getElementById('flowchartNameInput').value || 'flowchart';
+            const filename = `${flowchartName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_screenshot.png`;
+            
+            const link = document.createElement('a');
+            link.href = dataUrl;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // Crucially, stop the stream tracks AFTER the download is initiated.
+            if (stream) {
+              stream.getTracks().forEach(track => track.stop());
+            }
+
+          }, 100); // 100ms delay to prevent blank frames
+        };
+
+        video.play().catch(e => console.error("Video play failed:", e));
 
       } catch (err) {
         if (err.name === 'NotAllowedError') {
@@ -1811,14 +1816,13 @@
           console.error('Screenshot Error:', err);
           alert('Could not take screenshot. Please check console for details.');
         }
-      } finally {
-        // Essential cleanup: stop all stream tracks
+        // Ensure stream is stopped in case of an error during setup
         if (stream) {
           stream.getTracks().forEach(track => track.stop());
         }
       }
     }
-    // END: HIGH-FIDELITY NATIVE BROWSER SCREENSHOT FUNCTION
+    // END: ROBUST NATIVE BROWSER SCREENSHOT FUNCTION
 
     function updateNodeSizes() {
       if (!simulation) return;
