@@ -1777,18 +1777,16 @@
         const video = document.createElement('video');
         video.srcObject = stream;
         
-        // This is a crucial step: we must wait for the 'loadedmetadata' event.
-        // It ensures the video's dimensions and first frame are available.
-        await new Promise((resolve, reject) => {
-          video.onloadedmetadata = resolve;
-          video.onerror = reject;
+        // This is the crucial fix: wrap the event listening in a Promise.
+        // This forces the async function to pause until the video is truly ready.
+        await new Promise((resolve) => {
+          video.onloadedmetadata = () => {
+            video.play();
+            resolve();
+          };
         });
-
-        // Now that the metadata is loaded, we can play the video.
-        await video.play();
         
         const canvas = document.createElement('canvas');
-        // Set canvas dimensions to match the video to ensure high quality.
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
         
@@ -1814,8 +1812,8 @@
           alert('Could not take a screenshot. See the console for more details.');
         }
       } finally {
-        // This 'finally' block ensures the stream is always stopped,
-        // releasing the capture resources, even if an error occurred.
+        // This 'finally' block guarantees that the stream is stopped,
+        // which is essential for releasing resources and closing the "sharing" notification.
         if (stream) {
           stream.getTracks().forEach(track => track.stop());
         }
