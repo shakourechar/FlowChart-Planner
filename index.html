@@ -1762,7 +1762,7 @@
       return nN;
     }
 
-    // START: ROBUST NATIVE BROWSER SCREENSHOT FUNCTION
+    // START: DEFINITIVE NATIVE BROWSER SCREENSHOT FUNCTION
     async function takeScreenshot() {
       const displayMediaOptions = {
         video: { mediaSource: "browser", cursor: "never" },
@@ -1776,53 +1776,52 @@
         
         const video = document.createElement('video');
         video.srcObject = stream;
+        
+        // This is a crucial step: we must wait for the 'loadedmetadata' event.
+        // It ensures the video's dimensions and first frame are available.
+        await new Promise((resolve, reject) => {
+          video.onloadedmetadata = resolve;
+          video.onerror = reject;
+        });
 
-        // The 'onplaying' event is a more reliable indicator that a valid frame is ready.
-        video.onplaying = () => {
-          // Use a short timeout to ensure the frame is fully rendered, avoiding blank captures.
-          setTimeout(() => {
-            const canvas = document.createElement('canvas');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            const context = canvas.getContext('2d');
-            
-            context.drawImage(video, 0, 0, canvas.width, canvas.height);
-            
-            const dataUrl = canvas.toDataURL('image/png');
-            const flowchartName = document.getElementById('flowchartNameInput').value || 'flowchart';
-            const filename = `${flowchartName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_screenshot.png`;
-            
-            const link = document.createElement('a');
-            link.href = dataUrl;
-            link.download = filename;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-
-            // Crucially, stop the stream tracks AFTER the download is initiated.
-            if (stream) {
-              stream.getTracks().forEach(track => track.stop());
-            }
-
-          }, 100); // 100ms delay to prevent blank frames
-        };
-
-        video.play().catch(e => console.error("Video play failed:", e));
+        // Now that the metadata is loaded, we can play the video.
+        await video.play();
+        
+        const canvas = document.createElement('canvas');
+        // Set canvas dimensions to match the video to ensure high quality.
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        
+        const context = canvas.getContext('2d');
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        
+        const dataUrl = canvas.toDataURL('image/png');
+        const flowchartName = document.getElementById('flowchartNameInput').value || 'flowchart';
+        const filename = `${flowchartName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_screenshot.png`;
+        
+        const link = document.createElement('a');
+        link.href = dataUrl;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
 
       } catch (err) {
         if (err.name === 'NotAllowedError') {
-          console.log('Screenshot permission denied by user.');
+          console.log('Screenshot permission was denied by the user.');
         } else {
           console.error('Screenshot Error:', err);
-          alert('Could not take screenshot. Please check console for details.');
+          alert('Could not take a screenshot. See the console for more details.');
         }
-        // Ensure stream is stopped in case of an error during setup
+      } finally {
+        // This 'finally' block ensures the stream is always stopped,
+        // releasing the capture resources, even if an error occurred.
         if (stream) {
           stream.getTracks().forEach(track => track.stop());
         }
       }
     }
-    // END: ROBUST NATIVE BROWSER SCREENSHOT FUNCTION
+    // END: DEFINITIVE NATIVE BROWSER SCREENSHOT FUNCTION
 
     function updateNodeSizes() {
       if (!simulation) return;
