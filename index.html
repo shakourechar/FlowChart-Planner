@@ -643,7 +643,8 @@
   </style>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
-  <!-- Use dom-to-image-more for higher quality captures -->
+  <!-- CORRECT SCRIPT INCLUSIONS: html2canvas first, then dom-to-image-more -->
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/dom-to-image-more@2.10.1/dist/dom-to-image-more.min.js"></script>
   
 </head>
@@ -1770,29 +1771,24 @@
       const flowchartName = document.getElementById('flowchartNameInput').value || 'flowchart';
       const filename = `${flowchartName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_screenshot.png`;
       const banner = document.getElementById('banner-container');
-      
-      // Temporarily hide the banner as it cannot be rendered correctly
+      const scale = 2; // For high-DPI rendering
+
+      // Temporarily hide the banner
       banner.style.visibility = 'hidden';
 
-      // Options for the screenshot library
       const options = {
-        quality: 1.0, // Use max quality
-        // Capture the full background by using the computed style of the body
+        quality: 1.0,
         bgcolor: window.getComputedStyle(document.body).background,
-        // Increase scale for higher resolution
+        width: node.offsetWidth * scale,
+        height: node.offsetHeight * scale,
         style: {
-          transform: 'scale(2)',
-          transformOrigin: 'top left'
-        },
-        width: node.offsetWidth * 2,
-        height: node.offsetHeight * 2
+          transform: `scale(${scale})`,
+          transformOrigin: 'top left',
+        }
       };
 
       domtoimage.toPng(node, options)
       .then(function (dataUrl) {
-        // Restore banner visibility
-        banner.style.visibility = 'visible';
-        
         // Create a link and trigger the download
         const link = document.createElement('a');
         link.download = filename;
@@ -1802,10 +1798,12 @@
         document.body.removeChild(link);
       })
       .catch(function (error) {
-        // Restore banner visibility even if there's an error
-        banner.style.visibility = 'visible';
         console.error('Screenshot failed:', error);
         alert('Could not take screenshot. Please check the console for details.');
+      })
+      .finally(function() {
+        // This 'finally' block ensures the banner is always made visible again.
+        banner.style.visibility = 'visible';
       });
     }
     // END: DEFINITIVE SCREENSHOT FUNCTION
