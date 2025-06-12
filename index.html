@@ -643,6 +643,9 @@
   </style>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+  <!-- START: ADDED HTML2CANVAS SCRIPT -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <!-- END: ADDED HTML2CANVAS SCRIPT -->
 </head>
 
 <body>
@@ -736,6 +739,17 @@
         <i class="fas fa-floppy-disk"></i>
       </button>
       
+      <!-- START: NEW SCREENSHOT BUTTON -->
+      <button
+        id="screenshotBtn"
+        aria-label="Take Screenshot"
+        title="Take Screenshot"
+        data-tooltip-text="Take Screenshot"
+      >
+        <i class="fas fa-camera"></i>
+      </button>
+      <!-- END: NEW SCREENSHOT BUTTON -->
+
       <button
         id="shareBtn"
         aria-label="Share"
@@ -919,7 +933,7 @@
         <li><b>+/- Node Size </b> – Resize task nodes for better visibility.</li>
         <li><b>🔗 Add Connector</b> - Click to enter 'Connector Mode,' then click two nodes to link them.</li>
         <li><b>⛓️‍💥 Delete a Connector</b> - Click directly on a connector line to bring up a confirmation to delete it.</li>
-    <li>ℹ︎ Use your mouse to drag entire Canvas.</li>
+        <li>ℹ︎ Use your mouse to drag entire Canvas.</li>
         <li>Use your mouse to drag entire Canvas.</li>
     
         <li>Use mouse wheel to further enlarge/shrink nodes.</li>
@@ -1534,7 +1548,7 @@
         if (g('templateBtn')) g('templateBtn').onclick = () => {
           g('templateModal').style.display = 'block';
         };
-        document.querySelectorAll('.template-btn').forEach((b) => (b.onclick = (e) => {
+        document.querySelectorAll('#templateModal .modal-btn').forEach((b) => (b.onclick = (e) => {
           loadTemplate(e.target.dataset.template);
           g('templateModal').style.display = 'none';
         }));
@@ -1561,6 +1575,11 @@
 
         const saveButton = document.getElementById('saveBtn');
         if (saveButton) saveButton.onclick = saveToFile;
+
+        // START: SCREENSHOT BUTTON EVENT LISTENER
+        const screenshotButton = document.getElementById('screenshotBtn');
+        if (screenshotButton) screenshotButton.onclick = takeScreenshot;
+        // END: SCREENSHOT BUTTON EVENT LISTENER
 
         if (g('uploadBtn') && g('fileInput')) {
           g('uploadBtn').onclick = () => g('fileInput').click();
@@ -1744,6 +1763,47 @@
       update();
       return nN;
     }
+
+    // START: NEW SCREENSHOT FUNCTION
+    function takeScreenshot() {
+        const targetElement = document.getElementById('flowchartContainer');
+        const bannerElement = document.getElementById('banner-container');
+        const originalBannerDisplay = bannerElement.style.display;
+
+        // Hide the banner before taking the screenshot, as it can't be rendered by html2canvas
+        bannerElement.style.display = 'none';
+
+        const options = {
+            scale: 2, // Capture at 2x resolution for higher quality
+            useCORS: true, // Tries to fetch images with CORS
+            backgroundColor: null, // Use element's background; null makes it transparent
+            logging: false, // Turn off logging
+        };
+
+        html2canvas(targetElement, options).then(canvas => {
+            // Restore the banner's visibility
+            bannerElement.style.display = originalBannerDisplay;
+
+            // Create a filename from the flowchart title
+            const flowchartName = document.getElementById('flowchartNameInput').value || 'flowchart';
+            const filename = `${flowchartName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_screenshot.png`;
+
+            // Create a temporary link to trigger the download
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = canvas.toDataURL('image/png');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+        }).catch(err => {
+            // Restore the banner even if an error occurs
+            bannerElement.style.display = originalBannerDisplay;
+            console.error('Screenshot failed:', err);
+            alert('Could not take screenshot. Please check the console for errors.');
+        });
+    }
+    // END: NEW SCREENSHOT FUNCTION
 
     function updateNodeSizes() {
       if (!simulation) return;
