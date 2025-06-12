@@ -643,6 +643,8 @@
   </style>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+  <!-- Use dom-to-image-more for higher quality captures -->
+  <script src="https://cdn.jsdelivr.net/npm/dom-to-image-more@2.10.1/dist/dom-to-image-more.min.js"></script>
   
 </head>
 
@@ -1762,64 +1764,51 @@
       return nN;
     }
 
-    // START: DEFINITIVE NATIVE BROWSER SCREENSHOT FUNCTION
-    async function takeScreenshot() {
-      const displayMediaOptions = {
-        video: { mediaSource: "browser", cursor: "never" },
-        audio: false,
-        preferCurrentTab: true,
+    // START: DEFINITIVE SCREENSHOT FUNCTION USING DOM-TO-IMAGE-MORE
+    function takeScreenshot() {
+      const node = document.getElementById('flowchartContainer');
+      const flowchartName = document.getElementById('flowchartNameInput').value || 'flowchart';
+      const filename = `${flowchartName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_screenshot.png`;
+      const banner = document.getElementById('banner-container');
+      
+      // Temporarily hide the banner as it cannot be rendered correctly
+      banner.style.visibility = 'hidden';
+
+      // Options for the screenshot library
+      const options = {
+        quality: 1.0, // Use max quality
+        // Capture the full background by using the computed style of the body
+        bgcolor: window.getComputedStyle(document.body).background,
+        // Increase scale for higher resolution
+        style: {
+          transform: 'scale(2)',
+          transformOrigin: 'top left'
+        },
+        width: node.offsetWidth * 2,
+        height: node.offsetHeight * 2
       };
 
-      let stream = null;
-      try {
-        stream = await navigator.mediaDevices.getDisplayMedia(displayMediaOptions);
+      domtoimage.toPng(node, options)
+      .then(function (dataUrl) {
+        // Restore banner visibility
+        banner.style.visibility = 'visible';
         
-        const video = document.createElement('video');
-        video.srcObject = stream;
-        
-        // This is the crucial fix: wrap the event listening in a Promise.
-        // This forces the async function to pause until the video is truly ready.
-        await new Promise((resolve) => {
-          video.onloadedmetadata = () => {
-            video.play();
-            resolve();
-          };
-        });
-        
-        const canvas = document.createElement('canvas');
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        
-        const context = canvas.getContext('2d');
-        context.drawImage(video, 0, 0, canvas.width, canvas.height);
-        
-        const dataUrl = canvas.toDataURL('image/png');
-        const flowchartName = document.getElementById('flowchartNameInput').value || 'flowchart';
-        const filename = `${flowchartName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_screenshot.png`;
-        
+        // Create a link and trigger the download
         const link = document.createElement('a');
-        link.href = dataUrl;
         link.download = filename;
+        link.href = dataUrl;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-
-      } catch (err) {
-        if (err.name === 'NotAllowedError') {
-          console.log('Screenshot permission was denied by the user.');
-        } else {
-          console.error('Screenshot Error:', err);
-          alert('Could not take a screenshot. See the console for more details.');
-        }
-      } finally {
-        // This 'finally' block guarantees that the stream is stopped,
-        // which is essential for releasing resources and closing the "sharing" notification.
-        if (stream) {
-          stream.getTracks().forEach(track => track.stop());
-        }
-      }
+      })
+      .catch(function (error) {
+        // Restore banner visibility even if there's an error
+        banner.style.visibility = 'visible';
+        console.error('Screenshot failed:', error);
+        alert('Could not take screenshot. Please check the console for details.');
+      });
     }
-    // END: DEFINITIVE NATIVE BROWSER SCREENSHOT FUNCTION
+    // END: DEFINITIVE SCREENSHOT FUNCTION
 
     function updateNodeSizes() {
       if (!simulation) return;
