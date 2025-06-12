@@ -643,9 +643,7 @@
   </style>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
-  <!-- START: ADDED HTML2CANVAS SCRIPT -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <!-- END: ADDED HTML2CANVAS SCRIPT -->
+  
 </head>
 
 <body>
@@ -1764,73 +1762,69 @@
       return nN;
     }
 
-    // START: HIGH-QUALITY SCREENSHOT FUNCTION (CAPTURE-AND-CROP METHOD)
-    function takeScreenshot() {
-        const flowchartContainer = document.getElementById('flowchartContainer');
-        const header = document.querySelector('header');
-        const banner = document.getElementById('banner-container');
-        const scale = 2; // Capture at 2x resolution
+    // START: NATIVE BROWSER SCREENSHOT FUNCTION (getDisplayMedia API)
+    async function takeScreenshot() {
+      // Define the options for the screen capture
+      const displayMediaOptions = {
+        video: {
+          // It is recommended to capture the screen, but 'window' or 'tab' are also valid
+          displaySurface: "browser", // 'browser' is a common alias for 'tab'
+          cursor: "never" // Hide the cursor from the capture
+        },
+        audio: false,
+        // New options to guide the user to select the current tab
+        preferCurrentTab: true,
+      };
 
-        // --- PREPARE FOR CAPTURE ---
-        // 1. Get the exact dimensions and position of the target area
-        const cropRect = flowchartContainer.getBoundingClientRect();
+      let stream = null;
+      try {
+        // Prompt the user to select a screen/tab to share
+        stream = await navigator.mediaDevices.getDisplayMedia(displayMediaOptions);
+        
+        const track = stream.getVideoTracks()[0];
+        const imageCapture = new ImageCapture(track);
+        
+        // Grab a single frame from the media stream
+        const bitmap = await imageCapture.grabFrame();
+        
+        // Stop the stream immediately after capturing the frame
+        track.stop();
 
-        // 2. Hide unwanted elements
-        header.style.visibility = 'hidden';
-        banner.style.visibility = 'hidden';
+        // Create a canvas to hold the captured image
+        const canvas = document.createElement('canvas');
+        canvas.width = bitmap.width;
+        canvas.height = bitmap.height;
+        const context = canvas.getContext('2d');
+        context.drawImage(bitmap, 0, 0);
 
-        html2canvas(document.body, {
-            scale: scale,
-            useCORS: true,
-            logging: false,
-            // Ensure the capture starts from the top of the scrolled page
-            scrollX: -window.scrollX,
-            scrollY: -window.scrollY,
-            windowWidth: document.documentElement.offsetWidth,
-            windowHeight: document.documentElement.offsetHeight
-        }).then(fullCanvas => {
-            // --- CROP THE FULL CANVAS TO THE DESIRED AREA ---
-            const cropCanvas = document.createElement('canvas');
-            const cropContext = cropCanvas.getContext('2d');
+        // Convert the canvas to a PNG image and trigger download
+        const dataUrl = canvas.toDataURL('image/png');
+        const flowchartName = document.getElementById('flowchartNameInput').value || 'flowchart';
+        const filename = `${flowchartName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_screenshot.png`;
+        
+        const link = document.createElement('a');
+        link.href = dataUrl;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
 
-            // Set the size of the cropped canvas
-            cropCanvas.width = cropRect.width * scale;
-            cropCanvas.height = cropRect.height * scale;
-
-            // Draw the captured region from the full canvas onto the smaller crop canvas
-            cropContext.drawImage(
-                fullCanvas,
-                cropRect.left * scale, // source X
-                cropRect.top * scale,  // source Y
-                cropRect.width * scale,  // source width
-                cropRect.height * scale, // source height
-                0, // destination X
-                0, // destination Y
-                cropRect.width * scale,  // destination width
-                cropRect.height * scale  // destination height
-            );
-
-            // --- DOWNLOAD THE CROPPED IMAGE ---
-            const flowchartName = document.getElementById('flowchartNameInput').value || 'flowchart';
-            const filename = `${flowchartName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_screenshot.png`;
-            const link = document.createElement('a');
-            link.download = filename;
-            link.href = cropCanvas.toDataURL('image/png');
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-
-        }).catch(err => {
-            console.error('Screenshot failed:', err);
-            alert('Could not take screenshot. Please check the console for errors.');
-        }).finally(() => {
-            // --- CLEANUP ---
-            // Always restore visibility of hidden elements
-            header.style.visibility = 'visible';
-            banner.style.visibility = 'visible';
-        });
+      } catch (err) {
+        // Handle errors, such as the user denying permission
+        if (err.name === 'NotAllowedError') {
+          console.log('Screenshot permission denied by user.');
+        } else {
+          console.error('Screenshot Error:', err);
+          alert('Could not take screenshot. Please check console for details.');
+        }
+      } finally {
+        // Ensure all stream tracks are stopped
+        if (stream) {
+          stream.getTracks().forEach(track => track.stop());
+        }
+      }
     }
-    // END: HIGH-QUALITY SCREENSHOT FUNCTION
+    // END: NATIVE BROWSER SCREENSHOT FUNCTION
 
     function updateNodeSizes() {
       if (!simulation) return;
