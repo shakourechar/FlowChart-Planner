@@ -17,7 +17,6 @@
   />
 
   <style>
-    /* ALL YOUR CSS STYLES REMAIN UNCHANGED */
     :root {
       --bg-primary: linear-gradient(135deg, #939ef5 0%, #9e76d6 100%);
       --header-fixed-bg: #20232a;
@@ -644,10 +643,6 @@
   </style>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
-  <!-- CORRECT SCRIPT INCLUSIONS: html2canvas first, then dom-to-image-more -->
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/dom-to-image-more@2.10.1/dist/dom-to-image-more.min.js"></script>
-  
 </head>
 
 <body>
@@ -741,17 +736,6 @@
         <i class="fas fa-floppy-disk"></i>
       </button>
       
-      <!-- START: NEW SCREENSHOT BUTTON -->
-      <button
-        id="screenshotBtn"
-        aria-label="Take Screenshot"
-        title="Take Screenshot"
-        data-tooltip-text="Take Screenshot"
-      >
-        <i class="fas fa-camera"></i>
-      </button>
-      <!-- END: NEW SCREENSHOT BUTTON -->
-
       <button
         id="shareBtn"
         aria-label="Share"
@@ -935,7 +919,7 @@
         <li><b>+/- Node Size </b> – Resize task nodes for better visibility.</li>
         <li><b>🔗 Add Connector</b> - Click to enter 'Connector Mode,' then click two nodes to link them.</li>
         <li><b>⛓️‍💥 Delete a Connector</b> - Click directly on a connector line to bring up a confirmation to delete it.</li>
-        <li>ℹ︎ Use your mouse to drag entire Canvas.</li>
+    <li>ℹ︎ Use your mouse to drag entire Canvas.</li>
         <li>Use your mouse to drag entire Canvas.</li>
     
         <li>Use mouse wheel to further enlarge/shrink nodes.</li>
@@ -1550,7 +1534,7 @@
         if (g('templateBtn')) g('templateBtn').onclick = () => {
           g('templateModal').style.display = 'block';
         };
-        document.querySelectorAll('#templateModal .modal-btn').forEach((b) => (b.onclick = (e) => {
+        document.querySelectorAll('.template-btn').forEach((b) => (b.onclick = (e) => {
           loadTemplate(e.target.dataset.template);
           g('templateModal').style.display = 'none';
         }));
@@ -1577,11 +1561,6 @@
 
         const saveButton = document.getElementById('saveBtn');
         if (saveButton) saveButton.onclick = saveToFile;
-
-        // START: SCREENSHOT BUTTON EVENT LISTENER
-        const screenshotButton = document.getElementById('screenshotBtn');
-        if (screenshotButton) screenshotButton.onclick = takeScreenshot;
-        // END: SCREENSHOT BUTTON EVENT LISTENER
 
         if (g('uploadBtn') && g('fileInput')) {
           g('uploadBtn').onclick = () => g('fileInput').click();
@@ -1765,52 +1744,6 @@
       update();
       return nN;
     }
-
-    // START: DEFINITIVE SCREENSHOT FUNCTION USING DOM-TO-IMAGE-MORE
-    function takeScreenshot() {
-      const node = document.getElementById('flowchartContainer');
-      const flowchartName = document.getElementById('flowchartNameInput').value || 'flowchart';
-      const filename = `${flowchartName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_screenshot.png`;
-      const banner = document.getElementById('banner-container');
-      const scale = 2; // For high-DPI rendering
-
-      // Temporarily hide the banner
-      banner.style.visibility = 'hidden';
-      
-      const options = {
-        quality: 1.0,
-        // This is the critical part: set the background color to match the body's computed style.
-        // This ensures transparency and blur effects render against the correct background.
-        bgcolor: window.getComputedStyle(document.body).getPropertyValue('background-color'),
-        width: node.offsetWidth * scale,
-        height: node.offsetHeight * scale,
-        style: {
-          transform: `scale(${scale})`,
-          transformOrigin: 'top left',
-        }
-      };
-
-      domtoimage.toPng(node, options)
-      .then(function (dataUrl) {
-        // Create a link and trigger the download
-        const link = document.createElement('a');
-        link.download = filename;
-        link.href = dataUrl;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      })
-      .catch(function (error) {
-        console.error('Screenshot failed:', error);
-        alert('Could not take screenshot. Please check the console for details.');
-      })
-      .finally(function() {
-        // This 'finally' block ensures the banner is always made visible again,
-        // regardless of whether the screenshot succeeded or failed.
-        banner.style.visibility = 'visible';
-      });
-    }
-    // END: DEFINITIVE SCREENSHOT FUNCTION
 
     function updateNodeSizes() {
       if (!simulation) return;
