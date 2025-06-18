@@ -230,7 +230,6 @@
         mainZoomGroup = svg.append('g').attr('class', 'zoom-group');
         linkGroup = mainZoomGroup.append('g').attr('class', 'links');
         nodeGroup = mainZoomGroup.append('g').attr('class', 'nodes');
-
         const zoom = d3.zoom().filter(event => !event.target.closest('.node-group')).on('zoom', (event) => { mainZoomGroup.attr('transform', event.transform); });
         svg.call(zoom).on("dblclick.zoom", null);
         simulation = d3.forceSimulation()
@@ -274,17 +273,6 @@
         updateLegendDisplay();
         const currentScaledDimension = BASE_NODE_DIMENSION * currentNodeSizeFactor;
         
-        simulation.nodes(data.nodes);
-        if(data.links.length > 0) { 
-            simulation.force('link', d3.forceLink(data.links).id(d => d.id).distance(250).strength(0.05));
-        } else {
-            simulation.force('link', null);
-        }
-
-        // FIX FOR INITIAL FLOATING: Pre-run the simulation
-        simulation.stop();
-        for (let i = 0; i < 300; ++i) simulation.tick();
-
         let link = linkGroup.selectAll('line.link').data(data.links, d => `${d.source.id || d.source}-${d.target.id || d.target}`);
         link.exit().remove();
         link = link.enter().append('line').attr('class', 'link').attr('stroke', 'var(--link-color)').attr('stroke-width', 2.5).on('click', linkClickHandler).merge(link);
@@ -342,8 +330,21 @@
             else { pillDiv.style('display', 'none'); }
         });
 
-        tick(); 
+        simulation.nodes(data.nodes);
+        if(data.links.length > 0) { simulation.force('link', d3.forceLink(data.links).id(d => d.id).distance(250).strength(0.05)); }
+        
+        // FIX FOR FLOATING NODES:
+        // 1. Stop the simulation from automatically ticking.
+        simulation.stop();
+        // 2. Run the simulation manually for a number of iterations to find stable positions.
+        for (let i = 0, n = Math.ceil(Math.log(simulation.alphaMin()) / Math.log(1 - simulation.alphaDecay())); i < n; ++i) {
+            simulation.tick();
+        }
+        // 3. Pin every node to its calculated stable position.
+        node.each(d => { d.fx = d.x; d.fy = d.y; });
+        
         simulation.on('tick', tick);
+        tick(); // Render the final positions once.
     }
 
     function getIntersectionPoint(sourceNode, targetNode, width, height) {
