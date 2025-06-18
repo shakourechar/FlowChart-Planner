@@ -222,6 +222,27 @@
         .on('end', function(event, d) {
             if (!event.active) simulation.alphaTarget(0);
         });
+    
+    // The tick function is defined once and assigned to the simulation.
+    // This prevents the "ghosting" trail effect.
+    const tick = () => {
+        const currentScaledDimension = BASE_NODE_DIMENSION * currentNodeSizeFactor;
+        
+        nodeGroup.selectAll('g.node-group')
+            .attr('transform', d => `translate(${d.x || 0},${d.y || 0})`);
+        
+        linkGroup.selectAll('line.link').each(function(d) {
+            if (d.source && d.target) {
+                const sourcePoint = getIntersectionPoint(d.source, d.target, currentScaledDimension, currentScaledDimension);
+                const targetPoint = getIntersectionPoint(d.target, d.source, currentScaledDimension, currentScaledDimension);
+                d3.select(this)
+                    .attr('x1', sourcePoint.x)
+                    .attr('y1', sourcePoint.y)
+                    .attr('x2', targetPoint.x)
+                    .attr('y2', targetPoint.y);
+            }
+        });
+    }
 
     function update() {
         if (!svg || !simulation) return;
@@ -292,19 +313,10 @@
             simulation.force('link', d3.forceLink(data.links).id(d => d.id).distance(250).strength(0.05));
         }
 
-        simulation.on('tick', () => {
-            node.attr('transform', d => `translate(${d.x || 0},${d.y || 0})`);
-            
-            link.each(function(d) {
-                if (d.source && d.target) {
-                    const sourcePoint = getIntersectionPoint(d.source, d.target, currentScaledDimension, currentScaledDimension);
-                    const targetPoint = getIntersectionPoint(d.target, d.source, currentScaledDimension, currentScaledDimension);
-                    d3.select(this)
-                        .attr('x1', sourcePoint.x).attr('y1', sourcePoint.y)
-                        .attr('x2', targetPoint.x).attr('y2', targetPoint.y);
-                }
-            });
-        });
+        // Assign the tick function to the simulation.
+        // This is only assigned once per update cycle.
+        simulation.on('tick', tick);
+        
         simulation.alpha(1).restart();
     }
 
@@ -341,15 +353,11 @@
     function updateNodeSizes() { if (!simulation) return; const sD = BASE_NODE_DIMENSION * currentNodeSizeFactor; simulation.force('collide').radius((sD * 0.55) + 25); simulation.force('charge').strength(-1800 * (sD / 160)); update(); simulation.alpha(0.3).restart(); }
     
     document.addEventListener('DOMContentLoaded', () => {
-        // This is the robust initialization that waits for the container to have a size.
-        // This is the fix for the Safari/Wix iframe rendering bug.
         const fcCont = g('flowchartContainer');
         const observer = new ResizeObserver(entries => {
             const entry = entries[0];
             if (entry.contentRect.width > 0) {
-                // Once the container has a valid width, initialize the app
                 initializeApp();
-                // Stop observing to prevent re-initialization on every resize
                 observer.disconnect();
             }
         });
@@ -359,34 +367,13 @@
     function initializeApp() {
         initD3();
         const tooltip = g('tooltip');
-        if (tooltip) {
-          document.querySelectorAll('nav button[data-tooltip-text]').forEach(button => {
-            button.addEventListener('mouseenter', () => {
-              tooltip.textContent = button.dataset.tooltipText;
-              const rect = button.getBoundingClientRect();
-              tooltip.style.top = `${rect.bottom + 8}px`;
-              tooltip.style.left = `${rect.left + rect.width / 2}px`;
-              tooltip.classList.add('visible');
-            });
-            button.addEventListener('mouseleave', () => tooltip.classList.remove('visible'));
-          });
-        }
-        document.querySelectorAll('.color-panel .color-swatch').forEach(swatch => {
-            const color = swatch.dataset.color, opacity = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--node-fill-opacity').trim() || '0.55');
-            if (color) swatch.style.backgroundColor = hexToRgba(color, opacity);
-        });
+        if (tooltip) { document.querySelectorAll('nav button[data-tooltip-text]').forEach(button => { button.addEventListener('mouseenter', () => { tooltip.textContent = button.dataset.tooltipText; const rect = button.getBoundingClientRect(); tooltip.style.top = `${rect.bottom + 8}px`; tooltip.style.left = `${rect.left + rect.width / 2}px`; tooltip.classList.add('visible'); }); button.addEventListener('mouseleave', () => tooltip.classList.remove('visible')); }); }
+        document.querySelectorAll('.color-panel .color-swatch').forEach(swatch => { const color = swatch.dataset.color, opacity = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--node-fill-opacity').trim() || '0.55'); if (color) swatch.style.backgroundColor = hexToRgba(color, opacity); });
         const themeToggleBtn = g('themeToggleBtn'), body = document.body, prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
-        function applyTheme(theme) {
-            body.classList.toggle('dark-mode', theme === 'dark');
-            themeToggleBtn.querySelector('i').className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
-        }
+        function applyTheme(theme) { body.classList.toggle('dark-mode', theme === 'dark'); themeToggleBtn.querySelector('i').className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon'; }
         const savedTheme = localStorage.getItem('theme') || (prefersDark.matches ? 'dark' : 'light');
         applyTheme(savedTheme);
-        themeToggleBtn.addEventListener('click', () => {
-            const newTheme = body.classList.contains('dark-mode') ? 'light' : 'dark';
-            applyTheme(newTheme);
-            localStorage.setItem('theme', newTheme);
-        });
+        themeToggleBtn.addEventListener('click', () => { const newTheme = body.classList.contains('dark-mode') ? 'light' : 'dark'; applyTheme(newTheme); localStorage.setItem('theme', newTheme); });
         g('aiAssistantBtn').onclick = openAIAssistant;
         g('nodeSizeIncreaseBtn').onclick = () => { if (currentNodeSizeFactor < MAX_NODE_SIZE_FACTOR) { currentNodeSizeFactor = parseFloat((currentNodeSizeFactor + NODE_SIZE_STEP).toFixed(2)); updateNodeSizes(); } };
         g('nodeSizeDecreaseBtn').onclick = () => { if (currentNodeSizeFactor > MIN_NODE_SIZE_FACTOR) { currentNodeSizeFactor = parseFloat((currentNodeSizeFactor - NODE_SIZE_STEP).toFixed(2)); updateNodeSizes(); } };
@@ -395,15 +382,8 @@
         g('colorLegendForm').onsubmit = saveColorLegend;
         g('templateBtn').onclick = () => { g('templateModal').style.display = 'block'; };
         document.querySelectorAll('#templateModal .modal-btn').forEach((b) => (b.onclick = (e) => { loadTemplate(e.target.dataset.template); g('templateModal').style.display = 'none'; }));
-        
         const addConnBtn = g('addConnectorBtn');
-        addConnBtn.addEventListener('click', () => {
-            connectorMode = !connectorMode;
-            connectorStartNode = null;
-            addConnBtn.classList.toggle('active', connectorMode);
-            g('flowchart').style.cursor = connectorMode ? 'crosshair' : 'default';
-        });
-
+        addConnBtn.addEventListener('click', () => { connectorMode = !connectorMode; connectorStartNode = null; addConnBtn.classList.toggle('active', connectorMode); g('flowchart').style.cursor = connectorMode ? 'crosshair' : 'default'; });
         g('addNodeBtn').onclick = (e) => { e.preventDefault(); const nN = createNode(selectedNode); if (nN) { selectedNode = nN; nodeClick({ stopPropagation: () => {} }, nN); } };
         g('saveBtn').onclick = saveToFile;
         g('uploadBtn').onclick = () => g('fileInput').click();
