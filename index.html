@@ -342,9 +342,8 @@
             else { pillDiv.style('display', 'none'); }
         });
 
-        tick(); // Call tick once to render the final positions immediately
-        simulation.on('tick', tick); // Assign the tick function for future interactions
-        simulation.alpha(0.3).restart(); // Restart the simulation with a low alpha to enable further interaction
+        tick(); 
+        simulation.on('tick', tick);
     }
 
     function getIntersectionPoint(sourceNode, targetNode, width, height) {
