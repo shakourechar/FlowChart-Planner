@@ -205,7 +205,8 @@
   <script>
     let selectedNode = null, selectedLink = null,
       data = { flowchartName: 'Untitled Flowchart', projectDescription: { summary: '', generatedDate: '' }, nodes: [], links: [], colorLegend: {} },
-      simulation, svg, nodeGroup, linkGroup, mainZoomGroup;
+      simulation, svg, nodeGroup, linkGroup, mainZoomGroup,
+      isInitialLayout = true; // Flag to track the first layout
     const BASE_NODE_DIMENSION = 160;
     let currentNodeSizeFactor = 1.0;
     const MIN_NODE_SIZE_FACTOR = 0.5, MAX_NODE_SIZE_FACTOR = 1.5, NODE_SIZE_STEP = 0.1;
@@ -242,25 +243,19 @@
         .clickDistance(6)
         .on('start', function(event, d) {
             d3.select(this).select('.flowchart-node-html').classed('dragging', true);
-            // **FIX FOR NODE DISPLACEMENT:** Do not reheat the simulation. Let it stay cool.
+            // DO NOT reheat the simulation. This prevents other nodes from moving.
             // if (!event.active) simulation.alphaTarget(0.3).restart(); 
             d.fx = d.x;
             d.fy = d.y;
         })
         .on('drag', function(event, d) {
-            // This manual update of fx/fy is now the ONLY thing that moves the node.
-            d.fx = event.x;
+            d.fx = event.x; // Use event.x directly, as d3.pointer is not needed here
             d.fy = event.y;
-            // We still need to tick the simulation to update the visuals during drag
-            tick();
+            tick(); // Manually call tick to update visuals during drag
         })
         .on('end', function(event, d) {
             d3.select(this).select('.flowchart-node-html').classed('dragging', false);
             if (!event.active) simulation.alphaTarget(0);
-            // Optional: Un-pin the node after drag. For the desired static behavior, we will NOT do this.
-            // The node will now stay exactly where the user drops it.
-            // d.fx = null;
-            // d.fy = null;
         });
     
     const tick = () => {
@@ -278,6 +273,7 @@
     function update() {
         if (!svg || !simulation) return;
         updateLegendDisplay();
+        const currentScaledDimension = BASE_NODE_DIMENSION * currentNodeSizeFactor;
         
         simulation.nodes(data.nodes);
         if(data.links.length > 0) { 
@@ -286,12 +282,19 @@
             simulation.force('link', null);
         }
 
-        // Pre-run the simulation to get a stable layout
-        simulation.stop();
-        for (let i = 0, n = Math.ceil(Math.log(simulation.alphaMin()) / Math.log(1 - simulation.alphaDecay())); i < n; ++i) {
-            simulation.tick();
+        if (isInitialLayout) {
+            simulation.stop();
+            for (let i = 0, n = Math.ceil(Math.log(simulation.alphaMin()) / Math.log(1 - simulation.alphaDecay())); i < n; ++i) {
+                simulation.tick();
+            }
+            // Pin all nodes after the initial layout
+            data.nodes.forEach(d => {
+                d.fx = d.x;
+                d.fy = d.y;
+            });
+            isInitialLayout = false; // Set flag to false after first run
         }
-        
+
         let link = linkGroup.selectAll('line.link').data(data.links, d => `${d.source.id || d.source}-${d.target.id || d.target}`);
         link.exit().remove();
         link = link.enter().append('line').attr('class', 'link').attr('stroke', 'var(--link-color)').attr('stroke-width', 2.5).on('click', linkClickHandler).merge(link);
@@ -314,7 +317,7 @@
                 if (!connectorStartNode) { connectorStartNode = d; } 
                 else if (d.id !== connectorStartNode.id) {
                     const linkExists = data.links.some(l => ((l.source.id || l.source) === connectorStartNode.id && (l.target.id || l.target) === d.id) || ((l.source.id || l.source) === d.id && (l.target.id || l.target) === connectorStartNode.id));
-                    if (!linkExists) { data.links.push({ source: connectorStartNode.id, target: d.id }); update(); }
+                    if (!linkExists) { data.links.push({ source: connectorStartNode.id, target: d.id }); isInitialLayout = false; update(); }
                     connectorMode = false;
                     connectorStartNode = null;
                     g('addConnectorBtn').classList.remove('active');
@@ -323,7 +326,6 @@
             } else { nodeClick(event, d); }
         });
 
-        const currentScaledDimension = BASE_NODE_DIMENSION * currentNodeSizeFactor;
         node.select('foreignObject')
             .attr('width', currentScaledDimension).attr('height', currentScaledDimension)
             .attr('x', -currentScaledDimension / 2).attr('y', -currentScaledDimension / 2);
@@ -379,14 +381,14 @@
     function nodeClick(ev, d) { ev.stopPropagation(); selectedNode = d; g('taskName').value = d.name || ''; g('responsible').value = d.responsible || ''; g('status').value = d.status || 'Not Started'; g('deadline').value = d.deadline || ''; g('priority').value = d.priority || 'Normal'; populateTaskTable(d.actionDescription || ''); g('nodeColor').value = d.color || ''; document.querySelectorAll('.color-panel .color-swatch').forEach((s) => s.classList.remove('selected-swatch')); if (d.color) { const sS = document.querySelector(`.color-swatch[data-color='${d.color}']`); if (sS) sS.classList.add('selected-swatch'); } g('modal').style.display = 'block'; }
     function saveToFile() { try { data.flowchartName = g('flowchartNameInput').value || 'Untitled Flowchart'; const expD = { flowchartName: data.flowchartName, projectDescription: data.projectDescription, nodes: data.nodes.map(n => ({ id: n.id, name: n.name, status: n.status, responsible: n.responsible, deadline: n.deadline, priority: n.priority, actionDescription: n.actionDescription, color: n.color, x: n.x, y: n.y, fx: n.fx, fy: n.fy })), links: data.links.map(l => ({ source: l.source.id || l.source, target: l.target.id || l.target })), colorLegend: data.colorLegend }; const dS = JSON.stringify(expD, null, 2), blb = new Blob([dS], { type: 'application/json' }), url = URL.createObjectURL(blb), a = document.createElement('a'); a.href = url; a.download = (expD.flowchartName.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'flowchart') + '.json'; document.body.appendChild(a); a.click(); setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 100); } catch (e) { console.error('Save file error:', e); alert('Error saving.'); } }
     function normalizeNodePositions(nodes) { if (!nodes || nodes.length === 0) return; const vB = svg.attr('viewBox').split(' ').map(parseFloat); const canvasWidth = vB[2]; const paddingTop = 200; let minX = Infinity, maxX = -Infinity, minY = Infinity; nodes.forEach(n => { if (n.x < minX) minX = n.x; if (n.x > maxX) maxX = n.x; if (n.y < minY) minY = n.y; }); const layoutWidth = maxX - minX; const offsetX = (canvasWidth / 2) - (minX + layoutWidth / 2); const offsetY = paddingTop - minY; nodes.forEach(n => { n.x += offsetX; if (n.fx != null) n.fx += offsetX; n.y += offsetY; if (n.fy != null) n.fy += offsetY; }); }
-    function loadFromFile(f) { if (!f) { alert('No file.'); return; } const r = new FileReader(); r.onload = (e) => { try { const fD = JSON.parse(e.target.result); if (fD && typeof fD === 'object' && Array.isArray(fD.nodes)) { data.flowchartName = fD.flowchartName || 'Untitled'; g('flowchartNameInput').value = data.flowchartName; data.projectDescription = fD.projectDescription || { summary: '', generatedDate: '' }; updateProjectDescButton(); data.colorLegend = fD.colorLegend || {}; data.nodes = fD.nodes.map(n => ({ ...n, x: n.x, y: n.y, fx: n.fx !== undefined ? n.fx : n.x, fy: n.fy !== undefined ? n.fy : n.y })); data.links = Array.isArray(fD.links) ? fD.links : []; g('fileNameDisplay').innerText = `Loaded: ${f.name}`; normalizeNodePositions(data.nodes); update(); } else alert('Invalid format.'); } catch (err) { alert('Parse error.'); console.error('Load file error:', err); } }; r.onerror = () => alert('Read error.'); r.readAsText(f); }
-    function loadTemplate(tmpl) { data.flowchartName = tmpl.charAt(0).toUpperCase() + tmpl.slice(1) + ' Template'; g('flowchartNameInput').value = data.flowchartName; data.links = []; data.projectDescription = { summary: '', generatedDate: '' }; data.colorLegend = {}; updateProjectDescButton(); switch (tmpl) { case 'prototype': data.nodes = [{ id: '1', name: 'Design System Setup', status: 'Completed', color: '#2ecc71' }, { id: '2', name: 'User Auth Development', status: 'In Progress', color: '#f1c40f' }, { id: '3', name: 'Real-time Collab Testing', status: 'Not Started', color: '#e74c3c' }]; break; case 'vendor': data.nodes = [{ id: '1', name: 'Identify Vendors', status: 'Completed', color: '#2ecc71' }, { id: '2', name: 'Conduct Outreach', status: 'In Progress', color: '#f1c40f' }, { id: '3', name: 'Select Final Vendor', status: 'Not Started', color: '#e74c3c' }]; break; case 'marketing': data.nodes = [{ id: '1', name: 'Market Research', status: 'Completed', color: '#2ecc71' }, { id: '2', name: 'Develop Strategy', status: 'In Progress', color: '#f1c40f' }, { id: '3', name: 'Launch Campaign', status: 'Not Started', color: '#e74c3c' }]; break; default: data.nodes = [{ id: 'root-1', name: 'Start New Project', status: 'Not Started', color: '#3498db', x: 300, y: 150, fx: 300, fy: 150 }]; data.flowchartName = 'New Flowchart'; g('flowchartNameInput').value = data.flowchartName; } data.nodes.forEach(n => { n.actionDescription = '[]'; n.fx = null; n.fy = null; }); placeNodesDiagonally(); update(); }
+    function loadFromFile(f) { if (!f) { alert('No file.'); return; } const r = new FileReader(); r.onload = (e) => { try { const fD = JSON.parse(e.target.result); if (fD && typeof fD === 'object' && Array.isArray(fD.nodes)) { data.flowchartName = fD.flowchartName || 'Untitled'; g('flowchartNameInput').value = data.flowchartName; data.projectDescription = fD.projectDescription || { summary: '', generatedDate: '' }; updateProjectDescButton(); data.colorLegend = fD.colorLegend || {}; data.nodes = fD.nodes.map(n => ({ ...n, x: n.x, y: n.y, fx: n.fx !== undefined ? n.fx : n.x, fy: n.fy !== undefined ? n.fy : n.y })); data.links = Array.isArray(fD.links) ? fD.links : []; g('fileNameDisplay').innerText = `Loaded: ${f.name}`; normalizeNodePositions(data.nodes); isInitialLayout = true; update(); } else alert('Invalid format.'); } catch (err) { alert('Parse error.'); console.error('Load file error:', err); } }; r.onerror = () => alert('Read error.'); r.readAsText(f); }
+    function loadTemplate(tmpl) { data.flowchartName = tmpl.charAt(0).toUpperCase() + tmpl.slice(1) + ' Template'; g('flowchartNameInput').value = data.flowchartName; data.links = []; data.projectDescription = { summary: '', generatedDate: '' }; data.colorLegend = {}; updateProjectDescButton(); switch (tmpl) { case 'prototype': data.nodes = [{ id: '1', name: 'Design System Setup', status: 'Completed', color: '#2ecc71' }, { id: '2', name: 'User Auth Development', status: 'In Progress', color: '#f1c40f' }, { id: '3', name: 'Real-time Collab Testing', status: 'Not Started', color: '#e74c3c' }]; break; case 'vendor': data.nodes = [{ id: '1', name: 'Identify Vendors', status: 'Completed', color: '#2ecc71' }, { id: '2', name: 'Conduct Outreach', status: 'In Progress', color: '#f1c40f' }, { id: '3', name: 'Select Final Vendor', status: 'Not Started', color: '#e74c3c' }]; break; case 'marketing': data.nodes = [{ id: '1', name: 'Market Research', status: 'Completed', color: '#2ecc71' }, { id: '2', name: 'Develop Strategy', status: 'In Progress', color: '#f1c40f' }, { id: '3', name: 'Launch Campaign', status: 'Not Started', color: '#e74c3c' }]; break; default: data.nodes = [{ id: 'root-1', name: 'Start New Project', status: 'Not Started', color: '#3498db', x: 300, y: 150, fx: 300, fy: 150 }]; data.flowchartName = 'New Flowchart'; g('flowchartNameInput').value = data.flowchartName; } data.nodes.forEach(n => { n.actionDescription = '[]'; n.fx = null; n.fy = null; }); placeNodesDiagonally(); isInitialLayout = true; update(); }
     function linkClickHandler(event, d) { event.stopPropagation(); selectedLink = d; linkGroup.selectAll('line.link').classed('selected', l => l === selectedLink); g('deleteLinkModal').style.display = 'block'; }
     function openColorLegendModal() { const container = g('color-legend-entries'); container.innerHTML = ''; const uniqueColors = [...new Set(data.nodes.map(n => n.color).filter(c => c))]; const opacity = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--node-fill-opacity').trim() || '0.55'); uniqueColors.forEach(color => { const entry = document.createElement('div'); entry.className = 'legend-entry'; const swatch = document.createElement('div'); swatch.className = 'legend-color-swatch'; swatch.style.backgroundColor = hexToRgba(color, opacity); const input = document.createElement('input'); input.type = 'text'; input.placeholder = `Description for ${color}`; input.dataset.color = color; input.value = data.colorLegend[color] || ''; entry.appendChild(swatch); entry.appendChild(input); container.appendChild(entry); }); g('colorLegendModal').style.display = 'block'; }
     function saveColorLegend(event) { event.preventDefault(); document.querySelectorAll('#color-legend-entries input').forEach(input => { const color = input.dataset.color, desc = input.value.trim(); if (desc) data.colorLegend[color] = desc; else delete data.colorLegend[color]; }); g('colorLegendModal').style.display = 'none'; updateLegendDisplay(); }
     function updateLegendDisplay() { const container = g('color-legend-display'); container.innerHTML = ''; const items = Object.entries(data.colorLegend); const opacity = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--node-fill-opacity').trim() || '0.55'); if (items.length > 0) { items.forEach(([color, description]) => { const item = document.createElement('div'); item.className = 'legend-display-item'; const swatch = document.createElement('div'); swatch.className = 'legend-display-color'; swatch.style.backgroundColor = hexToRgba(color, opacity); const text = document.createElement('span'); text.textContent = description; item.appendChild(swatch); item.appendChild(text); container.appendChild(item); }); container.classList.add('visible'); } else { container.classList.remove('visible'); } }
-    function createNode(pN) { const nId = `node-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`; let iX, iY; const vB = svg.attr('viewBox').split(' '), vW = parseFloat(vB[2]), vH = parseFloat(vB[3]), cSD = BASE_NODE_DIMENSION * currentNodeSizeFactor; if (pN && typeof pN.x === 'number') { iX = pN.x + (Math.random() * 100 - 50); iY = pN.y + cSD * 0.9; } else { iX = vW / 2 + (Math.random() * 200 - 100); iY = vH / 3 + (Math.random() * 100 - 50); } iX = Math.max(cSD / 2, Math.min(iX, vW - cSD / 2)); iY = Math.max(cSD / 2, Math.min(iY, vH - cSD / 2)); const nN = { id: nId, name: 'New Task Node', status: 'Not Started', responsible: '', deadline: '', priority: 'Normal', actionDescription: '[]', color: null, x: iX, y: iY, fx: iX, fy: iY }; data.nodes.push(nN); update(); return nN; }
-    function updateNodeSizes() { if (!simulation) return; const sD = BASE_NODE_DIMENSION * currentNodeSizeFactor; simulation.force('collide').radius((sD * 0.55) + 25); simulation.force('charge').strength(-1800 * (sD / 160)); update(); simulation.alpha(0.3).restart(); }
+    function createNode(pN) { const nId = `node-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`; let iX, iY; const vB = svg.attr('viewBox').split(' '), vW = parseFloat(vB[2]), vH = parseFloat(vB[3]), cSD = BASE_NODE_DIMENSION * currentNodeSizeFactor; if (pN && typeof pN.x === 'number') { iX = pN.x + (Math.random() * 100 - 50); iY = pN.y + cSD * 0.9; } else { iX = vW / 2 + (Math.random() * 200 - 100); iY = vH / 3 + (Math.random() * 100 - 50); } iX = Math.max(cSD / 2, Math.min(iX, vW - cSD / 2)); iY = Math.max(cSD / 2, Math.min(iY, vH - cSD / 2)); const nN = { id: nId, name: 'New Task Node', status: 'Not Started', responsible: '', deadline: '', priority: 'Normal', actionDescription: '[]', color: null, x: iX, y: iY, fx: iX, fy: iY }; data.nodes.push(nN); isInitialLayout = false; update(); }
+    function updateNodeSizes() { if (!simulation) return; const sD = BASE_NODE_DIMENSION * currentNodeSizeFactor; simulation.force('collide').radius((sD * 0.55) + 25); simulation.force('charge').strength(-1800 * (sD / 160)); isInitialLayout = false; update(); }
     
     document.addEventListener('DOMContentLoaded', () => {
         const fcCont = g('flowchartContainer');
@@ -411,8 +413,8 @@
         applyTheme(savedTheme);
         themeToggleBtn.addEventListener('click', () => { const newTheme = body.classList.contains('dark-mode') ? 'light' : 'dark'; applyTheme(newTheme); localStorage.setItem('theme', newTheme); });
         g('aiAssistantBtn').onclick = openAIAssistant;
-        g('nodeSizeIncreaseBtn').onclick = () => { if (currentNodeSizeFactor < MAX_NODE_SIZE_FACTOR) { currentNodeSizeFactor = parseFloat((currentNodeSizeFactor + NODE_SIZE_STEP).toFixed(2)); updateNodeSizes(); } };
-        g('nodeSizeDecreaseBtn').onclick = () => { if (currentNodeSizeFactor > MIN_NODE_SIZE_FACTOR) { currentNodeSizeFactor = parseFloat((currentNodeSizeFactor - NODE_SIZE_STEP).toFixed(2)); updateNodeSizes(); } };
+        g('nodeSizeIncreaseBtn').onclick = () => { if (currentNodeSizeFactor < MAX_NODE_SIZE_FACTOR) { currentNodeSizeFactor = parseFloat((currentNodeSizeFactor + NODE_SIZE_STEP).toFixed(2)); isInitialLayout = false; updateNodeSizes(); } };
+        g('nodeSizeDecreaseBtn').onclick = () => { if (currentNodeSizeFactor > MIN_NODE_SIZE_FACTOR) { currentNodeSizeFactor = parseFloat((currentNodeSizeFactor - NODE_SIZE_STEP).toFixed(2)); isInitialLayout = false; updateNodeSizes(); } };
         g('colorLegendBtn').onclick = openColorLegendModal;
         g('closeColorLegendModal').onclick = () => g('colorLegendModal').style.display = 'none';
         g('colorLegendForm').onsubmit = saveColorLegend;
@@ -432,15 +434,15 @@
         document.querySelectorAll('.modal .close-button').forEach((b) => { if (!['closeUserGuideModal','closeProjectDescModal','closeShareModal','closeColorLegendModal'].includes(b.id)) b.onclick = (e) => { e.stopPropagation(); b.closest('.modal').style.display = 'none'; }; });
         g('closeProjectDescModal').onclick = (e) => { e.stopPropagation(); g('projectDescModal').style.display = 'none'; };
         window.onclick = (e) => { if (e.target.classList.contains('modal')) e.target.style.display = 'none'; };
-        g('taskForm').onsubmit = (e) => { e.preventDefault(); if (selectedNode) { let tsks = []; g('taskTable').querySelectorAll('tbody tr').forEach((r) => { let chk = r.querySelector('input[type="checkbox"]'), txt = r.querySelector('textarea.task-detail-textarea'); if (txt && txt.value.trim() !== '') tsks.push({ completed: chk.checked, task: txt.value.trim() }); }); Object.assign(selectedNode, { name: g('taskName').value, responsible: g('responsible').value, status: g('status').value, deadline: g('deadline').value, priority: g('priority').value, actionDescription: JSON.stringify(tsks), color: g('nodeColor').value || null, }); selectedNode.fx = selectedNode.x; selectedNode.fy = selectedNode.y; update(); } g('modal').style.display = 'none'; };
+        g('taskForm').onsubmit = (e) => { e.preventDefault(); if (selectedNode) { let tsks = []; g('taskTable').querySelectorAll('tbody tr').forEach((r) => { let chk = r.querySelector('input[type="checkbox"]'), txt = r.querySelector('textarea.task-detail-textarea'); if (txt && txt.value.trim() !== '') tsks.push({ completed: chk.checked, task: txt.value.trim() }); }); Object.assign(selectedNode, { name: g('taskName').value, responsible: g('responsible').value, status: g('status').value, deadline: g('deadline').value, priority: g('priority').value, actionDescription: JSON.stringify(tsks), color: g('nodeColor').value || null, }); selectedNode.fx = selectedNode.x; selectedNode.fy = selectedNode.y; isInitialLayout = false; update(); } g('modal').style.display = 'none'; };
         const closeDeleteLinkModal = () => { g('deleteLinkModal').style.display = 'none'; linkGroup.selectAll('line.link').classed('selected', false); selectedLink = null; }
-        g('confirmDeleteLinkBtn').onclick = () => { if (selectedLink) { data.links = data.links.filter(l => l !== selectedLink); update(); } closeDeleteLinkModal(); };
+        g('confirmDeleteLinkBtn').onclick = () => { if (selectedLink) { data.links = data.links.filter(l => l !== selectedLink); isInitialLayout = false; update(); } closeDeleteLinkModal(); };
         g('cancelDeleteLinkBtn').onclick = closeDeleteLinkModal;
         g('addTaskRowBtn').addEventListener('click', () => addTaskRow({}));
         g('deleteTaskBtn').addEventListener('click', () => { let sR = g('taskTable').querySelector('tbody tr.selectedTaskRow'); if (sR) sR.remove(); g('taskTextPopup').style.display = 'none'; });
-        g('deleteNodeBtn').addEventListener('click', () => { if (selectedNode && confirm('Delete node?')) { const selectedId = selectedNode.id; data.nodes = data.nodes.filter((n) => n.id !== selectedId); data.links = data.links.filter(l => (l.source.id || l.source) !== selectedId && (l.target.id || l.target) !== selectedId); selectedNode = null; update(); g('modal').style.display = 'none'; } });
+        g('deleteNodeBtn').addEventListener('click', () => { if (selectedNode && confirm('Delete node?')) { const selectedId = selectedNode.id; data.nodes = data.nodes.filter((n) => n.id !== selectedId); data.links = data.links.filter(l => (l.source.id || l.source) !== selectedId && (l.target.id || l.target) !== selectedId); selectedNode = null; isInitialLayout = false; update(); } g('modal').style.display = 'none'; });
         g('flowchartNameInput').addEventListener('input', function () { data.flowchartName = this.value || 'Untitled'; });
-        if (data.nodes.length === 0) loadTemplate('prototype'); else update();
+        if (data.nodes.length === 0) { isInitialLayout = true; loadTemplate('prototype'); } else { isInitialLayout = true; update(); }
     }
   </script>
 </body>
