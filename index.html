@@ -260,7 +260,7 @@
         const cW = fcCont.clientWidth, cH = fcCont.clientHeight;
         if (cW === 0 || cH === 0) { console.error("Flowchart container has zero dimensions. D3 initialization aborted."); return; }
         const vW = Math.max(cW * 1.5, 2000), vH = Math.max(cH * 1.5, 1500);
-        svg = d3.select(fcCont).append('svg').attr('id', 'flowchart').attr('width', '100%').attr('height', '100%').attr('viewBox', `0 0 ${vW} ${vH}`).attr('preserveAspectRatio', 'xMidYMid meet');
+        svg = d3.select(fcCont).append('svg').attr('id', 'flowchart').attr('xmlns',       'http://www.w3.org/2000/svg').attr('xmlns:xhtml','http://www.w3.org/1999/xhtml').attr('width', '100%').attr('height', '100%').attr('viewBox', `0 0 ${vW} ${vH}`).attr('preserveAspectRatio', 'xMidYMid meet');
         mainZoomGroup = svg.append('g');
         const zm = d3.zoom().on('zoom', (ev) => mainZoomGroup.attr('transform', ev.transform));
         svg.call(zm).on('dblclick.zoom', null);
