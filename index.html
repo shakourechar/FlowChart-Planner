@@ -37,7 +37,7 @@
       --flowchart-container-bg: rgba(255, 255, 255, 0.15);
       --flowchart-container-border: rgba(200, 200, 220, 0.3);
       --node-text-fill: var(--text-on-glass-light-bg, #1c1c1e);
-      --node-fill-opacity: 0.55;
+      --node-fill-opacity: 0.45;
       --task-count-rect-bg: rgba(44, 62, 80, 0.75);
       --task-count-text-fill: white;
       --task-count-border: rgba(255, 255, 255, 0.2);
@@ -71,12 +71,10 @@
     header { background: var(--header-fixed-bg); backdrop-filter: blur(var(--backdrop-blur)); -webkit-backdrop-filter: blur(var(--backdrop-blur)); border-bottom: 1px solid var(--header-glass-border); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); color: var(--text-on-header); padding: 1rem 1.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; position: sticky; top: 0; z-index: 999; }
     header h1 { display: flex; align-items: center; margin: 0; font-size: 1.75rem; font-weight: 600; color: var(--text-on-header); }
     #headerLogo { width: 32px; height: 32px; margin-right: 0.75rem; }
-    header h1 input#flowchartNameInput { margin-left: 1rem; font-size: 0.9rem; padding: 0.5rem 1rem; border: 1px solid var(--input-border); border-radius: 8px; background: var(--input-bg); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); color: var(--input-text); transition: all 0.3s ease; font-weight: 400; }
+    header h1 input#flowchartNameInput { margin-left: 1rem; font-size: 0.9rem; padding: 0.5rem 1rem; border: 1px solid var(--input-border); border-radius: 8px; background: var(--input-bg); color: var(--input-text); transition: all 0.3s ease; font-weight: 400; }
     header h1 input#flowchartNameInput:focus { outline: none; border-color: var(--glass-border); box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1); }
     nav { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
     nav button, #themeToggleBtn { background: var(--button-bg); backdrop-filter: blur(var(--backdrop-blur)); -webkit-backdrop-filter: blur(var(--backdrop-blur)); border: 1px solid var(--header-glass-border); color: var(--button-text); padding: 0.5rem; width: 2.5rem; height: 2.5rem; border-radius: 8px; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s ease; position: relative; overflow: hidden; }
-    nav button::before, #themeToggleBtn::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent); transition: left 0.5s ease; }
-    nav button:hover::before, #themeToggleBtn:hover::before { left: 100%; }
     nav button:hover, #themeToggleBtn:hover { background: var(--button-hover-bg); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2); }
     nav button:active, #themeToggleBtn:active, nav button.active { transform: translateY(0); background: var(--button-hover-bg); box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3); }
     #fileNameDisplay { margin-left: 1rem; font-size: 0.9rem; color: var(--text-on-header); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px; }
@@ -86,14 +84,14 @@
     #color-legend-display.visible { display: flex; }
     .legend-display-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: var(--text-on-header); }
     .legend-display-color { width: 14px; height: 14px; border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.3); }
-    #flowchartContainer { width: calc(100% - 2rem); flex-grow: 1; border: 1px solid var(--flowchart-container-border); background: var(--flowchart-container-bg); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); overflow: hidden; position: relative; margin: 1rem; border-radius: 20px; box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.1); transition: background 0.3s ease, border-color 0.3s ease; }
+    #flowchartContainer { width: calc(100% - 2rem); flex-grow: 1; border: 1px solid var(--flowchart-container-border); background: var(--flowchart-container-bg); overflow: hidden; position: relative; margin: 1rem; border-radius: 20px; box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.1); }
     #flowchart { display: block; width: 100%; height: 100%; }
     line.link { cursor: pointer; transition: stroke 0.3s ease, stroke-width 0.3s ease; }
     line.link.selected { stroke: var(--link-selected-color) !important; stroke-width: 4px; stroke-dasharray: 5, 5; }
     #banner-container { position: absolute; top: 10px; left: 10px; width: 35%; max-width: 420px; aspect-ratio: 1500 / 625; border-radius: 12px; overflow: hidden; background: transparent; z-index: 50; pointer-events: none; }
     #banner-container iframe { width: 100%; height: 100%; border: none; background: transparent; }
     .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); padding-top: 50px; overflow-y: auto; }
-    .modal-content { background: var(--modal-bg); backdrop-filter: blur(var(--backdrop-blur)); -webkit-backdrop-filter: blur(var(--backdrop-blur)); border: 1px solid var(--glass-border); color: var(--modal-text); margin: 20px auto; padding: 2rem; width: 90%; max-width: 750px; overflow-y: auto; max-height: calc(100vh - 100px); border-radius: 20px; position: relative; box-shadow: var(--modal-strong-shadow); transition: background 0.3s ease, border-color 0.3s ease; }
+    .modal-content { background: var(--modal-bg); border: 1px solid var(--glass-border); color: var(--modal-text); margin: 20px auto; padding: 2rem; width: 90%; max-width: 750px; overflow-y: auto; max-height: calc(100vh - 100px); border-radius: 20px; position: relative; box-shadow: var(--modal-strong-shadow); transition: background 0.3s ease, border-color 0.3s ease; }
     #deleteLinkModal .modal-content, #colorLegendModal .modal-content { max-width: 500px; }
     #color-legend-entries { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem; }
     .legend-entry { display: flex; align-items: center; gap: 1rem; }
@@ -102,69 +100,68 @@
     .close-button { position: absolute; right: 15px; top: 15px; font-size: 24px; cursor: pointer; color: var(--close-button-color); width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: rgba(255, 255, 255, 0.1); transition: all 0.3s ease; z-index: 10; }
     .close-button:hover { color: var(--close-button-hover-color); background: rgba(255, 255, 255, 0.2); transform: scale(1.1); }
     form { display: flex; flex-direction: column; gap: 1rem; }
-    input, select, textarea { padding: 12px 16px; border: 1px solid var(--input-border); border-radius: 12px; font-size: 1em; background: var(--input-bg); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); color: var(--input-text); font-family: 'Inter', 'Segoe UI', sans-serif; transition: all 0.3s ease; }
+    input, select, textarea { padding: 12px 16px; border: 1px solid var(--input-border); border-radius: 12px; font-size: 1em; background: var(--input-bg); color: var(--input-text); font-family: 'Inter', 'Segoe UI', sans-serif; transition: all 0.3s ease; }
     input:focus, select:focus, textarea:focus { outline: none; border-color: var(--glass-border); box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1); transform: translateY(-1px); }
     textarea { resize: vertical; min-height: 80px; }
     #taskName { width: 100%; }
-    .modal-btn { background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.2); color: var(--modal-text); padding: 10px 20px; border-radius: 10px; font-size: 1em; font-weight: 500; cursor: pointer; transition: all 0.3s ease; backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); }
+    .modal-btn { background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.2); color: var(--modal-text); padding: 10px 20px; border-radius: 10px; font-size: 1em; font-weight: 500; cursor: pointer; transition: all 0.3s ease; }
     .modal-btn:hover { background: rgba(255, 255, 255, 0.25); border-color: rgba(255, 255, 255, 0.3); transform: translateY(-2px); box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1); }
     .modal-btn:active { transform: translateY(0); box-shadow: none; }
     .modal-btn.danger { background-color: rgba(231, 76, 60, 0.5); }
     .modal-btn.danger:hover { background-color: rgba(231, 76, 60, 0.7); }
-    .flowchart-node-html-wrapper { overflow: visible; }
-    .flowchart-node-html { backdrop-filter: blur(var(--backdrop-blur)); -webkit-backdrop-filter: blur(var(--backdrop-blur)); border: 1px solid var(--glass-border); box-shadow: var(--modal-strong-shadow); border-radius: 18px; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; padding-top: 40px; padding-bottom: 24px; box-sizing: border-box; color: var(--node-text-fill); text-align: center; cursor: move; position: relative; overflow: hidden; transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease; }
-    .flowchart-node-html .priority-indicator { position: absolute; bottom: 12px; right: 12px; display: flex; gap: 2px; font-size: 0.8em; line-height: 1; }
-    .node-name-html { font-weight: 500; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2); word-break: break-word; max-width: 100%; width: 100%; overflow: visible; }
-    body.dark-mode .node-name-html { text-shadow: 0 1px 4px rgba(0, 0, 0, 0.35); }
     
-    /* SAFARI BUG WORKAROUND: The transform property on child elements of a foreignObject
-       causes rendering bugs in Safari. We remove it and use a different centering method. */
+    .flowchart-node-html-wrapper { overflow: visible; }
+    .flowchart-node-html {
+      background-color: transparent;
+      border: 1px solid var(--glass-border);
+      box-shadow: var(--modal-strong-shadow);
+      border-radius: 18px;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      padding: 8px;
+      box-sizing: border-box;
+      color: var(--node-text-fill);
+      text-align: center;
+      cursor: move;
+      overflow: hidden;
+      transition: background-color 0.3s ease, border-color 0.3s ease;
+    }
+    .node-name-html {
+      font-weight: 500;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+      word-break: break-word;
+      flex-grow: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 5px;
+    }
     .task-count-pill-html {
-      position: absolute;
-      top: 8px;
-      left: 50%;
-      /* transform: translateX(-50%); */ /* <-- This line is removed */
-      width: -moz-fit-content; /* Firefox support */
-      width: fit-content;
-      margin-left: auto;
-      margin-right: auto;
-      /* The pill's own width will be calculated, and then margin auto centers it. */
-      /* A more direct way if width is known, but this is more flexible */
       background: var(--task-count-rect-bg);
       color: var(--task-count-text-fill);
-      padding: 5px 12px;
+      padding: 4px 10px;
       border-radius: 14px;
       font-weight: 600;
+      font-size: 0.9em;
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
       border: 1px solid var(--task-count-border);
-      backdrop-filter: blur(4px);
-      -webkit-backdrop-filter: blur(4px);
       white-space: nowrap;
-      z-index: 5;
-      transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+      margin-bottom: auto;
     }
-
-    #userGuideModal .modal-content ul { list-style-type: disc; padding-left: 20px; }
-    #userGuideModal .modal-content h2, #shareModal .modal-content h2, #projectDescModal .modal-content h2, #deleteLinkModal .modal-content h2, #colorLegendModal .modal-content h2 { font-size: 1.5em; margin-bottom: 1em; }
-    #userGuideModal .modal-content h3 { margin-top: 1.5em; margin-bottom: 0.5em; font-size: 1.15em; color: var(--modal-text); }
-    #userGuideModal .modal-content li { margin-bottom: 0.7em; line-height: 1.6; }
-    #userGuideModal .modal-content li strong { font-weight: 600; color: var(--modal-text); }
-    #userGuideModal .modal-content p, #shareModal .modal-content p, #projectDescModal .modal-content p, #deleteLinkModal .modal-content p, #colorLegendModal .modal-content p { margin-bottom: 1em; line-height: 1.6; }
-    #shareModal .modal-content { max-width: 900px; }
-    #shareModal iframe { width: 100%; height: 70vh; border: none; border-radius: 12px; }
+    .priority-indicator {
+      font-size: 0.8em;
+      line-height: 1;
+      margin-top: auto;
+      align-self: flex-end;
+      padding: 4px;
+    }
+    .modal-content h2 { font-size: 1.5em; margin-bottom: 1em; }
+    .modal-content h3 { margin-top: 1.5em; margin-bottom: 0.5em; font-size: 1.15em; color: var(--modal-text); }
+    .modal-content li { margin-bottom: 0.7em; line-height: 1.6; }
+    .modal-content p { margin-bottom: 1em; line-height: 1.6; }
     .action-buttons { display: flex; justify-content: flex-end; gap: 15px; margin-top: 20px; }
-    .color-panel { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; margin-bottom: 12px; }
-    .color-swatch { width: 32px; height: 32px; border: 2px solid var(--glass-border); border-radius: 8px; cursor: pointer; transition: all 0.3s ease; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
-    .color-swatch:hover { transform: scale(1.15) translateY(-2px); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3); }
-    .selected-swatch { outline: 3px solid var(--selected-swatch-outline, #1c1c1e); outline-offset: 3px; transform: scale(1.1); }
-    .selectedTaskRow { border: 2px solid var(--selected-row-border, rgba(52, 152, 219, 0.8)); background: var(--selected-row-bg, rgba(200, 210, 225, 0.3)); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 8px; }
-    #taskTable { width: 100%; margin-bottom: 15px; border-collapse: collapse; }
-    #taskTable th { text-align: left; padding-bottom: 8px; border-bottom: 2px solid var(--table-header-separator, rgba(0, 0, 0, 0.2)); color: var(--th-text-color, #1c1c1e); font-weight: 600; }
-    #taskTable td { padding-top: 8px; }
-    .task-detail-textarea { width: 100%; resize: vertical; border: 1px solid var(--input-border); padding: 8px 12px; background: var(--input-bg); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); color: var(--input-text); border-radius: 8px; font-size: 0.9em; min-height: 3em; transition: all 0.3s ease; }
-    .task-detail-textarea:focus { border-color: var(--glass-border); box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1); }
-    @media (max-width: 768px) { #banner-container { width: 49%; max-width: 294px; } #color-legend-display { top: 130px; } }
-    @media (max-width: 480px) { header { flex-direction: column; align-items: flex-start; gap: 0.75rem; } header h1 { font-size: 1.5rem; } nav { width: 100%; gap: 0.25rem; } nav button, #themeToggleBtn { width: 2rem; height: 2rem; font-size: 0.9rem; } #fileNameDisplay { display: none; } #banner-container { width: 56%; max-width: 252px; } #color-legend-display { top: 170px; } }
   </style>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
@@ -229,9 +226,6 @@
       return `rgba(${r},${g},${b},${alpha})`;
     }
 
-    // =================================================================================
-    // D3 INITIALIZATION, DRAG & ZOOM HANDLING
-    // =================================================================================
     function initD3() {
         const fcCont = g('flowchartContainer');
         const cW = fcCont.clientWidth, cH = fcCont.clientHeight;
@@ -257,6 +251,7 @@
     }
 
     const drag = d3.drag()
+        .clickDistance(6) // Makes click detection more reliable
         .on('start', function(event, d) {
             if (!event.active) simulation.alphaTarget(0.3).restart();
             d.fx = d.x;
@@ -271,13 +266,9 @@
             if (!event.active) simulation.alphaTarget(0);
         });
 
-    // =================================================================================
-    // DATA AND DOM MANIPULATION
-    // =================================================================================
     function update() {
         if (!svg || !simulation) return;
         updateLegendDisplay();
-
         const currentScaledDimension = BASE_NODE_DIMENSION * currentNodeSizeFactor;
         
         let link = linkGroup.selectAll('line.link').data(data.links, d => `${d.source.id || d.source}-${d.target.id || d.target}`);
@@ -296,13 +287,19 @@
         node = nodeEnter.merge(node);
         
         node.on('click', (event, d) => {
+            if (event.defaultPrevented) return;
             event.stopPropagation();
             if (connectorMode) {
-                if (!connectorStartNode) { connectorStartNode = d; } 
-                else if (d.id !== connectorStartNode.id) {
+                if (!connectorStartNode) { 
+                    connectorStartNode = d; 
+                } else if (d.id !== connectorStartNode.id) {
                     const linkExists = data.links.some(l => ((l.source.id || l.source) === connectorStartNode.id && (l.target.id || l.target) === d.id) || ((l.source.id || l.source) === d.id && (l.target.id || l.target) === connectorStartNode.id));
                     if (!linkExists) { data.links.push({ source: connectorStartNode.id, target: d.id }); update(); }
-                    connectorMode = false; connectorStartNode = null; g('flowchart').style.cursor = 'default'; g('addConnectorBtn').classList.remove('active');
+                    
+                    connectorMode = false;
+                    connectorStartNode = null;
+                    g('addConnectorBtn').classList.remove('active');
+                    g('flowchart').style.cursor = 'default';
                 }
             } else { nodeClick(event, d); }
         });
@@ -316,15 +313,20 @@
             const nodeFillOpacity = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--node-fill-opacity').trim() || '0.7');
             const baseColorHex = d.color ? d.color : getStatusColor(d.status);
             nodeOuterDiv.style('background-color', hexToRgba(baseColorHex, nodeFillOpacity));
-            let prDiv = nodeOuterDiv.select('.priority-indicator'); if (prDiv.empty()) { prDiv = nodeOuterDiv.append('div').attr('class', 'priority-indicator'); }
+            
+            let pillDiv = nodeOuterDiv.select('.task-count-pill-html');
+            if (pillDiv.empty()) pillDiv = nodeOuterDiv.append('div').attr('class', 'task-count-pill-html');
+            let nameDiv = nodeOuterDiv.select('.node-name-html');
+            if (nameDiv.empty()) nameDiv = nodeOuterDiv.append('div').attr('class', 'node-name-html');
+            let prDiv = nodeOuterDiv.select('.priority-indicator');
+            if (prDiv.empty()) prDiv = nodeOuterDiv.append('div').attr('class', 'priority-indicator');
+            
+            nameDiv.text(d.name || '');
             let indicatorHtml = d.priority === 'Low' ? '🔴 ⚪️ ⚪️' : d.priority === 'Normal' ? '🔴 🔴 ⚪️' : d.priority === 'High' ? '🔴 🔴 🔴' : '⚪️ ⚪️ ⚪️';
             prDiv.html(indicatorHtml);
-            let pillDiv = nodeOuterDiv.select('.task-count-pill-html'); if (pillDiv.empty()) pillDiv = nodeOuterDiv.append('div').attr('class', 'task-count-pill-html');
-            let nameDiv = nodeOuterDiv.select('.node-name-html'); if (nameDiv.empty()) nameDiv = nodeOuterDiv.append('div').attr('class', 'node-name-html');
-            nameDiv.text(d.name || '').style('font-size', `${Math.max(10, 14 * currentNodeSizeFactor)}px`);
             let tasks = []; try { if (d.actionDescription) tasks = JSON.parse(d.actionDescription); } catch (e) {}
             const compC = tasks.filter((t) => t.completed).length, totC = tasks.length;
-            if (totC > 0) { pillDiv.text(`✓ ${compC}/${totC}`).style('display', 'block').style('font-size', `${Math.max(9, 12 * currentNodeSizeFactor)}px`); } 
+            if (totC > 0) { pillDiv.text(`✓ ${compC}/${totC}`).style('display', 'block'); } 
             else { pillDiv.style('display', 'none'); }
         });
 
@@ -341,10 +343,8 @@
                     const sourcePoint = getIntersectionPoint(d.source, d.target, currentScaledDimension, currentScaledDimension);
                     const targetPoint = getIntersectionPoint(d.target, d.source, currentScaledDimension, currentScaledDimension);
                     d3.select(this)
-                        .attr('x1', sourcePoint.x)
-                        .attr('y1', sourcePoint.y)
-                        .attr('x2', targetPoint.x)
-                        .attr('y2', targetPoint.y);
+                        .attr('x1', sourcePoint.x).attr('y1', sourcePoint.y)
+                        .attr('x2', targetPoint.x).attr('y2', targetPoint.y);
                 }
             });
         });
@@ -366,7 +366,7 @@
       switch (s) { case 'Not Started': return '#e74c3c'; case 'In Progress': return '#f1c40f'; case 'Completed': return '#2ecc71'; default: return '#3498db'; }
     }
     
-    // --- All other helper functions (modals, forms, etc.) ---
+    // --- All original helper functions are restored below ---
     function openAIAssistant() { const url = 'https://chatgpt.com/g/g-678c450b02988191b07d47c7a5bd9d4a-flow-chart-assistant'; const sW = window.screen.availWidth, sH = window.screen.availHeight, bS = Math.min(sW, sH); const pW = Math.floor(bS * 0.45), pH = Math.floor(bS * 0.55), l = Math.floor((sW - pW) / 2), t = Math.floor((sH - pH) / 2); window.open(url, 'FlowchartAIAssistant', `width=${pW},height=${pH},left=${l},top=${t},resizable=yes,scrollbars=yes`); }
     function placeNodesDiagonally() { const vW = parseFloat(svg.attr('viewBox').split(' ')[2]); const iX = vW / 2, iY = 150, cSD = BASE_NODE_DIMENSION * currentNodeSizeFactor; const hS = cSD * 1.75, vS = cSD * 1.25; data.nodes.forEach((n, i) => { if (n.x == null) { n.x = iX + (i % 3 - 1) * hS + (Math.random() * 50 - 25); n.fx = n.x; } if (n.y == null) { n.y = iY + Math.floor(i / 3) * vS + (Math.random() * 50 - 25); n.fy = n.y; } }); }
     function addTaskRow(t) { const tb = g('taskTable').querySelector('tbody'), tr = document.createElement('tr'); tr.addEventListener('click', function () { document.querySelectorAll('#taskTable tbody tr').forEach((r) => r.classList.remove('selectedTaskRow')); this.classList.add('selectedTaskRow'); }); const tdC = document.createElement('td'), cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = t && t.completed; tdC.appendChild(cb); const tdT = document.createElement('td'), ti = document.createElement('textarea'); ti.classList.add('task-detail-textarea'); ti.value = t && t.task ? t.task : ''; ti.rows = 1; ti.addEventListener('input', function () { this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px'; }); ti.addEventListener('dblclick', (e) => { e.stopPropagation(); tr.classList.add('selectedTaskRow'); showTaskPopup(ti.value); }); tdT.appendChild(ti); tr.appendChild(tdC); tr.appendChild(tdT); tb.appendChild(tr); ti.dispatchEvent(new Event('input')); }
@@ -383,8 +383,78 @@
     function updateLegendDisplay() { const container = g('color-legend-display'); container.innerHTML = ''; const items = Object.entries(data.colorLegend); const opacity = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--node-fill-opacity').trim() || '0.55'); if (items.length > 0) { items.forEach(([color, description]) => { const item = document.createElement('div'); item.className = 'legend-display-item'; const swatch = document.createElement('div'); swatch.className = 'legend-display-color'; swatch.style.backgroundColor = hexToRgba(color, opacity); const text = document.createElement('span'); text.textContent = description; item.appendChild(swatch); item.appendChild(text); container.appendChild(item); }); container.classList.add('visible'); } else { container.classList.remove('visible'); } }
     function createNode(pN) { const nId = `node-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`; let iX, iY; const vB = svg.attr('viewBox').split(' '), vW = parseFloat(vB[2]), vH = parseFloat(vB[3]), cSD = BASE_NODE_DIMENSION * currentNodeSizeFactor; if (pN && typeof pN.x === 'number') { iX = pN.x + (Math.random() * 100 - 50); iY = pN.y + cSD * 0.9; } else { iX = vW / 2 + (Math.random() * 200 - 100); iY = vH / 3 + (Math.random() * 100 - 50); } iX = Math.max(cSD / 2, Math.min(iX, vW - cSD / 2)); iY = Math.max(cSD / 2, Math.min(iY, vH - cSD / 2)); const nN = { id: nId, name: 'New Task Node', status: 'Not Started', responsible: '', deadline: '', priority: 'Normal', actionDescription: '[]', color: null, x: iX, y: iY, fx: iX, fy: iY }; data.nodes.push(nN); update(); return nN; }
     function updateNodeSizes() { if (!simulation) return; const sD = BASE_NODE_DIMENSION * currentNodeSizeFactor; simulation.force('collide').radius((sD * 0.55) + 25); simulation.force('charge').strength(-1800 * (sD / 160)); update(); simulation.alpha(0.3).restart(); }
-    document.addEventListener('DOMContentLoaded', () => { initD3(); const tooltip = g('tooltip'); if (tooltip) { document.querySelectorAll('nav button[data-tooltip-text]').forEach(button => { button.addEventListener('mouseenter', () => { tooltip.textContent = button.dataset.tooltipText; const rect = button.getBoundingClientRect(); tooltip.style.top = `${rect.bottom + 8}px`; tooltip.style.left = `${rect.left + rect.width / 2}px`; tooltip.classList.add('visible'); }); button.addEventListener('mouseleave', () => tooltip.classList.remove('visible')); }); } document.querySelectorAll('.color-panel .color-swatch').forEach(swatch => { const color = swatch.dataset.color, opacity = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--node-fill-opacity').trim() || '0.55'); if (color) swatch.style.backgroundColor = hexToRgba(color, opacity); }); const themeToggleBtn = g('themeToggleBtn'), body = document.body, prefersDark = window.matchMedia('(prefers-color-scheme: dark)'); function applyTheme(theme) { body.classList.toggle('dark-mode', theme === 'dark'); themeToggleBtn.querySelector('i').className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon'; } const savedTheme = localStorage.getItem('theme') || (prefersDark.matches ? 'dark' : 'light'); applyTheme(savedTheme); themeToggleBtn.addEventListener('click', () => { const newTheme = body.classList.contains('dark-mode') ? 'light' : 'dark'; applyTheme(newTheme); localStorage.setItem('theme', newTheme); }); g('aiAssistantBtn').onclick = openAIAssistant; g('nodeSizeIncreaseBtn').onclick = () => { if (currentNodeSizeFactor < MAX_NODE_SIZE_FACTOR) { currentNodeSizeFactor = parseFloat((currentNodeSizeFactor + NODE_SIZE_STEP).toFixed(2)); updateNodeSizes(); } }; g('nodeSizeDecreaseBtn').onclick = () => { if (currentNodeSizeFactor > MIN_NODE_SIZE_FACTOR) { currentNodeSizeFactor = parseFloat((currentNodeSizeFactor - NODE_SIZE_STEP).toFixed(2)); updateNodeSizes(); } }; document.querySelectorAll('.color-panel .color-swatch').forEach((s) => s.addEventListener('click', () => { document.querySelectorAll('.color-panel .color-swatch').forEach((x) => x.classList.remove('selected-swatch')); s.classList.add('selected-swatch'); g('nodeColor').value = s.dataset.color; })); g('colorLegendBtn').onclick = openColorLegendModal; g('closeColorLegendModal').onclick = () => g('colorLegendModal').style.display = 'none'; g('colorLegendForm').onsubmit = saveColorLegend; g('templateBtn').onclick = () => { g('templateModal').style.display = 'block'; }; document.querySelectorAll('#templateModal .modal-btn').forEach((b) => (b.onclick = (e) => { loadTemplate(e.target.dataset.template); g('templateModal').style.display = 'none'; })); g('addConnectorBtn').addEventListener('click', () => { connectorMode = !connectorMode; connectorStartNode = null; g('flowchart').style.cursor = connectorMode ? 'crosshair' : 'default'; g('addConnectorBtn').classList.toggle('active', connectorMode); }); g('addNodeBtn').onclick = (e) => { e.preventDefault(); const nN = createNode(selectedNode); if (nN) { selectedNode = nN; nodeClick({ stopPropagation: () => {} }, nN); } }; g('saveBtn').onclick = saveToFile; g('uploadBtn').onclick = () => g('fileInput').click(); g('fileInput').onchange = (e) => { if (e.target.files.length > 0) loadFromFile(e.target.files[0]); }; g('userGuideBtn').onclick = () => g('userGuideModal').style.display = 'block'; g('closeUserGuideModal').onclick = () => g('userGuideModal').style.display = 'none'; g('shareBtn').onclick = () => g('shareModal').style.display = 'block'; g('closeShareModal').onclick = () => g('shareModal').style.display = 'none'; g('projectDescBtn').onclick = () => { const pd = data.projectDescription || {}; g('projectSummary').textContent = (pd.summary && pd.generatedDate) ? pd.summary : 'File does not contain a Project Description.'; g('projectGeneratedDate').textContent = (pd.summary && pd.generatedDate) ? `Generated: ${pd.generatedDate}` : ''; g('projectDescModal').style.display = 'block'; }; document.querySelectorAll('.modal .close-button').forEach((b) => { if (!['closeUserGuideModal','closeProjectDescModal','closeShareModal','closeColorLegendModal'].includes(b.id)) b.onclick = (e) => { e.stopPropagation(); b.closest('.modal').style.display = 'none'; }; }); g('closeProjectDescModal').onclick = (e) => { e.stopPropagation(); g('projectDescModal').style.display = 'none'; }; window.onclick = (e) => { if (e.target.classList.contains('modal')) e.target.style.display = 'none'; }; g('taskForm').onsubmit = (e) => { e.preventDefault(); if (selectedNode) { let tsks = []; g('taskTable').querySelectorAll('tbody tr').forEach((r) => { let chk = r.querySelector('input[type="checkbox"]'), txt = r.querySelector('textarea.task-detail-textarea'); if (txt && txt.value.trim() !== '') tsks.push({ completed: chk.checked, task: txt.value.trim() }); }); Object.assign(selectedNode, { name: g('taskName').value, responsible: g('responsible').value, status: g('status').value, deadline: g('deadline').value, priority: g('priority').value, actionDescription: JSON.stringify(tsks), color: g('nodeColor').value || null, }); selectedNode.fx = selectedNode.x; selectedNode.fy = selectedNode.y; update(); } g('modal').style.display = 'none'; }; const closeDeleteLinkModal = () => { g('deleteLinkModal').style.display = 'none'; linkGroup.selectAll('line.link').classed('selected', false); selectedLink = null; }
-    g('confirmDeleteLinkBtn').onclick = () => { if (selectedLink) { data.links = data.links.filter(l => l !== selectedLink); update(); } closeDeleteLinkModal(); }; g('cancelDeleteLinkBtn').onclick = closeDeleteLinkModal; g('addTaskRowBtn').addEventListener('click', () => addTaskRow({})); g('deleteTaskBtn').addEventListener('click', () => { let sR = g('taskTable').querySelector('tbody tr.selectedTaskRow'); if (sR) sR.remove(); g('taskTextPopup').style.display = 'none'; }); g('deleteNodeBtn').addEventListener('click', () => { if (selectedNode && confirm('Delete node?')) { const selectedId = selectedNode.id; data.nodes = data.nodes.filter((n) => n.id !== selectedId); data.links = data.links.filter(l => (l.source.id || l.source) !== selectedId && (l.target.id || l.target) !== selectedId); selectedNode = null; update(); g('modal').style.display = 'none'; } }); g('flowchartNameInput').addEventListener('input', function () { data.flowchartName = this.value || 'Untitled'; }); if (data.nodes.length === 0) loadTemplate('prototype'); else update(); });
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        initD3();
+        const tooltip = g('tooltip');
+        if (tooltip) {
+          document.querySelectorAll('nav button[data-tooltip-text]').forEach(button => {
+            button.addEventListener('mouseenter', () => {
+              tooltip.textContent = button.dataset.tooltipText;
+              const rect = button.getBoundingClientRect();
+              tooltip.style.top = `${rect.bottom + 8}px`;
+              tooltip.style.left = `${rect.left + rect.width / 2}px`;
+              tooltip.classList.add('visible');
+            });
+            button.addEventListener('mouseleave', () => tooltip.classList.remove('visible'));
+          });
+        }
+        document.querySelectorAll('.color-panel .color-swatch').forEach(swatch => {
+            const color = swatch.dataset.color;
+            const nodeFillOpacity = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--node-fill-opacity').trim() || '0.55');
+            if (color) swatch.style.backgroundColor = hexToRgba(color, nodeFillOpacity);
+        });
+        const themeToggleBtn = g('themeToggleBtn'), body = document.body, prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+        function applyTheme(theme) {
+            body.classList.toggle('dark-mode', theme === 'dark');
+            themeToggleBtn.querySelector('i').className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+        }
+        const savedTheme = localStorage.getItem('theme') || (prefersDark.matches ? 'dark' : 'light');
+        applyTheme(savedTheme);
+        themeToggleBtn.addEventListener('click', () => {
+            const newTheme = body.classList.contains('dark-mode') ? 'light' : 'dark';
+            applyTheme(newTheme);
+            localStorage.setItem('theme', newTheme);
+        });
+        g('aiAssistantBtn').onclick = openAIAssistant;
+        g('nodeSizeIncreaseBtn').onclick = () => { if (currentNodeSizeFactor < MAX_NODE_SIZE_FACTOR) { currentNodeSizeFactor = parseFloat((currentNodeSizeFactor + NODE_SIZE_STEP).toFixed(2)); updateNodeSizes(); } };
+        g('nodeSizeDecreaseBtn').onclick = () => { if (currentNodeSizeFactor > MIN_NODE_SIZE_FACTOR) { currentNodeSizeFactor = parseFloat((currentNodeSizeFactor - NODE_SIZE_STEP).toFixed(2)); updateNodeSizes(); } };
+        g('colorLegendBtn').onclick = openColorLegendModal;
+        g('closeColorLegendModal').onclick = () => g('colorLegendModal').style.display = 'none';
+        g('colorLegendForm').onsubmit = saveColorLegend;
+        g('templateBtn').onclick = () => { g('templateModal').style.display = 'block'; };
+        document.querySelectorAll('#templateModal .modal-btn').forEach((b) => (b.onclick = (e) => { loadTemplate(e.target.dataset.template); g('templateModal').style.display = 'none'; }));
+        
+        const addConnBtn = g('addConnectorBtn');
+        addConnBtn.addEventListener('click', () => {
+            connectorMode = !connectorMode;
+            connectorStartNode = null;
+            addConnBtn.classList.toggle('active', connectorMode);
+            g('flowchart').style.cursor = connectorMode ? 'crosshair' : 'default';
+        });
+
+        g('addNodeBtn').onclick = (e) => { e.preventDefault(); const nN = createNode(selectedNode); if (nN) { selectedNode = nN; nodeClick({ stopPropagation: () => {} }, nN); } };
+        g('saveBtn').onclick = saveToFile;
+        g('uploadBtn').onclick = () => g('fileInput').click();
+        g('fileInput').onchange = (e) => { if (e.target.files.length > 0) loadFromFile(e.target.files[0]); };
+        g('userGuideBtn').onclick = () => g('userGuideModal').style.display = 'block';
+        g('closeUserGuideModal').onclick = () => g('userGuideModal').style.display = 'none';
+        g('shareBtn').onclick = () => g('shareModal').style.display = 'block';
+        g('closeShareModal').onclick = () => g('shareModal').style.display = 'none';
+        g('projectDescBtn').onclick = () => { const pd = data.projectDescription || {}; g('projectSummary').textContent = (pd.summary && pd.generatedDate) ? pd.summary : 'File does not contain a Project Description.'; g('projectGeneratedDate').textContent = (pd.summary && pd.generatedDate) ? `Generated: ${pd.generatedDate}` : ''; g('projectDescModal').style.display = 'block'; };
+        document.querySelectorAll('.modal .close-button').forEach((b) => { if (!['closeUserGuideModal','closeProjectDescModal','closeShareModal','closeColorLegendModal'].includes(b.id)) b.onclick = (e) => { e.stopPropagation(); b.closest('.modal').style.display = 'none'; }; });
+        g('closeProjectDescModal').onclick = (e) => { e.stopPropagation(); g('projectDescModal').style.display = 'none'; };
+        window.onclick = (e) => { if (e.target.classList.contains('modal')) e.target.style.display = 'none'; };
+        g('taskForm').onsubmit = (e) => { e.preventDefault(); if (selectedNode) { let tsks = []; g('taskTable').querySelectorAll('tbody tr').forEach((r) => { let chk = r.querySelector('input[type="checkbox"]'), txt = r.querySelector('textarea.task-detail-textarea'); if (txt && txt.value.trim() !== '') tsks.push({ completed: chk.checked, task: txt.value.trim() }); }); Object.assign(selectedNode, { name: g('taskName').value, responsible: g('responsible').value, status: g('status').value, deadline: g('deadline').value, priority: g('priority').value, actionDescription: JSON.stringify(tsks), color: g('nodeColor').value || null, }); selectedNode.fx = selectedNode.x; selectedNode.fy = selectedNode.y; update(); } g('modal').style.display = 'none'; };
+        const closeDeleteLinkModal = () => { g('deleteLinkModal').style.display = 'none'; linkGroup.selectAll('line.link').classed('selected', false); selectedLink = null; }
+        g('confirmDeleteLinkBtn').onclick = () => { if (selectedLink) { data.links = data.links.filter(l => l !== selectedLink); update(); } closeDeleteLinkModal(); };
+        g('cancelDeleteLinkBtn').onclick = closeDeleteLinkModal;
+        g('addTaskRowBtn').addEventListener('click', () => addTaskRow({}));
+        g('deleteTaskBtn').addEventListener('click', () => { let sR = g('taskTable').querySelector('tbody tr.selectedTaskRow'); if (sR) sR.remove(); g('taskTextPopup').style.display = 'none'; });
+        g('deleteNodeBtn').addEventListener('click', () => { if (selectedNode && confirm('Delete node?')) { const selectedId = selectedNode.id; data.nodes = data.nodes.filter((n) => n.id !== selectedId); data.links = data.links.filter(l => (l.source.id || l.source) !== selectedId && (l.target.id || l.target) !== selectedId); selectedNode = null; update(); g('modal').style.display = 'none'; } });
+        g('flowchartNameInput').addEventListener('input', function () { data.flowchartName = this.value || 'Untitled'; });
+        if (data.nodes.length === 0) loadTemplate('prototype'); else update();
+    });
   </script>
 </body>
 </html>
