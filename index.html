@@ -242,23 +242,30 @@
         .clickDistance(6)
         .on('start', function(event, d) {
             d3.select(this).select('.flowchart-node-html').classed('dragging', true);
-            if (!event.active) simulation.alphaTarget(0.3).restart();
+            // **FIX FOR NODE DISPLACEMENT:** Do not reheat the simulation. Let it stay cool.
+            // if (!event.active) simulation.alphaTarget(0.3).restart(); 
             d.fx = d.x;
             d.fy = d.y;
         })
         .on('drag', function(event, d) {
-            const [x, y] = d3.pointer(event, mainZoomGroup.node());
-            d.fx = x;
-            d.fy = y;
+            // This manual update of fx/fy is now the ONLY thing that moves the node.
+            d.fx = event.x;
+            d.fy = event.y;
+            // We still need to tick the simulation to update the visuals during drag
+            tick();
         })
         .on('end', function(event, d) {
             d3.select(this).select('.flowchart-node-html').classed('dragging', false);
             if (!event.active) simulation.alphaTarget(0);
+            // Optional: Un-pin the node after drag. For the desired static behavior, we will NOT do this.
+            // The node will now stay exactly where the user drops it.
+            // d.fx = null;
+            // d.fy = null;
         });
     
     const tick = () => {
         const currentScaledDimension = BASE_NODE_DIMENSION * currentNodeSizeFactor;
-        nodeGroup.selectAll('g.node-group').attr('transform', d => `translate(${d.x || 0},${d.y || 0})`);
+        nodeGroup.selectAll('g.node-group').attr('transform', d => `translate(${d.fx || d.x || 0},${d.fy || d.y || 0})`);
         linkGroup.selectAll('line.link').each(function(d) {
             if (d.source && d.target) {
                 const sourcePoint = getIntersectionPoint(d.source, d.target, currentScaledDimension, currentScaledDimension);
@@ -271,7 +278,19 @@
     function update() {
         if (!svg || !simulation) return;
         updateLegendDisplay();
-        const currentScaledDimension = BASE_NODE_DIMENSION * currentNodeSizeFactor;
+        
+        simulation.nodes(data.nodes);
+        if(data.links.length > 0) { 
+            simulation.force('link', d3.forceLink(data.links).id(d => d.id).distance(250).strength(0.05));
+        } else {
+            simulation.force('link', null);
+        }
+
+        // Pre-run the simulation to get a stable layout
+        simulation.stop();
+        for (let i = 0, n = Math.ceil(Math.log(simulation.alphaMin()) / Math.log(1 - simulation.alphaDecay())); i < n; ++i) {
+            simulation.tick();
+        }
         
         let link = linkGroup.selectAll('line.link').data(data.links, d => `${d.source.id || d.source}-${d.target.id || d.target}`);
         link.exit().remove();
@@ -304,6 +323,7 @@
             } else { nodeClick(event, d); }
         });
 
+        const currentScaledDimension = BASE_NODE_DIMENSION * currentNodeSizeFactor;
         node.select('foreignObject')
             .attr('width', currentScaledDimension).attr('height', currentScaledDimension)
             .attr('x', -currentScaledDimension / 2).attr('y', -currentScaledDimension / 2);
@@ -330,25 +350,13 @@
             else { pillDiv.style('display', 'none'); }
         });
 
-        simulation.nodes(data.nodes);
-        if(data.links.length > 0) { simulation.force('link', d3.forceLink(data.links).id(d => d.id).distance(250).strength(0.05)); }
-        
-        // FIX FOR FLOATING NODES:
-        // 1. Stop the simulation from automatically ticking.
-        simulation.stop();
-        // 2. Run the simulation manually for a number of iterations to find stable positions.
-        for (let i = 0, n = Math.ceil(Math.log(simulation.alphaMin()) / Math.log(1 - simulation.alphaDecay())); i < n; ++i) {
-            simulation.tick();
-        }
-        // 3. Pin every node to its calculated stable position.
-        node.each(d => { d.fx = d.x; d.fy = d.y; });
-        
         simulation.on('tick', tick);
-        tick(); // Render the final positions once.
+        tick(); 
     }
 
     function getIntersectionPoint(sourceNode, targetNode, width, height) {
-        const sx = sourceNode.x, sy = sourceNode.y, tx = targetNode.x, ty = targetNode.y;
+        const sx = sourceNode.fx || sourceNode.x, sy = sourceNode.fy || sourceNode.y;
+        const tx = targetNode.fx || targetNode.x, ty = targetNode.fy || targetNode.y;
         const dx = tx - sx, dy = ty - sy;
         if (dx === 0 && dy === 0) { return { x: sx, y: sy }; }
         const halfWidth = width / 2, halfHeight = height / 2;
